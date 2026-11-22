@@ -17,13 +17,17 @@ HOW THIS WORKSPACE OPERATES
    Interactive visual Control Studio trainer. Switch modules in the top-left
    picker (EM_TANK_CHARGE + EM_XFER_HDR) to inspect authentic DeltaV Control
    Studio stencils, wires, pins, On-Line live values, and fault simulations.
-2. Textbook & Lab Manual (DeltaV_Study_Guide.pdf — Edition v2.0, 18 pages):
+2. Expression Forge (ex.html — launch anytime by typing 'run ex' in terminal):
+   Web & mobile-ready interactive DeltaV Structured Text expression & parameter
+   trainer (Decode Cold, Forge Builder, 2 AM Bug Hunt, and On-Line Expression
+   Tree Evaluator). Enable GitHub Pages on this repo to drill on any phone!
+3. Textbook & Lab Manual (DeltaV_Study_Guide.pdf — Edition v2.0, 18 pages):
    Full in-depth native DeltaV lessons, pin-by-pin schematics, real-plant traps,
-   and 7 complete step-by-step Visual Explorer workshops (with "What You Are
-   Supposed to Learn From This Workshop" takeaways).
-3. Reference Library (pdf reference/):
+   and 7 complete step-by-step Visual Explorer workshops (launch via 'run guide'
+   or 'run pdf').
+4. Reference Library (pdf reference/):
    Official Emerson DeltaV Sequence Tutorials & Control Studio Online PDS docs.
-4. Session Tracker (WHERE_WE_ARE.txt — this file):
+5. Session Tracker (WHERE_WE_ARE.txt — this file):
    Single source of truth so even a brand-new chat instantly knows where we came
    from, where we are right now, and where we are going next.
 

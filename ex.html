@@ -1,0 +1,1411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>DeltaV Expression Forge — Parameter &amp; Expression Trainer</title>
+<style>
+  :root {
+    --bg: #0b1220;
+    --panel: #131e32;
+    --panel-2: #1a2740;
+    --panel-3: #0f172a;
+    --border: #2c3e5d;
+    --text: #f1f5f9;
+    --muted: #94a3b8;
+    --accent: #38bdf8;
+    --accent-dark: #0284c7;
+    --amber: #f59e0b;
+    --ok: #22c55e;
+    --ok-bg: rgba(34, 197, 94, 0.14);
+    --bad: #ef4444;
+    --bad-bg: rgba(239, 68, 68, 0.14);
+    --warn-bg: rgba(245, 158, 11, 0.14);
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Cascadia Code", monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    line-height: 1.48;
+  }
+
+  /* Top App Header */
+  header {
+    background: #070d19;
+    border-bottom: 1px solid var(--border);
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+    position: sticky;
+    top: 0;
+    z-index: 30;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+  }
+  .forge-badge {
+    background: linear-gradient(135deg, #f59e0b, #ea580c);
+    color: #fff;
+    font-weight: 800;
+    font-size: 11.5px;
+    padding: 4px 8px;
+    border-radius: 5px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .brand h1 {
+    font-size: 15.5px;
+    font-weight: 800;
+    color: #f8fafc;
+  }
+  .brand .sub {
+    font-size: 11.5px;
+    color: var(--muted);
+    font-weight: 500;
+  }
+
+  .header-stats {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .stat-pill {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 4px 9px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #e2e8f0;
+  }
+  .stat-pill span { color: var(--accent); }
+  .nav-link {
+    background: var(--panel-2);
+    color: #e2e8f0;
+    border: 1px solid var(--border);
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .nav-link:hover { background: #263859; }
+
+  /* Mode Switcher Tabs */
+  .mode-nav {
+    background: var(--panel-3);
+    border-bottom: 1px solid var(--border);
+    padding: 8px 14px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+  }
+  .mode-btn {
+    background: var(--panel);
+    color: #cbd5e1;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 8px 6px;
+    font-size: 12.5px;
+    font-weight: 700;
+    cursor: pointer;
+    text-align: center;
+    touch-action: manipulation;
+    transition: all 0.15s;
+  }
+  .mode-btn:hover { background: var(--panel-2); color: #fff; }
+  .mode-btn.active {
+    background: linear-gradient(135deg, #0284c7, #1d4ed8);
+    border-color: #7dd3fc;
+    color: #fff;
+    box-shadow: 0 0 0 1px rgba(125, 211, 252, 0.3);
+  }
+  .mode-btn small {
+    display: block;
+    font-size: 10px;
+    font-weight: 500;
+    opacity: 0.85;
+    margin-top: 1px;
+  }
+
+  /* Main Container */
+  .container {
+    width: 100%;
+    max-width: 1060px;
+    margin: 0 auto;
+    padding: 14px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+  .level-badge {
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    padding: 3px 8px;
+    border-radius: 5px;
+    background: rgba(56, 189, 248, 0.16);
+    color: var(--accent);
+    border: 1px solid rgba(56, 189, 248, 0.35);
+  }
+  .progress-dots {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+  }
+  .dot {
+    width: 24px;
+    height: 24px;
+    border-radius: 5px;
+    background: var(--panel-3);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .dot.active { border-color: var(--accent); color: #fff; background: #0369a1; }
+  .dot.solved { background: rgba(34, 197, 94, 0.22); border-color: var(--ok); color: #86efac; }
+
+  .prompt-title {
+    font-size: 16px;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 6px;
+  }
+  .prompt-desc {
+    font-size: 14px;
+    color: #cbd5e1;
+    margin-bottom: 10px;
+  }
+  .context-strip {
+    background: var(--panel-3);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 8px 11px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: #93c5fd;
+    margin-bottom: 10px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  /* Interactive Tokenized Code Display (Mode 1) */
+  .expr-stage {
+    background: #060b14;
+    border: 1.5px solid #334155;
+    border-radius: 8px;
+    padding: 13px;
+    font-family: var(--mono);
+    font-size: 14.5px;
+    line-height: 1.85;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+  }
+  .tok-chip {
+    padding: 3px 8px;
+    border-radius: 5px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.12s;
+    touch-action: manipulation;
+  }
+  .tok-path { background: rgba(56, 189, 248, 0.14); color: #7dd3fc; border-color: rgba(56, 189, 248, 0.35); }
+  .tok-op   { background: rgba(245, 158, 11, 0.15); color: #fcd34d; border-color: rgba(245, 158, 11, 0.35); font-weight: 800; }
+  .tok-kw   { background: rgba(34, 197, 94, 0.15); color: #86efac; border-color: rgba(34, 197, 94, 0.35); font-weight: 700; }
+  .tok-num  { background: rgba(168, 85, 247, 0.16); color: #d8b4fe; border-color: rgba(168, 85, 247, 0.35); }
+  .tok-chip:hover, .tok-chip.sel {
+    transform: translateY(-1px);
+    box-shadow: 0 0 0 2px #38bdf8;
+  }
+
+  .tok-explain {
+    margin-top: 10px;
+    background: #0f1b2e;
+    border-left: 4px solid var(--accent);
+    padding: 9px 12px;
+    border-radius: 0 7px 7px 0;
+    font-size: 13.5px;
+    color: #e2e8f0;
+  }
+
+  /* Multiple Choice Options (Mode 1) */
+  .mc-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .mc-btn {
+    background: var(--panel-2);
+    color: #f1f5f9;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 11px 12px;
+    text-align: left;
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: all 0.12s;
+  }
+  .mc-btn:hover { border-color: var(--accent); background: #223352; }
+  .mc-btn.correct { background: var(--ok-bg); border-color: var(--ok); color: #bbf7d0; }
+  .mc-btn.wrong   { background: var(--bad-bg); border-color: var(--bad); color: #fecaca; }
+
+  /* Expression Assistant Editor & Tap Keypad (Modes 2, 3, 4) */
+  .editor-label {
+    font-size: 11.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--muted);
+    margin-bottom: 5px;
+    display: flex;
+    justify-content: space-between;
+  }
+  textarea.expr-input {
+    width: 100%;
+    min-height: 76px;
+    background: #050a14;
+    color: #7dd3fc;
+    border: 1.5px solid #3b5278;
+    border-radius: 8px;
+    padding: 11px 12px;
+    font-family: var(--mono);
+    font-size: 16px; /* >=16px prevents iOS Safari zoom on tap! */
+    line-height: 1.5;
+    resize: vertical;
+  }
+  textarea.expr-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.25);
+  }
+
+  .assistant-deck {
+    margin-top: 10px;
+    background: var(--panel-3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .deck-row-label {
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--muted);
+    letter-spacing: 0.5px;
+  }
+  .chip-bank {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .key-btn {
+    background: #1e293b;
+    color: #f8fafc;
+    border: 1px solid #475569;
+    border-radius: 6px;
+    padding: 7px 10px;
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    touch-action: manipulation;
+    user-select: none;
+  }
+  .key-btn:active { transform: scale(0.96); }
+  .key-btn.op { background: #272015; border-color: #b45309; color: #fcd34d; }
+  .key-btn.ref { background: #10263c; border-color: #0284c7; color: #7dd3fc; }
+  .key-btn.kw { background: #0f291e; border-color: #15803d; color: #86efac; }
+
+  .action-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+  }
+  .btn {
+    border: none;
+    border-radius: 7px;
+    padding: 10px 16px;
+    font-size: 13.5px;
+    font-weight: 700;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, #0284c7, #2563eb);
+    color: #fff;
+  }
+  .btn-secondary {
+    background: var(--panel-2);
+    color: #e2e8f0;
+    border: 1px solid var(--border);
+  }
+  .btn-warn {
+    background: rgba(245, 158, 11, 0.18);
+    color: #fcd34d;
+    border: 1px solid #b45309;
+  }
+  .btn-next {
+    background: #15803d;
+    color: #fff;
+    margin-left: auto;
+  }
+
+  /* Parser Output Box (Control Studio Authentic) */
+  .parser-box {
+    margin-top: 12px;
+    border-radius: 8px;
+    padding: 11px 14px;
+    font-size: 13.5px;
+    border: 1.5px solid var(--border);
+    background: #080f1d;
+    display: none;
+  }
+  .parser-box.show { display: block; }
+  .parser-box.ok { border-color: var(--ok); background: var(--ok-bg); }
+  .parser-box.err { border-color: var(--bad); background: var(--bad-bg); }
+  .parser-box.hint { border-color: var(--amber); background: var(--warn-bg); }
+  .parser-title {
+    font-weight: 800;
+    margin-bottom: 4px;
+    font-family: var(--mono);
+  }
+
+  /* Sandbox Sliders & Tree View (Mode 4 — Control Studio On-Line Page 26!) */
+  .sandbox-grid {
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 14px;
+  }
+  .tag-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 7px 0;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+    font-size: 12.5px;
+  }
+  .tag-row:last-child { border-bottom: none; }
+  .tag-name {
+    font-family: var(--mono);
+    color: #7dd3fc;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .tag-name:hover { text-decoration: underline; }
+  .tag-controls {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .tag-controls input[type="range"] { width: 95px; accent-color: #38bdf8; }
+  .tag-controls select {
+    background: #0b1220;
+    color: #f8fafc;
+    border: 1px solid #475569;
+    border-radius: 5px;
+    padding: 3px 6px;
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+
+  .tree-box {
+    background: #060b14;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 11px 13px;
+    font-family: var(--mono);
+    font-size: 12.8px;
+    line-height: 1.7;
+    margin-top: 10px;
+  }
+  .tree-true { color: #4ade80; font-weight: 700; }
+  .tree-false { color: #f87171; font-weight: 700; }
+  .tree-sub { padding-left: 18px; border-left: 1px dashed #334155; margin-left: 6px; }
+
+  /* Quick Syntax Cheat Card */
+  details.syntax-drawer {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    padding: 10px 14px;
+  }
+  details.syntax-drawer summary {
+    cursor: pointer;
+    font-weight: 800;
+    font-size: 13.5px;
+    color: var(--accent);
+  }
+  .syntax-cols {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 10px;
+    margin-top: 10px;
+    font-size: 12.5px;
+  }
+  .syntax-card {
+    background: var(--panel-3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 10px;
+  }
+  .syntax-card code {
+    color: #7dd3fc;
+    font-family: var(--mono);
+  }
+
+  /* Responsive Mobile Layout */
+  @media (max-width: 740px) {
+    .mode-nav {
+      grid-template-columns: repeat(2, 1fr);
+      padding: 8px 10px;
+    }
+    .mc-grid {
+      grid-template-columns: 1fr;
+    }
+    .sandbox-grid {
+      grid-template-columns: 1fr;
+    }
+    .container {
+      padding: 10px;
+    }
+    .card {
+      padding: 12px;
+    }
+    .btn {
+      flex: 1 1 auto;
+      text-align: center;
+    }
+    .btn-next {
+      margin-left: 0;
+      width: 100%;
+    }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <span class="forge-badge">Expression Forge</span>
+    <div>
+      <h1>DeltaV Expression &amp; Parameter Trainer</h1>
+      <div class="sub">Read • Write • Debug • Live On-Line Expression Tree</div>
+    </div>
+  </div>
+  <div class="header-stats">
+    <div class="stat-pill">Mastered: <span id="statSolved">0</span>/<span id="statTotal">0</span></div>
+    <div class="stat-pill">Streak: <span id="statStreak">0</span>🔥</div>
+    <a class="nav-link" href="index.html">🎛️ Visual Explorer</a>
+    <a class="nav-link" href="DeltaV_Study_Guide.html" target="_blank">📘 Study Guide</a>
+  </div>
+</header>
+
+<nav class="mode-nav" id="modeNav">
+  <button class="mode-btn active" data-mode="decode">1. Decode Cold<small>Tap tokens &amp; read</small></button>
+  <button class="mode-btn" data-mode="build">2. Forge Builder<small>Write &amp; Parse ST</small></button>
+  <button class="mode-btn" data-mode="debug">3. Fix the Bug<small>2 AM fault hunt</small></button>
+  <button class="mode-btn" data-mode="sandbox">4. On-Line Tree<small>Live Expression Lab</small></button>
+</nav>
+
+<div class="container">
+
+  <!-- Quick Collapsible DeltaV Expression Cheat Sheet -->
+  <details class="syntax-drawer">
+    <summary>⚡ 10-Second DeltaV Expression Assistant Cheat Sheet (Tap to Expand)</summary>
+    <div class="syntax-cols">
+      <div class="syntax-card">
+        <strong>1. Path Quotes &amp; Shortcuts</strong><br/>
+        • Local module: <code>'^/TARGET_WT.CV'</code><br/>
+        • External CM: <code>'CM_FEED_XV/DC1/PV_D'</code> or <code>'//LAB4/FC4-1/SP.CV'</code><br/>
+        • Always wrap paths with <code>/</code> in <strong>single quotes</strong>!
+      </div>
+      <div class="syntax-card">
+        <strong>2. Read (<code>=</code>) vs. Stamp (<code>:=</code>)</strong><br/>
+        • <strong>CND / Transition (Question):</strong> use <code>=</code>, <code>!=</code> (or <code>&lt;&gt;</code>), <code>&lt;=</code>, <code>&gt;=</code><br/>
+        • <strong>ACT / Step Action (Write):</strong> MUST use <code>:=</code> (e.g. <code>'^/OUT.CV' := 1.0</code>)
+      </div>
+      <div class="syntax-card">
+        <strong>3. Suffixes &amp; Keywords</strong><br/>
+        • <code>.CV</code> = Current Value • <code>.ST</code> = Health Status<br/>
+        • <code>MODE.ACTUAL</code> (check) vs <code>MODE.TARGET</code> (write)<br/>
+        • Unquoted keywords: <code>CAS</code>, <code>MAN</code>, <code>AUTO</code>, <code>OOS</code>, <code>GOOD</code>, <code>BAD</code>, <code>True</code>, <code>False</code>
+      </div>
+    </div>
+  </details>
+
+  <!-- Dynamic Active Mode Stage -->
+  <div id="stageArea"></div>
+
+</div>
+
+<script>
+// =========================================================================
+// 1. CURRICULUM DATA — STRICTLY NATIVE EMERSON DELTAV EXPRESSIONS
+// =========================================================================
+
+// MODE 1: DECODE COLD (Tap every token + answer comprehension check)
+const DECODE_DRILLS = [
+  {
+    id: "d1",
+    level: "Decode 1 • Mode Permissive",
+    title: "Feed Valve Cascade Readiness Check",
+    context: "Found inside EM_TANK_CHARGE → Pattern 2 → CND1 (Pre-Start Permissive)",
+    tokens: [
+      { t: "'CM_FEED_XV/DC1/MODE.ACTUAL'", cls: "tok-path", tip: "External reference into Control Module CM_FEED_XV, block DC1, checking its TRUE live operating mode (MODE.ACTUAL — never trust MODE.TARGET in permissives!)." },
+      { t: "=", cls: "tok-op", tip: "Equality comparison (=). Asks a Yes/No question without changing anything." },
+      { t: "CAS", cls: "tok-kw", tip: "Unquoted DeltaV mode constant for Cascade ('Following the Boss Upstairs')." }
+    ],
+    question: "If an operator flips CM_FEED_XV to Manual (MAN) while ACT2 still requests MODE.TARGET := CAS, what does this expression return?",
+    options: [
+      { text: "FALSE (0) — because MODE.ACTUAL is MAN, holding the charge safely in Idle.", ok: true },
+      { text: "TRUE (1) — because MODE.TARGET is still requesting CAS.", ok: false },
+      { text: "It forces CM_FEED_XV back into CAS automatically.", ok: false },
+      { text: "Syntax Error — CAS must be inside single quotes.", ok: false }
+    ],
+    takeaway: "Always check MODE.ACTUAL in CND/Transition expressions; always write MODE.TARGET in ACT assignments."
+  },
+  {
+    id: "d2",
+    level: "Decode 2 • Local Tare Snapshot",
+    title: "Step Entry Pulse Assignment ([P] Action)",
+    context: "Found inside EM_TANK_CHARGE → Step S10_CHARGE_OPEN Action A1 (Qualifier: P Pulse)",
+    tokens: [
+      { t: "'^/START_WT.CV'", cls: "tok-path", tip: "'^/' means THIS module (EM_TANK_CHARGE). Writes into local parameter START_WT's Current Value (.CV)." },
+      { t: ":=", cls: "tok-op", tip: "DeltaV Assignment Stamp (:=). Copies the right-hand value into the left-hand parameter ONCE on Pulse." },
+      { t: "'CM_TANK_WT/AI1/OUT.CV'", cls: "tok-path", tip: "Reads live gross vessel weight (kg) from Tank Scale CM's Analog Input block AI1." }
+    ],
+    question: "Why MUST this action use the [P] Pulse qualifier exclusively on the S0_IDLE → S10_CHARGE_OPEN start edge?",
+    options: [
+      { text: "So START_WT.CV locks once at start and is NOT overwritten with current tank weight if the batch Holds and Restarts.", ok: true },
+      { text: "Because := only works inside [P] Pulse actions and fails in [N] actions.", ok: false },
+      { text: "Because AI1/OUT.CV only updates once per batch.", ok: false },
+      { text: "To reset CM_TANK_WT hardware calibration to 0.0 kg.", ok: false }
+    ],
+    takeaway: "Re-capturing START_WT.CV on Restart from Hold erases already-added solvent and overfills the vessel!"
+  },
+  {
+    id: "d3",
+    level: "Decode 3 • Dual-Wire Status Trip",
+    title: "Mid-Charge Signal Health & Overfill Interlock",
+    context: "Found inside EM_TANK_CHARGE → Pattern 2 → CND2 (Active Interlock Watch)",
+    tokens: [
+      { t: "(", cls: "tok-op", tip: "Groups the first fault check cleanly." },
+      { t: "'CM_TANK_WT/AI1/OUT.ST'", cls: "tok-path", tip: "Inspects the SIGNAL STATUS (.ST) riding beside the weight—NOT the kg number (.CV)!" },
+      { t: "=", cls: "tok-op", tip: "Checks whether status equals BAD." },
+      { t: "BAD", cls: "tok-kw", tip: "Unquoted DeltaV status keyword indicating broken wire, sensor fault, or OOS block." },
+      { t: ")", cls: "tok-op", tip: "Closes first condition." },
+      { t: "OR", cls: "tok-kw", tip: "Boolean OR — if EITHER fault occurs on any Scan, CND2 fires immediately." },
+      { t: "(", cls: "tok-op", tip: "Opens second fault check." },
+      { t: "'^/HI_HI_LVL.CV'", cls: "tok-path", tip: "Local High-High overfill switch parameter inside this EM." },
+      { t: "=", cls: "tok-op", tip: "Checks equality." },
+      { t: "1", cls: "tok-num", tip: "True / Tripped discrete state (1)." },
+      { t: ")", cls: "tok-op", tip: "Closes second condition." }
+    ],
+    question: "Suppose the scale load-cell cable snaps mid-charge and 'CM_TANK_WT/AI1/OUT.CV' freezes at a normal-looking 280.0 kg. What happens on the very next Scan?",
+    options: [
+      { text: "OUT.ST turns BAD, making the left side TRUE so CND2 trips ACT1 to close the valve immediately.", ok: true },
+      { text: "Nothing happens until tank weight exceeds 500.0 kg.", ok: false },
+      { text: "Both conditions must be TRUE because of OR.", ok: false },
+      { text: "It waits until Pattern 1 reaches Transition T20_PRECLOSE.", ok: false }
+    ],
+    takeaway: "Every DeltaV wire carries .ST alongside .CV — watching .ST = BAD prevents charging blind on a frozen sensor!"
+  },
+  {
+    id: "d4",
+    level: "Decode 4 • External Flow Loop Setpoint",
+    title: "Cross-Module Analog Setpoint Write (// Prefix)",
+    context: "Found inside Sequence Step FILL → Action A2 (Emerson Sequence Tutorial Pattern)",
+    tokens: [
+      { t: "'//LAB4/FC4-1/SP.CV'", cls: "tok-path", tip: "'//' explicitly marks a top-level external Control Module (LAB4), block FC4-1, writing its analog Setpoint (.CV)." },
+      { t: ":=", cls: "tok-op", tip: "Assignment operator writing 1.0 GPM into the flow controller setpoint." },
+      { t: "1.0", cls: "tok-num", tip: "Floating-point target flow rate (1.0 GPM)." }
+    ],
+    question: "What happens after Step FILL pulses this action and the sequence moves on to monitor tank level?",
+    options: [
+      { text: "FC4-1/SP.CV stays latched at 1.0 GPM until a later step (like DRAIN) explicitly writes '0.0' via ':='.", ok: true },
+      { text: "FC4-1/SP.CV automatically drops back to 0.0 as soon as the Pulse finishes.", ok: false },
+      { text: "It reads FC4-1/SP.CV without changing it.", ok: false },
+      { text: "It puts FC4-1 into Out of Service (OOS).", ok: false }
+    ],
+    takeaway: "In DeltaV, Pulse [P] and ACT assignments latch their written value until another action overwrites it!"
+  },
+  {
+    id: "d5",
+    level: "Decode 5 • State-Driven Mismatch",
+    title: "Manifold State Transition Timeout Check",
+    context: "Found inside EM_XFER_HDR → Tab 3 → CND_FAIL_ALM (Configured with DURATION = 8s)",
+    tokens: [
+      { t: "'^/EM_S_COMMAND'", cls: "tok-path", tip: "Desired Named-Set route requested on State-Driven header EM_XFER_HDR (e.g., ROUTE_TANK_A)." },
+      { t: "!=", cls: "tok-op", tip: "Not-Equal operator (!= or <> in DeltaV). True whenever desired state and confirmed state disagree." },
+      { t: "'^/PV_D'", cls: "tok-path", tip: "Confirmed actual header state decoded from all 4 child CM physical limit switches." }
+    ],
+    question: "Why do engineers pair this '!=' expression with DURATION = 8s on CND_FAIL_ALM instead of DURATION = 0s?",
+    options: [
+      { text: "Real pneumatic valves need several seconds to stroke—DURATION = 8s lets valves travel normally before raising FAIL_ACTIVE.", ok: true },
+      { text: "DeltaV blocks crash if DURATION is 0s.", ok: false },
+      { text: "Because PV_D only scans once every 8 seconds.", ok: false },
+      { text: "So the transfer pump starts 8 seconds before the valves open.", ok: false }
+    ],
+    takeaway: "Pairing Command != Feedback with a DURATION confirm timer gives actuators travel time while catching jammed valves!"
+  }
+];
+
+// MODE 2: FORGE BUILDER (Write or Tap-Build real DeltaV Expressions)
+const BUILD_DRILLS = [
+  {
+    id: "b1",
+    level: "Forge 1 • Local Transition",
+    kind: "cond",
+    title: "Check Low Tank Level Before Filling",
+    prompt: "Write a Transition condition checking that local block LI4-1's PV current value ('^/LI4-1/PV.CV') is strictly less than 1.0.",
+    hint: "Wrap the local path in single quotes: '^/LI4-1/PV.CV' < 1.0",
+    chips: ["'^/LI4-1/PV.CV'", "<", ">", "=", ":=", "1.0", "0.5"],
+    canon: "'^/LI4-1/PV.CV' < 1.0",
+    validate: (norm) => norm === "'^/li4-1/pv.cv'<1.0" || norm === "'^/li4-1/pv.cv'<1"
+  },
+  {
+    id: "b2",
+    level: "Forge 2 • Step Action Stamp",
+    kind: "assign",
+    title: "Stamp Feed Valve Command Open",
+    prompt: "Write an Action assignment that stamps Open onto CM_FEED_XV's DC1 block cascade discrete input ('CM_FEED_XV/DC1/CAS_IN_D').",
+    hint: "Action writes MUST use := (colon-equals), with single quotes around the path and unquoted Open: 'CM_FEED_XV/DC1/CAS_IN_D' := Open",
+    chips: ["'CM_FEED_XV/DC1/CAS_IN_D'", "'CM_FEED_XV/DC1/PV_D'", ":=", "=", "Open", "Close"],
+    canon: "'CM_FEED_XV/DC1/CAS_IN_D' := Open",
+    validate: (norm) => norm === "'cm_feed_xv/dc1/cas_in_d':=open"
+  },
+  {
+    id: "b3",
+    level: "Forge 3 • Mode Verification",
+    kind: "cond",
+    title: "Verify Feed Valve Is Truly in Cascade",
+    prompt: "Write a CND condition verifying that CM_FEED_XV's DC1 block TRUE live mode (MODE.ACTUAL) equals Cascade (CAS).",
+    hint: "Check MODE.ACTUAL (not MODE.TARGET!) using = and unquoted CAS: 'CM_FEED_XV/DC1/MODE.ACTUAL' = CAS",
+    chips: ["'CM_FEED_XV/DC1/MODE.ACTUAL'", "'CM_FEED_XV/DC1/MODE.TARGET'", "=", ":=", "CAS", "MAN"],
+    canon: "'CM_FEED_XV/DC1/MODE.ACTUAL' = CAS",
+    validate: (norm) => norm === "'cm_feed_xv/dc1/mode.actual'=cas"
+  },
+  {
+    id: "b4",
+    level: "Forge 4 • Preclose Cutoff Gate",
+    kind: "cond",
+    title: "Fire Transition T20_PRECLOSE Early",
+    prompt: "Write the Transition condition that turns TRUE when local remaining weight ('^/REMAINING_WT.CV') is less than or equal to local preclose lead ('^/PRECLOSE_LEAD.CV').",
+    hint: "Use <= between the two quoted local '^/...' paths.",
+    chips: ["'^/REMAINING_WT.CV'", "'^/PRECLOSE_LEAD.CV'", "<=", ">=", "<", ":="],
+    canon: "'^/REMAINING_WT.CV' <= '^/PRECLOSE_LEAD.CV'",
+    validate: (norm) => norm === "'^/remaining_wt.cv'<='^/preclose_lead.cv'"
+  },
+  {
+    id: "b5",
+    level: "Forge 5 • Signal Health Trip",
+    kind: "cond",
+    title: "Catch a Broken or OOS Tank Scale Wire",
+    prompt: "Write a CND condition that detects when CM_TANK_WT's AI1 block output signal STATUS (.ST) is BAD.",
+    hint: "Check .ST (not .CV!) against unquoted keyword BAD: 'CM_TANK_WT/AI1/OUT.ST' = BAD",
+    chips: ["'CM_TANK_WT/AI1/OUT.ST'", "'CM_TANK_WT/AI1/OUT.CV'", "=", "!=", "BAD", "GOOD"],
+    canon: "'CM_TANK_WT/AI1/OUT.ST' = BAD",
+    validate: (norm) => norm === "'cm_tank_wt/ai1/out.st'=bad"
+  },
+  {
+    id: "b6",
+    level: "Forge 6 • Net Delivered Mass Math",
+    kind: "assign",
+    title: "Compute Net Solvent Added (CALC Block)",
+    prompt: "Write the assignment calculating '^/DELIVERED_WT.CV' as live gross scale weight ('CM_TANK_WT/AI1/OUT.CV') minus locked tare ('^/START_WT.CV').",
+    hint: "Assign with := and subtract tare from gross: '^/DELIVERED_WT.CV' := 'CM_TANK_WT/AI1/OUT.CV' - '^/START_WT.CV'",
+    chips: ["'^/DELIVERED_WT.CV'", ":=", "'CM_TANK_WT/AI1/OUT.CV'", "-", "+", "'^/START_WT.CV'"],
+    canon: "'^/DELIVERED_WT.CV' := 'CM_TANK_WT/AI1/OUT.CV' - '^/START_WT.CV'",
+    validate: (norm) => norm === "'^/delivered_wt.cv':='cm_tank_wt/ai1/out.cv'-'^/start_wt.cv'"
+  },
+  {
+    id: "b7",
+    level: "Forge 7 • Confirmed Valve Shut",
+    kind: "cond",
+    title: "Prove Feed Valve Physically Closed + Settled",
+    prompt: "Combine two checks with AND: local flag '^/VALVE_SHUT_OK' equals 1 AND local '^/STEP_TIME.CV' is at least (>=) 5.",
+    hint: "('^/VALVE_SHUT_OK' = 1) AND ('^/STEP_TIME.CV' >= 5)",
+    chips: ["(", "'^/VALVE_SHUT_OK'", "=", "1", ")", "AND", "OR", "'^/STEP_TIME.CV'", ">=", "5"],
+    canon: "('^/VALVE_SHUT_OK' = 1) AND ('^/STEP_TIME.CV' >= 5)",
+    validate: (norm) => {
+      const clean = norm.replace(/[()]/g, "");
+      return clean === "'^/valve_shut_ok'=1and'^/step_time.cv'>=5" || clean === "'^/valve_shut_ok'=1and'^/step_time.cv'>=5.0";
+    }
+  },
+  {
+    id: "b8",
+    level: "Forge 8 • Push Cascade Mode Request",
+    kind: "assign",
+    title: "Request Cascade Mode on Downstream Valve",
+    prompt: "Write the ACT assignment that requests Cascade (CAS) on CM_FEED_XV's DC1 block target mode (MODE.TARGET).",
+    hint: "Write to MODE.TARGET using := and unquoted CAS: 'CM_FEED_XV/DC1/MODE.TARGET' := CAS",
+    chips: ["'CM_FEED_XV/DC1/MODE.TARGET'", "'CM_FEED_XV/DC1/MODE.ACTUAL'", ":=", "=", "CAS", "AUTO"],
+    canon: "'CM_FEED_XV/DC1/MODE.TARGET' := CAS",
+    validate: (norm) => norm === "'cm_feed_xv/dc1/mode.target':=cas"
+  }
+];
+
+// MODE 3: SPOT & FIX THE BUG (2 AM Plant Debugger)
+const DEBUG_DRILLS = [
+  {
+    id: "x1",
+    level: "Bug Hunt 1 • Action Won't Write",
+    kind: "assign",
+    title: "Drain Valve Never Closes in Step FILL!",
+    symptom: "A junior engineer put this line inside Step FILL's Action A1 to close the drain valve, but OUTLET-VALVE never changes state!",
+    buggy: "'^/OUTLET-VALVE.CV' = False",
+    whyBug: "Used '=' (equality check) instead of ':=' (assignment stamp) inside an Action! '=' only compares values and throws away the result.",
+    chips: ["'^/OUTLET-VALVE.CV'", ":=", "=", "False", "True"],
+    canon: "'^/OUTLET-VALVE.CV' := False",
+    validate: (norm) => norm === "'^/outlet-valve.cv':=false"
+  },
+  {
+    id: "x2",
+    level: "Bug Hunt 2 • Blind Mode Check",
+    kind: "cond",
+    title: "Charge Started While Feed Valve Was Locked in Manual!",
+    symptom: "The operator switched CM_FEED_XV to MAN on its faceplate, yet CND1 Permissive stayed TRUE and started the batch dry!",
+    buggy: "'CM_FEED_XV/DC1/MODE.TARGET' = CAS",
+    whyBug: "Checked MODE.TARGET instead of MODE.ACTUAL! Because ACT2 writes MODE.TARGET := CAS, TARGET stayed CAS even while ACTUAL was MAN.",
+    chips: ["'CM_FEED_XV/DC1/MODE.ACTUAL'", "'CM_FEED_XV/DC1/MODE.TARGET'", "=", "CAS"],
+    canon: "'CM_FEED_XV/DC1/MODE.ACTUAL' = CAS",
+    validate: (norm) => norm === "'cm_feed_xv/dc1/mode.actual'=cas"
+  },
+  {
+    id: "x3",
+    level: "Bug Hunt 3 • Parser Rejects Path",
+    kind: "cond",
+    title: "Control Studio Parser Divides Module Names!",
+    symptom: "Clicking 'Parse' in Expression Assistant throws a syntax error complaining that CM_TANK_WT, AI1, and OUT.CV are unknown variables being divided by '/'!",
+    buggy: "CM_TANK_WT/AI1/OUT.CV >= 500.0",
+    whyBug: "Forgot single quotes around a path containing '/'! Without quotes, DeltaV treats '/' as mathematical division.",
+    chips: ["'CM_TANK_WT/AI1/OUT.CV'", ">=", "<=", "500.0"],
+    canon: "'CM_TANK_WT/AI1/OUT.CV' >= 500.0",
+    validate: (norm) => norm === "'cm_tank_wt/ai1/out.cv'>=500.0" || norm === "'cm_tank_wt/ai1/out.cv'>=500"
+  },
+  {
+    id: "x4",
+    level: "Bug Hunt 4 • Trusting Command Instead of Switch",
+    kind: "cond",
+    title: "Agitator Started While Feed Valve Was Mechanically Jammed Open!",
+    symptom: "S20_TRIM_CLOSE stamped Close on CM_FEED_XV, and T30_SHUT_OK immediately jumped to S30_AGITATE even though a bolt jammed the valve wide open!",
+    buggy: "'CM_FEED_XV/DC1/CAS_IN_D' = Closed",
+    whyBug: "Checked CAS_IN_D (the command we sent) instead of PV_D (confirmed physical limit-switch feedback)!",
+    chips: ["'CM_FEED_XV/DC1/PV_D'", "'CM_FEED_XV/DC1/CAS_IN_D'", "=", "Closed", "Open"],
+    canon: "'CM_FEED_XV/DC1/PV_D' = Closed",
+    validate: (norm) => norm === "'cm_feed_xv/dc1/pv_d'=closed"
+  }
+];
+
+// =========================================================================
+// 2. SMART DELTAV EXPRESSION PARSER & DIAGNOSTIC HELPER
+// =========================================================================
+function cleanQuotes(str) {
+  return str.replace(/[\u2018\u2019\u201B\u2032`]/g, "'").replace(/[\u201C\u201D]/g, '"').trim();
+}
+
+function normalizeExpr(str) {
+  return cleanQuotes(str)
+    .replace(/;+\s*$/, "")
+    .replace(/<>/g, "!=")
+    .replace(/\s+/g, "")
+    .toLowerCase();
+}
+
+function diagnoseDeltaVSyntax(raw, expectedKind) {
+  const s = cleanQuotes(raw).replace(/;+\s*$/, "");
+  if (!s) return { ok: false, msg: "Expression is empty — tap chips below or type an expression first." };
+
+  // Check balanced single quotes
+  const quoteCount = (s.match(/'/g) || []).length;
+  if (quoteCount % 2 !== 0) {
+    return { ok: false, msg: "Parser Error: Unclosed single quote ('). Every parameter path must open and close with '." };
+  }
+
+  // Check balanced parentheses
+  let depth = 0;
+  for (const ch of s) {
+    if (ch === "(") depth++;
+    if (ch === ")") depth--;
+    if (depth < 0) return { ok: false, msg: "Parser Error: Extra closing parenthesis ')' with no matching '('." };
+  }
+  if (depth !== 0) return { ok: false, msg: "Parser Error: Missing closing parenthesis ')'." };
+
+  // Check unquoted slash paths outside single quotes
+  const strippedQuoted = s.replace(/'[^']*'/g, "QUOTED_REF");
+  if (/([A-Za-z0-9_-]+\/[A-Za-z0-9_.-]+)/.test(strippedQuoted) || strippedQuoted.includes("^/")) {
+    return { ok: false, msg: "Parser Error: Parameter path with '/' or '^/' is missing single quotes! Without '...', DeltaV reads '/' as division." };
+  }
+
+  // Check quoted keywords like 'CAS', 'BAD', 'GOOD'
+  if (/'(CAS|MAN|AUTO|OOS|GOOD|BAD|UNCERTAIN|TRUE|FALSE|OPEN|CLOSE|CLOSED)'/i.test(s)) {
+    return { ok: false, msg: "DeltaV Quirk: Keywords & Named States (CAS, MAN, GOOD, BAD, Open, Close, True, False) are UNQUOTED in DeltaV expressions — remove quotes around the keyword." };
+  }
+
+  // Assignment vs Condition check
+  const hasAssign = strippedQuoted.includes(":=");
+  if (expectedKind === "assign" && !hasAssign) {
+    return { ok: false, msg: "Action Error: Action / CALC writes MUST use ':=' (assignment stamp), not '=' (comparison)." };
+  }
+  if (expectedKind === "cond" && hasAssign) {
+    return { ok: false, msg: "Condition Error: Transitions & CND blocks test equality with '=' — never ':='!" };
+  }
+
+  // Warn specifically on MODE.TARGET in a condition
+  if (expectedKind === "cond" && /mode\.target/i.test(s)) {
+    return { ok: false, msg: "Engineering Trap: Checking MODE.TARGET only checks what was requested! Check MODE.ACTUAL to prove the block is truly in CAS." };
+  }
+
+  return { ok: true, msg: "0 error(s), 0 warning(s) — Valid DeltaV Structured Text syntax." };
+}
+
+// =========================================================================
+// 3. APP STATE & PERSISTENCE (MOBILE + WEB LOCALSTORAGE)
+// =========================================================================
+const STORAGE_KEY = "deltav_expression_forge_v1";
+let saved = { solved: {}, streak: 0 };
+try {
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (raw) saved = JSON.parse(raw);
+} catch (_) {}
+
+function saveProgress() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(saved)); } catch (_) {}
+  updateHeaderStats();
+}
+
+const app = {
+  mode: "decode",     // decode | build | debug | sandbox
+  idx: { decode: 0, build: 0, debug: 0 },
+  selectedTok: 0,
+  draft: "",
+  // Mode 4 Live Sandbox Plant Tags
+  tags: {
+    "^/LI4-1/PV.CV": 0.4,
+    "CM_TANK_WT/AI1/OUT.CV": 340.0,
+    "CM_TANK_WT/AI1/OUT.ST": "GOOD",
+    "^/START_WT.CV": 100.0,
+    "^/TARGET_WT.CV": 500.0,
+    "^/PRECLOSE_LEAD.CV": 15.0,
+    "CM_FEED_XV/DC1/MODE.ACTUAL": "CAS",
+    "CM_FEED_XV/DC1/PV_D": "Closed",
+    "^/HI_HI_LVL.CV": 0
+  },
+  sandboxExpr: "('CM_FEED_XV/DC1/MODE.ACTUAL' = CAS) AND ('CM_TANK_WT/AI1/OUT.ST' = GOOD) AND ('CM_TANK_WT/AI1/OUT.CV' - '^/START_WT.CV' < '^/TARGET_WT.CV')"
+};
+
+function totalDrillCount() {
+  return DECODE_DRILLS.length + BUILD_DRILLS.length + DEBUG_DRILLS.length;
+}
+
+function updateHeaderStats() {
+  const solvedCount = Object.keys(saved.solved || {}).length;
+  document.getElementById("statSolved").textContent = solvedCount;
+  document.getElementById("statTotal").textContent = totalDrillCount();
+  document.getElementById("statStreak").textContent = saved.streak || 0;
+}
+
+// =========================================================================
+// 4. MODE RENDERERS
+// =========================================================================
+function renderDots(list, modeKey) {
+  return `<div class="progress-dots">${list.map((item, i) => {
+    const cls = ["dot", i === app.idx[modeKey] ? "active" : "", saved.solved[item.id] ? "solved" : ""].join(" ");
+    return `<button class="${cls}" data-jump="${i}">${i + 1}</button>`;
+  }).join("")}</div>`;
+}
+
+function renderDecodeMode(stage) {
+  const drill = DECODE_DRILLS[app.idx.decode];
+  if (app.selectedTok >= drill.tokens.length) app.selectedTok = 0;
+  const activeTok = drill.tokens[app.selectedTok];
+
+  stage.innerHTML = `
+    <div class="card">
+      <div class="card-head">
+        <span class="level-badge">${drill.level}</span>
+        ${renderDots(DECODE_DRILLS, "decode")}
+      </div>
+      <div class="prompt-title">${drill.title}</div>
+      <div class="context-strip">📍 ${drill.context}</div>
+      <p class="prompt-desc"><strong>Step 1:</strong> Tap any highlighted piece of the DeltaV expression below to decode it:</p>
+      <div class="expr-stage">
+        ${drill.tokens.map((tk, i) => `<span class="tok-chip ${tk.cls} ${i === app.selectedTok ? "sel" : ""}" data-tok="${i}">${tk.t}</span>`).join("")}
+      </div>
+      <div class="tok-explain">
+        <strong><code>${activeTok.t}</code></strong> — ${activeTok.tip}
+      </div>
+
+      <p class="prompt-desc" style="margin-top:14px;"><strong>Step 2 — Quick Field Check:</strong> ${drill.question}</p>
+      <div class="mc-grid" id="mcGrid">
+        ${drill.options.map((opt, i) => `<button class="mc-btn" data-mc="${i}">${opt.text}</button>`).join("")}
+      </div>
+      <div class="parser-box" id="decodeFeedback"></div>
+      <div class="action-row">
+        <button class="btn btn-next" id="btnNextDrill">Next Expression ▶</button>
+      </div>
+    </div>
+  `;
+
+  stage.querySelectorAll("[data-tok]").forEach(el => {
+    el.addEventListener("click", () => {
+      app.selectedTok = parseInt(el.dataset.tok, 10);
+      renderStage();
+    });
+  });
+
+  stage.querySelectorAll("[data-mc]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const pick = drill.options[parseInt(btn.dataset.mc, 10)];
+      const fb = document.getElementById("decodeFeedback");
+      stage.querySelectorAll(".mc-btn").forEach(b => b.classList.remove("correct", "wrong"));
+      if (pick.ok) {
+        btn.classList.add("correct");
+        saved.solved[drill.id] = true;
+        saved.streak = (saved.streak || 0) + 1;
+        saveProgress();
+        fb.className = "parser-box show ok";
+        fb.innerHTML = `<div class="parser-title">✓ Spot On!</div>${drill.takeaway}`;
+      } else {
+        btn.classList.add("wrong");
+        saved.streak = 0;
+        saveProgress();
+        fb.className = "parser-box show err";
+        fb.innerHTML = `<div class="parser-title">✗ Look Closer at the Expression</div>Tap each token above and check how DeltaV handles modes, quotes, and status!`;
+      }
+    });
+  });
+
+  bindJumpAndNext(stage, DECODE_DRILLS, "decode");
+}
+
+function renderBuildOrDebugMode(stage, isDebug) {
+  const list = isDebug ? DEBUG_DRILLS : BUILD_DRILLS;
+  const key = isDebug ? "debug" : "build";
+  const drill = list[app.idx[key]];
+  if (!app.draft) {
+    app.draft = isDebug ? drill.buggy : "";
+  }
+
+  stage.innerHTML = `
+    <div class="card">
+      <div class="card-head">
+        <span class="level-badge">${drill.level}</span>
+        ${renderDots(list, key)}
+      </div>
+      <div class="prompt-title">${drill.title}</div>
+      ${isDebug
+        ? `<div class="context-strip" style="color:#fca5a5;">🚨 2:00 AM Plant Symptom: ${drill.symptom}</div>
+           <p class="prompt-desc"><strong>Fix the broken expression below</strong> (tap tokens or edit directly, then hit <strong>Parse &amp; Check</strong>):</p>`
+        : `<p class="prompt-desc">${drill.prompt}</p>`
+      }
+
+      <div class="editor-label">
+        <span>Control Studio Expression Assistant (${drill.kind === "assign" ? "Action Assignment ':='" : "Condition / Transition"})</span>
+        <span style="color:#38bdf8;">Phone &amp; Keyboard Ready</span>
+      </div>
+      <textarea id="exprInput" class="expr-input" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" placeholder="Tap tokens below or type DeltaV expression here...">${app.draft}</textarea>
+
+      <div class="assistant-deck">
+        <div class="deck-row-label">Quick-Tap Parameters &amp; Keywords (No Tiny Quotes Needed on Mobile!)</div>
+        <div class="chip-bank" id="drillChips">
+          ${drill.chips.map(c => {
+            const cls = c.startsWith("'") ? "ref" : (/^(:=|=|!=|<=|>=|<|>|\+|-|\(|\))$/.test(c) ? "op" : "kw");
+            return `<button class="key-btn ${cls}" data-ins="${c}">${c}</button>`;
+          }).join("")}
+        </div>
+        <div class="deck-row-label">Expression Assistant Operators</div>
+        <div class="chip-bank">
+          ${[":=", "=", "!=", "<", ">", "<=", ">=", "AND", "OR", "NOT", "(", ")", "'^/'", "⌫ Back"].map(op =>
+            `<button class="key-btn ${op === "⌫ Back" ? "" : "op"}" data-ins="${op}">${op}</button>`
+          ).join("")}
+        </div>
+      </div>
+
+      <div class="action-row">
+        <button class="btn btn-primary" id="btnParseCheck">⚡ Parse &amp; Check</button>
+        <button class="btn btn-warn" id="btnHint">💡 Hint</button>
+        <button class="btn btn-secondary" id="btnClear">Clear</button>
+        <button class="btn btn-next" id="btnNextDrill">Next Challenge ▶</button>
+      </div>
+
+      <div class="parser-box" id="parseResult"></div>
+    </div>
+  `;
+
+  const input = document.getElementById("exprInput");
+  input.addEventListener("input", () => { app.draft = input.value; });
+
+  stage.querySelectorAll("[data-ins]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const val = btn.dataset.ins;
+      if (val === "⌫ Back") {
+        input.value = input.value.trimEnd().replace(/('[^']*'|\S+)\s*$/, "");
+      } else if (val === "'^/'") {
+        input.value += (input.value && !input.value.endsWith(" ") ? " " : "") + "'^/'";
+      } else {
+        const spacer = input.value && !input.value.endsWith(" ") && !input.value.endsWith("(") && val !== ")" ? " " : "";
+        input.value += spacer + val;
+      }
+      app.draft = input.value;
+      input.focus();
+    });
+  });
+
+  document.getElementById("btnClear").addEventListener("click", () => {
+    input.value = isDebug ? drill.buggy : "";
+    app.draft = input.value;
+    document.getElementById("parseResult").className = "parser-box";
+  });
+
+  document.getElementById("btnHint").addEventListener("click", () => {
+    const res = document.getElementById("parseResult");
+    res.className = "parser-box show hint";
+    res.innerHTML = `<div class="parser-title">💡 Engineering Hint</div>${isDebug ? drill.whyBug + "<br/><strong>Target:</strong> <code>" + drill.canon + "</code>" : drill.hint}`;
+  });
+
+  document.getElementById("btnParseCheck").addEventListener("click", () => {
+    const raw = input.value;
+    const diag = diagnoseDeltaVSyntax(raw, drill.kind);
+    const res = document.getElementById("parseResult");
+    if (!diag.ok) {
+      saved.streak = 0;
+      saveProgress();
+      res.className = "parser-box show err";
+      res.innerHTML = `<div class="parser-title">✗ ${diag.msg}</div>`;
+      return;
+    }
+    const norm = normalizeExpr(raw);
+    if (drill.validate(norm)) {
+      saved.solved[drill.id] = true;
+      saved.streak = (saved.streak || 0) + 1;
+      saveProgress();
+      res.className = "parser-box show ok";
+      res.innerHTML = `<div class="parser-title">✓ Parser output: 0 error(s) — Exact Match!</div>Canonical DeltaV ST: <code>${drill.canon}</code>${isDebug ? "<br/><strong>Root Cause Fixed:</strong> " + drill.whyBug : ""}`;
+    } else {
+      res.className = "parser-box show hint";
+      res.innerHTML = `<div class="parser-title">⚠ Valid Syntax, Different Logic</div>Your syntax parsed cleanly, but doesn't match the exact plant requirement yet. Tap <strong>Hint</strong> if you want to compare parameters/operators!`;
+    }
+  });
+
+  bindJumpAndNext(stage, list, key, true);
+}
+
+// =========================================================================
+// 5. MODE 4: LIVE CONTROL STUDIO ON-LINE EXPRESSION TREE EVALUATOR
+// =========================================================================
+function evalSandboxExpression(rawExpr) {
+  const s = cleanQuotes(rawExpr).replace(/;+\s*$/, "").trim();
+  const diag = diagnoseDeltaVSyntax(s, s.includes(":=") ? "assign" : "cond");
+  if (!diag.ok) return { ok: false, error: diag.msg, tree: [], usedTags: [] };
+
+  const usedSet = new Set();
+  const resolveToken = (tok) => {
+    const t = tok.trim();
+    if (t.startsWith("'") && t.endsWith("'")) {
+      const key = t.slice(1, -1);
+      usedSet.add(key);
+      if (key in app.tags) return app.tags[key];
+      return 0;
+    }
+    if (/^-?\d+(\.\d+)?$/.test(t)) return parseFloat(t);
+    const up = t.toUpperCase();
+    if (up === "TRUE") return 1;
+    if (up === "FALSE") return 0;
+    return up;
+  };
+
+  // Evaluate atomic comparison clause (supports math - or + on LHS)
+  const evalClause = (clauseStr) => {
+    const c = clauseStr.trim().replace(/^\((.*)\)$/, "$1").trim();
+    const m = c.match(/^(.*?)\s*(:=|<=|>=|!=|<>|=|<|>)\s*(.+)$/);
+    if (!m) {
+      const val = resolveToken(c);
+      return { label: c, ok: Boolean(val), detail: `${val}` };
+    }
+    let [, lhsRaw, op, rhsRaw] = m;
+    // Support A - B or A + B on lhs
+    let lhsVal;
+    const mathMatch = lhsRaw.match(/^(.*?)\s*([+-])\s*(.+)$/);
+    if (mathMatch) {
+      const a = Number(resolveToken(mathMatch[1]));
+      const b = Number(resolveToken(mathMatch[3]));
+      lhsVal = mathMatch[2] === "-" ? +(a - b).toFixed(2) : +(a + b).toFixed(2);
+    } else {
+      lhsVal = resolveToken(lhsRaw);
+    }
+    const rhsVal = resolveToken(rhsRaw);
+
+    if (op === ":=") {
+      const targetKey = lhsRaw.trim().replace(/^'|'$/g, "");
+      if (targetKey in app.tags) app.tags[targetKey] = rhsVal;
+      return { label: `${lhsRaw.trim()} := ${rhsRaw.trim()}`, ok: true, detail: `Stamped ${rhsVal}` };
+    }
+
+    const L = typeof lhsVal === "string" ? lhsVal.toUpperCase() : lhsVal;
+    const R = typeof rhsVal === "string" ? rhsVal.toUpperCase() : rhsVal;
+    let pass = false;
+    if (op === "=") pass = L == R;
+    else if (op === "!=" || op === "<>") pass = L != R;
+    else if (op === "<") pass = Number(L) < Number(R);
+    else if (op === ">") pass = Number(L) > Number(R);
+    else if (op === "<=") pass = Number(L) <= Number(R);
+    else if (op === ">=") pass = Number(L) >= Number(R);
+
+    return { label: `${lhsRaw.trim()} ${op} ${rhsRaw.trim()}`, ok: pass, detail: `(${lhsVal} ${op} ${rhsVal})` };
+  };
+
+  // Split top-level AND / OR for visual Control Studio tree display
+  const hasOr = /\bOR\b/i.test(s) && !/\bAND\b/i.test(s);
+  const joiner = hasOr ? "OR" : /\bAND\b/i.test(s) ? "AND" : null;
+  let parts = [s];
+  if (joiner) {
+    parts = s.split(new RegExp(`\\b${joiner}\\b`, "i"));
+  }
+  const children = parts.map(evalClause);
+  const overall = joiner === "OR"
+    ? children.some(c => c.ok)
+    : children.every(c => c.ok);
+
+  return { ok: true, joiner, overall, children, usedTags: Array.from(usedSet) };
+}
+
+function renderSandboxMode(stage) {
+  const presets = [
+    { name: "EM Start Permissive", expr: "('CM_FEED_XV/DC1/MODE.ACTUAL' = CAS) AND ('CM_TANK_WT/AI1/OUT.ST' = GOOD) AND ('^/HI_HI_LVL.CV' = 0)" },
+    { name: "Preclose Cutoff Math", expr: "('^/TARGET_WT.CV' - '^/START_WT.CV') >= 'CM_TANK_WT/AI1/OUT.CV'" },
+    { name: "Tutorial Low-Level Gate", expr: "'^/LI4-1/PV.CV' < 1.0" },
+    { name: "Bad Scale OR Hi-Hi Trip", expr: "('CM_TANK_WT/AI1/OUT.ST' = BAD) OR ('^/HI_HI_LVL.CV' = 1)" }
+  ];
+
+  const ev = evalSandboxExpression(app.sandboxExpr);
+
+  stage.innerHTML = `
+    <div class="sandbox-grid">
+      <div class="card">
+        <div class="card-head">
+          <span class="level-badge">Control Studio On-Line Expression Tree</span>
+        </div>
+        <div class="prompt-title">Live Expression Tester</div>
+        <p class="prompt-desc">Load a preset or write any expression—then move the plant sliders on the right to watch green <code>✓</code> and red <code>✗</code> branches flip live (just like Control Studio On-Line!):</p>
+
+        <div class="chip-bank" style="margin-bottom:9px;">
+          ${presets.map((p, i) => `<button class="key-btn ref" data-preset="${i}">${p.name}</button>`).join("")}
+        </div>
+
+        <textarea id="sbInput" class="expr-input" spellcheck="false" autocapitalize="off">${app.sandboxExpr}</textarea>
+
+        <div class="tree-box" id="sbTree">
+          ${!ev.ok
+            ? `<div class="tree-false">✗ ${ev.error}</div>`
+            : `<div><strong>Expression Result:</strong> <span class="${ev.overall ? "tree-true" : "tree-false"}">${ev.overall ? "✓ TRUE (1)" : "✗ FALSE (0)"}</span></div>
+               ${ev.joiner ? `<div style="margin-top:4px;"><span class="${ev.overall ? "tree-true" : "tree-false"}">${ev.overall ? "✓" : "✗"} ${ev.joiner}</span></div>` : ""}
+               <div class="tree-sub">
+                 ${ev.children.map(ch => `<div><span class="${ch.ok ? "tree-true" : "tree-false"}">${ch.ok ? "✓" : "✗"}</span> ${ch.label} <span style="color:#94a3b8;">${ch.detail}</span></div>`).join("")}
+               </div>`
+          }
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <span class="level-badge">Live Plant Parameters (Tap Tag to Insert)</span>
+        </div>
+        <div id="tagWatchList">
+          <div class="tag-row">
+            <span class="tag-name" data-tag="'^/LI4-1/PV.CV'">'^/LI4-1/PV.CV'</span>
+            <div class="tag-controls">
+              <input type="range" min="0" max="30" step="0.5" value="${app.tags["^/LI4-1/PV.CV"]}" data-numtag="^/LI4-1/PV.CV" />
+              <span>${app.tags["^/LI4-1/PV.CV"]} %</span>
+            </div>
+          </div>
+          <div class="tag-row">
+            <span class="tag-name" data-tag="'CM_TANK_WT/AI1/OUT.CV'">'CM_TANK_WT/AI1/OUT.CV'</span>
+            <div class="tag-controls">
+              <input type="range" min="100" max="650" step="10" value="${app.tags["CM_TANK_WT/AI1/OUT.CV"]}" data-numtag="CM_TANK_WT/AI1/OUT.CV" />
+              <span>${app.tags["CM_TANK_WT/AI1/OUT.CV"]} kg</span>
+            </div>
+          </div>
+          <div class="tag-row">
+            <span class="tag-name" data-tag="'CM_TANK_WT/AI1/OUT.ST'">'CM_TANK_WT/AI1/OUT.ST'</span>
+            <div class="tag-controls">
+              <select data-strtag="CM_TANK_WT/AI1/OUT.ST">
+                ${["GOOD", "UNCERTAIN", "BAD"].map(s => `<option value="${s}" ${app.tags["CM_TANK_WT/AI1/OUT.ST"] === s ? "selected" : ""}>${s}${s === "BAD" ? " ✗" : s === "UNCERTAIN" ? " ?" : ""}</option>`).join("")}
+              </select>
+            </div>
+          </div>
+          <div class="tag-row">
+            <span class="tag-name" data-tag="'CM_FEED_XV/DC1/MODE.ACTUAL'">'CM_FEED_XV/DC1/MODE.ACTUAL'</span>
+            <div class="tag-controls">
+              <select data-strtag="CM_FEED_XV/DC1/MODE.ACTUAL">
+                ${["CAS", "AUTO", "MAN", "OOS"].map(s => `<option value="${s}" ${app.tags["CM_FEED_XV/DC1/MODE.ACTUAL"] === s ? "selected" : ""}>${s}</option>`).join("")}
+              </select>
+            </div>
+          </div>
+          <div class="tag-row">
+            <span class="tag-name" data-tag="'CM_FEED_XV/DC1/PV_D'">'CM_FEED_XV/DC1/PV_D'</span>
+            <div class="tag-controls">
+              <select data-strtag="CM_FEED_XV/DC1/PV_D">
+                ${["Closed", "Open"].map(s => `<option value="${s}" ${app.tags["CM_FEED_XV/DC1/PV_D"] === s ? "selected" : ""}>${s}</option>`).join("")}
+              </select>
+            </div>
+          </div>
+          <div class="tag-row">
+            <span class="tag-name" data-tag="'^/HI_HI_LVL.CV'">'^/HI_HI_LVL.CV'</span>
+            <div class="tag-controls">
+              <select data-numsel="^/HI_HI_LVL.CV">
+                <option value="0" ${app.tags["^/HI_HI_LVL.CV"] === 0 ? "selected" : ""}>0 (Normal)</option>
+                <option value="1" ${app.tags["^/HI_HI_LVL.CV"] === 1 ? "selected" : ""}>1 (TRIP!)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const sbIn = document.getElementById("sbInput");
+  sbIn.addEventListener("input", () => {
+    app.sandboxExpr = sbIn.value;
+    renderSandboxTreeOnly();
+  });
+
+  stage.querySelectorAll("[data-preset]").forEach(b => {
+    b.addEventListener("click", () => {
+      app.sandboxExpr = presets[parseInt(b.dataset.preset, 10)].expr;
+      renderStage();
+    });
+  });
+
+  stage.querySelectorAll("[data-tag]").forEach(t => {
+    t.addEventListener("click", () => {
+      sbIn.value += (sbIn.value && !sbIn.value.endsWith(" ") ? " " : "") + t.dataset.tag;
+      app.sandboxExpr = sbIn.value;
+      renderSandboxTreeOnly();
+    });
+  });
+
+  stage.querySelectorAll("[data-numtag]").forEach(sl => {
+    sl.addEventListener("input", () => {
+      app.tags[sl.dataset.numtag] = parseFloat(sl.value);
+      renderStage();
+    });
+  });
+
+  stage.querySelectorAll("[data-strtag]").forEach(sel => {
+    sel.addEventListener("change", () => {
+      app.tags[sel.dataset.strtag] = sel.value;
+      renderStage();
+    });
+  });
+
+  stage.querySelectorAll("[data-numsel]").forEach(sel => {
+    sel.addEventListener("change", () => {
+      app.tags[sel.dataset.numsel] = parseInt(sel.value, 10);
+      renderStage();
+    });
+  });
+}
+
+function renderSandboxTreeOnly() {
+  const tree = document.getElementById("sbTree");
+  if (!tree) return;
+  const ev = evalSandboxExpression(app.sandboxExpr);
+  tree.innerHTML = !ev.ok
+    ? `<div class="tree-false">✗ ${ev.error}</div>`
+    : `<div><strong>Expression Result:</strong> <span class="${ev.overall ? "tree-true" : "tree-false"}">${ev.overall ? "✓ TRUE (1)" : "✗ FALSE (0)"}</span></div>
+       ${ev.joiner ? `<div style="margin-top:4px;"><span class="${ev.overall ? "tree-true" : "tree-false"}">${ev.overall ? "✓" : "✗"} ${ev.joiner}</span></div>` : ""}
+       <div class="tree-sub">
+         ${ev.children.map(ch => `<div><span class="${ch.ok ? "tree-true" : "tree-false"}">${ch.ok ? "✓" : "✗"}</span> ${ch.label} <span style="color:#94a3b8;">${ch.detail}</span></div>`).join("")}
+       </div>`;
+}
+
+function bindJumpAndNext(stage, list, key, resetDraft = false) {
+  stage.querySelectorAll("[data-jump]").forEach(b => {
+    b.addEventListener("click", () => {
+      app.idx[key] = parseInt(b.dataset.jump, 10);
+      app.selectedTok = 0;
+      if (resetDraft) app.draft = "";
+      renderStage();
+    });
+  });
+  const nextBtn = document.getElementById("btnNextDrill");
+  if (nextBtn) {
+    nextBtn.addEventListener("click", () => {
+      app.idx[key] = (app.idx[key] + 1) % list.length;
+      app.selectedTok = 0;
+      if (resetDraft) app.draft = "";
+      renderStage();
+    });
+  }
+}
+
+function renderStage() {
+  const stage = document.getElementById("stageArea");
+  if (app.mode === "decode") renderDecodeMode(stage);
+  else if (app.mode === "build") renderBuildOrDebugMode(stage, false);
+  else if (app.mode === "debug") renderBuildOrDebugMode(stage, true);
+  else renderSandboxMode(stage);
+}
+
+document.querySelectorAll("#modeNav .mode-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll("#modeNav .mode-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    app.mode = btn.dataset.mode;
+    app.draft = "";
+    renderStage();
+  });
+});
+
+updateHeaderStats();
+renderStage();
+</script>
+</body>
+</html>
