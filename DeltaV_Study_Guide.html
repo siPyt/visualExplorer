@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>DeltaV Control Studio — Running Study Guide &amp; Vocabulary</title>
+<style>
+  @page {
+    size: letter;
+    margin: 0.58in 0.62in 0.62in 0.62in;
+  }
+
+  :root {
+    --navy: #0f2942;
+    --blue: #1d4ed8;
+    --blue-light: #dbeafe;
+    --blue-soft: #eff6ff;
+    --slate-900: #0f172a;
+    --slate-700: #334155;
+    --slate-600: #475569;
+    --slate-400: #94a3b8;
+    --slate-200: #e2e8f0;
+    --slate-100: #f1f5f9;
+    --slate-50: #f8fafc;
+    --green: #15803d;
+    --green-bg: #dcfce7;
+    --amber: #b45309;
+    --amber-bg: #fef3c7;
+    --red: #b91c1c;
+    --red-bg: #fee2e2;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, Arial, sans-serif;
+    color: var(--slate-900);
+    font-size: 10pt;
+    line-height: 1.48;
+    margin: 0;
+    padding: 0;
+    background: #ffffff;
+  }
+
+  /* Cover Header Banner */
+  .doc-header {
+    background: linear-gradient(135deg, #0f2942 0%, #1e3a8a 100%);
+    color: #ffffff;
+    padding: 20px 24px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+  }
+  .doc-header .eyebrow {
+    font-size: 8.5pt;
+    letter-spacing: 1.1px;
+    text-transform: uppercase;
+    color: #93c5fd;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .doc-header h1 {
+    margin: 0 0 6px 0;
+    font-size: 20pt;
+    font-weight: 800;
+    line-height: 1.18;
+  }
+  .doc-header .subtitle {
+    margin: 0;
+    font-size: 10pt;
+    color: #dbeafe;
+  }
+  .meta-strip {
+    display: flex;
+    gap: 14px;
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255,255,255,0.2);
+    font-size: 8.5pt;
+    color: #e0f2fe;
+    flex-wrap: wrap;
+  }
+  .meta-pill {
+    background: rgba(255,255,255,0.14);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+  }
+
+  /* Headings */
+  h2 {
+    font-size: 13.5pt;
+    color: var(--navy);
+    border-bottom: 2px solid var(--blue);
+    padding-bottom: 4px;
+    margin: 18px 0 10px 0;
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+  h3 {
+    font-size: 10.8pt;
+    color: #1e3a8a;
+    margin: 12px 0 6px 0;
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+  p { margin: 0 0 8px 0; }
+  ul, ol { margin: 4px 0 10px 0; padding-left: 20px; }
+  li { margin-bottom: 4px; }
+
+  code {
+    font-family: Consolas, "Cascadia Code", "Courier New", monospace;
+    font-size: 8.8pt;
+    background: var(--slate-100);
+    color: #0f172a;
+    padding: 1px 4px;
+    border-radius: 3px;
+    border: 1px solid var(--slate-200);
+  }
+
+  /* Callout Boxes */
+  .callout {
+    border-left: 4px solid var(--blue);
+    background: var(--blue-soft);
+    padding: 9px 12px;
+    border-radius: 0 6px 6px 0;
+    margin: 10px 0;
+    break-inside: avoid;
+  }
+  .callout.warn {
+    border-left-color: var(--amber);
+    background: var(--amber-bg);
+  }
+  .callout.danger {
+    border-left-color: var(--red);
+    background: var(--red-bg);
+  }
+  .callout.good {
+    border-left-color: var(--green);
+    background: var(--green-bg);
+  }
+  .callout-title {
+    font-weight: 700;
+    font-size: 9.5pt;
+    margin-bottom: 3px;
+    color: var(--slate-900);
+  }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 8px 0 12px 0;
+    font-size: 9pt;
+  }
+  th {
+    background: var(--navy);
+    color: #ffffff;
+    text-align: left;
+    padding: 6px 8px;
+    font-weight: 700;
+    font-size: 8.8pt;
+  }
+  td {
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--slate-200);
+    vertical-align: top;
+  }
+  tr:nth-child(even) td {
+    background: var(--slate-50);
+  }
+  tr {
+    break-inside: avoid;
+  }
+
+  /* Cards & Grid */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 8px 0 12px 0;
+  }
+  .card {
+    border: 1px solid var(--slate-200);
+    border-radius: 6px;
+    padding: 10px 12px;
+    background: var(--slate-50);
+    break-inside: avoid;
+  }
+  .card h4 {
+    margin: 0 0 5px 0;
+    font-size: 9.8pt;
+    color: var(--navy);
+  }
+
+  /* Diagram Frames */
+  .diagram-box {
+    border: 1px solid var(--slate-200);
+    border-radius: 7px;
+    padding: 10px;
+    background: #f8fafc;
+    margin: 10px 0 14px 0;
+    break-inside: avoid;
+    text-align: center;
+  }
+  .diagram-caption {
+    font-size: 8.5pt;
+    color: var(--slate-600);
+    margin-top: 6px;
+    font-style: italic;
+  }
+
+  /* Roadmap Strip */
+  .roadmap {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin: 8px 0 14px 0;
+    break-inside: avoid;
+  }
+  .roadmap-item {
+    border: 1px solid var(--slate-200);
+    border-radius: 6px;
+    padding: 7px 9px;
+    font-size: 8.6pt;
+  }
+  .roadmap-item.done {
+    background: #f0fdf4;
+    border-color: #86efac;
+  }
+  .roadmap-item.next {
+    background: #f8fafc;
+    border-style: dashed;
+    border-color: #cbd5e1;
+    color: var(--slate-600);
+  }
+  .tag {
+    display: inline-block;
+    font-size: 7.4pt;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 10px;
+    text-transform: uppercase;
+    margin-bottom: 3px;
+  }
+  .tag.done { background: var(--green-bg); color: var(--green); }
+  .tag.next { background: var(--slate-200); color: var(--slate-700); }
+
+  /* Formula Box */
+  .formula-box {
+    background: #0f172a;
+    color: #f8fafc;
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 9pt;
+    padding: 10px 14px;
+    border-radius: 6px;
+    margin: 8px 0 10px 0;
+    line-height: 1.6;
+    break-inside: avoid;
+  }
+  .formula-box .kw { color: #93c5fd; font-weight: 700; }
+  .formula-box .str { color: #86efac; }
+  .formula-box .cmt { color: #94a3b8; font-style: italic; }
+
+  /* Path Anatomy */
+  .path-anatomy {
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+    gap: 4px;
+    margin: 10px 0;
+    flex-wrap: wrap;
+    break-inside: avoid;
+  }
+  .path-part {
+    border: 1.5px solid #93c5fd;
+    background: #eff6ff;
+    border-radius: 5px;
+    padding: 6px 10px;
+    text-align: center;
+  }
+  .path-part .token {
+    font-family: Consolas, monospace;
+    font-weight: 700;
+    font-size: 10pt;
+    color: var(--navy);
+  }
+  .path-part .desc {
+    font-size: 7.8pt;
+    color: var(--slate-600);
+    margin-top: 2px;
+  }
+  .path-sep {
+    display: flex;
+    align-items: center;
+    font-family: Consolas, monospace;
+    font-weight: 800;
+    font-size: 13pt;
+    color: var(--slate-400);
+  }
+
+  .page-break {
+    page-break-before: always;
+    break-before: page;
+  }
+
+  .quiz-ans {
+    font-size: 8.6pt;
+    color: var(--slate-600);
+    background: var(--slate-50);
+    border: 1px solid var(--slate-200);
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin-top: 8px;
+    break-inside: avoid;
+  }
+
+  .footer-note {
+    margin-top: 16px;
+    padding-top: 8px;
+    border-top: 1px solid var(--slate-200);
+    font-size: 8pt;
+    color: var(--slate-400);
+    display: flex;
+    justify-content: space-between;
+  }
+</style>
+</head>
+<body>
+
+  <!-- ==================== HEADER ==================== -->
+  <div class="doc-header">
+    <div class="eyebrow">Emerson DeltaV Control Studio • Running Study Handbook</div>
+    <h1>DeltaV Equipment Modules &amp; Vocabulary Guide</h1>
+    <p class="subtitle">Strictly native DeltaV concepts explained in plain English, anchored on <strong>EM_TANK_CHARGE</strong>.</p>
+    <div class="meta-strip">
+      <span class="meta-pill">Living Document: v1.0</span>
+      <span class="meta-pill">Updated: Nov 22, 2026</span>
+      <span class="meta-pill">Anchor EM: EM_TANK_CHARGE</span>
+      <span class="meta-pill">Companion App: index.html</span>
+    </div>
+  </div>
+
+  <!-- ==================== LEARNING ROADMAP ==================== -->
+  <h3>Your Running Progress</h3>
+  <div class="roadmap">
+    <div class="roadmap-item done">
+      <span class="tag done">Learned</span><br />
+      <strong>Ch. 1–2:</strong> EPH / EM / CM Tiers, Scan Order, 1 Algorithm vs. 4 Patterns
+    </div>
+    <div class="roadmap-item done">
+      <span class="tag done">Learned</span><br />
+      <strong>Ch. 3–4:</strong> Modes (OOS/MAN/AUTO/CAS), .CV vs. .ST, Path Decoding
+    </div>
+    <div class="roadmap-item done">
+      <span class="tag done">Learned</span><br />
+      <strong>Ch. 5:</strong> Hold / Restart / Abort, Golden Tare Rule &amp; EPH Handshake
+    </div>
+    <div class="roadmap-item next">
+      <span class="tag next">Up Next</span><br />
+      <strong>Ch. 6:</strong> Troubleshooting Drills (Stuck Valve &amp; Hold/Restart)
+    </div>
+    <div class="roadmap-item next">
+      <span class="tag next">Up Next</span><br />
+      <strong>Ch. 7:</strong> State-Driven EMs (Multi-Valve Headers)
+    </div>
+    <div class="roadmap-item next">
+      <span class="tag next">Up Next</span><br />
+      <strong>Ch. 8:</strong> Analog Control Loops (AI → PID → AO &amp; CAS_IN)
+    </div>
+  </div>
+
+  <!-- ==================== CHAPTER 1 ==================== -->
+  <h2>Chapter 1: The Three Equipment Levels &amp; Scan Heartbeat</h2>
+  <p>In DeltaV, control logic is organized into three clean layers so no single module becomes an unreadable wall of wires. An <strong>Equipment Module (EM)</strong> never wires directly to physical field terminals—it always talks down to <strong>Control Modules (CMs)</strong>.</p>
+
+  <div class="diagram-box">
+    <svg viewBox="0 0 680 218" width="100%" height="205" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <pattern id="grid1" width="20" height="20" patternUnits="userSpaceOnUse">
+          <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#e2e8f0" stroke-width="0.8"/>
+        </pattern>
+        <marker id="arrDark" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 1 L 10 5 L 0 9 z" fill="#1e293b"/>
+        </marker>
+        <marker id="arrBlue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
+        </marker>
+      </defs>
+      <rect width="680" height="218" fill="url(#grid1)" rx="4"/>
+
+      <!-- EPH Box -->
+      <rect x="215" y="10" width="250" height="44" rx="5" fill="#ffffff" stroke="#1e3a8a" stroke-width="2"/>
+      <rect x="215" y="10" width="250" height="18" rx="4" fill="#1e3a8a"/>
+      <text x="340" y="23" text-anchor="middle" fill="#ffffff" font-size="10.5" font-weight="700" font-family="Segoe UI, sans-serif">EPH — Equipment Phase (The Recipe Boss)</text>
+      <text x="340" y="44" text-anchor="middle" fill="#334155" font-size="9.5" font-family="Segoe UI, sans-serif">Acquires EM • Sends A_COMMAND + RECIPE_WT</text>
+
+      <!-- EPH <-> EM arrows -->
+      <line x1="310" y1="54" x2="310" y2="82" stroke="#2563eb" stroke-width="2" stroke-dasharray="5,3" marker-end="url(#arrBlue)"/>
+      <text x="303" y="72" text-anchor="end" fill="#1d4ed8" font-size="8.5" font-weight="600" font-family="Consolas, monospace">Acquire / Command</text>
+      <line x1="370" y1="82" x2="370" y2="54" stroke="#2563eb" stroke-width="2" stroke-dasharray="5,3" marker-end="url(#arrBlue)"/>
+      <text x="377" y="72" text-anchor="start" fill="#1d4ed8" font-size="8.5" font-weight="600" font-family="Consolas, monospace">EM_STATE</text>
+
+      <!-- EM Box -->
+      <rect x="175" y="84" width="330" height="48" rx="5" fill="#ffffff" stroke="#0284c7" stroke-width="2"/>
+      <rect x="175" y="84" width="330" height="19" rx="4" fill="#dbeafe"/>
+      <text x="340" y="97" text-anchor="middle" fill="#1e3a8a" font-size="10.5" font-weight="700" font-family="Consolas, monospace">EM_TANK_CHARGE (The Team Coordinator)</text>
+      <text x="340" y="120" text-anchor="middle" fill="#334155" font-size="9.5" font-family="Segoe UI, sans-serif">Command-Driven EM • Runs SFC + 3 Continuous FBD Patterns</text>
+
+      <!-- EM -> CMs orthogonal wires -->
+      <!-- Left CM_FEED_XV -->
+      <path d="M 240 132 L 240 148 L 112 148 L 112 164" fill="none" stroke="#2563eb" stroke-width="2" stroke-dasharray="5,3" marker-end="url(#arrBlue)"/>
+      <text x="155" y="144" text-anchor="middle" fill="#1d4ed8" font-size="8.2" font-weight="600" font-family="Consolas, monospace">CAS_IN_D / PV_D</text>
+
+      <!-- Center CM_TANK_WT (Solid analog!) -->
+      <line x1="340" y1="164" x2="340" y2="132" stroke="#1e293b" stroke-width="2" marker-end="url(#arrDark)"/>
+      <text x="347" y="152" text-anchor="start" fill="#0f172a" font-size="8.2" font-weight="600" font-family="Consolas, monospace">OUT.CV / .ST (kg)</text>
+
+      <!-- Right CM_AGIT_MTR -->
+      <path d="M 440 132 L 440 148 L 568 148 L 568 164" fill="none" stroke="#2563eb" stroke-width="2" stroke-dasharray="5,3" marker-end="url(#arrBlue)"/>
+      <text x="525" y="144" text-anchor="middle" fill="#1d4ed8" font-size="8.2" font-weight="600" font-family="Consolas, monospace">CAS_IN_D / PV_D</text>
+
+      <!-- CM 1 -->
+      <rect x="22" y="166" width="180" height="44" rx="5" fill="#ffffff" stroke="#475569" stroke-width="1.5"/>
+      <rect x="22" y="166" width="180" height="17" rx="4" fill="#f1f5f9"/>
+      <text x="112" y="178" text-anchor="middle" fill="#0f172a" font-size="9.5" font-weight="700" font-family="Consolas, monospace">CM_FEED_XV (DC1)</text>
+      <text x="112" y="199" text-anchor="middle" fill="#475569" font-size="8.8" font-family="Segoe UI, sans-serif">Solvent Feed Valve + Switches</text>
+
+      <!-- CM 2 -->
+      <rect x="250" y="166" width="180" height="44" rx="5" fill="#ffffff" stroke="#475569" stroke-width="1.5"/>
+      <rect x="250" y="166" width="180" height="17" rx="4" fill="#f1f5f9"/>
+      <text x="340" y="178" text-anchor="middle" fill="#0f172a" font-size="9.5" font-weight="700" font-family="Consolas, monospace">CM_TANK_WT (AI1)</text>
+      <text x="340" y="199" text-anchor="middle" fill="#475569" font-size="8.8" font-family="Segoe UI, sans-serif">Tank Scale Sensor (kg + Health)</text>
+
+      <!-- CM 3 -->
+      <rect x="478" y="166" width="180" height="44" rx="5" fill="#ffffff" stroke="#475569" stroke-width="1.5"/>
+      <rect x="478" y="166" width="180" height="17" rx="4" fill="#f1f5f9"/>
+      <text x="568" y="178" text-anchor="middle" fill="#0f172a" font-size="9.5" font-weight="700" font-family="Consolas, monospace">CM_AGIT_MTR (DC1)</text>
+      <text x="568" y="199" text-anchor="middle" fill="#475569" font-size="8.8" font-family="Segoe UI, sans-serif">Tank Agitator Motor + Run Fbk</text>
+    </svg>
+    <div class="diagram-caption">Figure 1: DeltaV 3-Tier Equipment Hierarchy — Notice solid wire for Analog (.CV kg) and dashed wires for Discrete commands/states.</div>
+  </div>
+
+  <div class="callout">
+    <div class="callout-title">The Module Scan (One Heartbeat)</div>
+    Every module runs on a repeating timer called a <strong>Scan</strong> (commonly 500 ms or 1 second). On each heartbeat, the module reads all inputs, solves FBD blocks strictly in their <strong>Execution Order</strong> (<code>#1 → #2 → #3</code> shown in the bottom-right corner of every block), and writes outputs. Putting math (<code>CALC1</code>) at <code>#1</code>, cutoff check (<code>CND3</code>) at <code>#2</code>, and the close command (<code>ACT</code>) at <code>#3</code> ensures decisions use fresh numbers from the same scan.
+  </div>
+
+  <!-- ==================== CHAPTER 2 ==================== -->
+  <h2 class="page-break">Chapter 2: 1 Outer Algorithm vs. 4 Inner Patterns</h2>
+  <p>This is the single most important mental shortcut for reading any DeltaV EM without getting lost:</p>
+
+  <div class="two-col">
+    <div class="card">
+      <h4>1 Outer Algorithm (DeltaV Menu Choice)</h4>
+      <p>When creating an EM in DeltaV Explorer, you pick <strong>ONE</strong> outer container:</p>
+      <ol>
+        <li><strong>Command-Driven</strong> <em>(EM_TANK_CHARGE)</em> — Multi-step SFC driven by <code>A_COMMAND</code> (<code>255</code> = Idle).</li>
+        <li><strong>State-Driven</strong> — Single-step snap per state (common for valve headers).</li>
+        <li><strong>FBD</strong> — Continuous wire sheet every Scan, zero steps.</li>
+        <li><strong>SFC</strong> — One standalone sequence chart.</li>
+      </ol>
+    </div>
+    <div class="card">
+      <h4>4 Inner Patterns (Reading Checklist)</h4>
+      <p>Inside the EM, up to <strong>FOUR</strong> patterns work together:</p>
+      <ol>
+        <li><strong>Command, State &amp; Step Progression (SFC)</strong> — <em>Only pattern that steps through time.</em></li>
+        <li><strong>Permissives &amp; Interlocks (FBD)</strong> — Always-on start gates &amp; mid-run safety trips.</li>
+        <li><strong>Mode &amp; Setpoint Routing (FBD)</strong> — Always-on weight selection, tare math, &amp; mode push.</li>
+        <li><strong>CM Command &amp; Feedback (FBD)</strong> — Always-on valve/motor commands &amp; limit-switch proof.</li>
+      </ol>
+    </div>
+  </div>
+
+  <h3>Control Studio Visual Diagrams: Pattern 1 (SFC) &amp; Patterns 2–4 (FBD)</h3>
+
+  <div class="diagram-box">
+    <svg viewBox="0 0 680 265" width="100%" height="252" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <pattern id="grid2" width="20" height="20" patternUnits="userSpaceOnUse">
+          <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#e2e8f0" stroke-width="0.8"/>
+        </pattern>
+      </defs>
+      <rect width="680" height="265" fill="url(#grid2)" rx="4"/>
+
+      <!-- Left Panel: SFC Top-to-Bottom -->
+      <rect x="8" y="8" width="250" height="249" rx="5" fill="#ffffff" fill-opacity="0.7" stroke="#cbd5e1" stroke-width="1"/>
+      <text x="133" y="24" text-anchor="middle" fill="#0f2942" font-size="9.5" font-weight="700" font-family="Segoe UI, sans-serif">PATTERN 1: SFC (Top → Bottom)</text>
+
+      <!-- S0_IDLE (Double-bordered Initial Step) -->
+      <rect x="53" y="34" width="160" height="28" fill="#ffffff" stroke="#334155" stroke-width="1.6"/>
+      <rect x="57" y="38" width="152" height="20" fill="#f8fafc" stroke="#334155" stroke-width="1.2"/>
+      <text x="133" y="51" text-anchor="middle" fill="#0f172a" font-size="9.5" font-weight="700" font-family="Consolas, monospace">S0_IDLE (Initial)</text>
+
+      <!-- Vertical line + T10 -->
+      <line x1="133" y1="62" x2="133" y2="90" stroke="#334155" stroke-width="1.8"/>
+      <line x1="121" y1="76" x2="145" y2="76" stroke="#1d4ed8" stroke-width="2.5"/>
+      <text x="150" y="79" fill="#1d4ed8" font-size="8.2" font-weight="700" font-family="Consolas, monospace">T10_START_OK</text>
+
+      <!-- S10_CHARGE_OPEN (Active green highlight) -->
+      <rect x="53" y="90" width="160" height="28" fill="#dcfce7" stroke="#16a34a" stroke-width="2.2"/>
+      <text x="133" y="103" text-anchor="middle" fill="#14532d" font-size="9.2" font-weight="700" font-family="Consolas, monospace">S10_CHARGE_OPEN</text>
+      <text x="133" y="114" text-anchor="middle" fill="#166534" font-size="7.6" font-family="Segoe UI, sans-serif">P: Tare START_WT • Open Valve</text>
+
+      <!-- Vertical line + T20 -->
+      <line x1="133" y1="118" x2="133" y2="146" stroke="#334155" stroke-width="1.8"/>
+      <line x1="121" y1="132" x2="145" y2="132" stroke="#1d4ed8" stroke-width="2.5"/>
+      <text x="150" y="135" fill="#1d4ed8" font-size="8.2" font-weight="700" font-family="Consolas, monospace">T20_PRECLOSE</text>
+
+      <!-- S20_TRIM_CLOSE -->
+      <rect x="53" y="146" width="160" height="28" fill="#ffffff" stroke="#475569" stroke-width="1.5"/>
+      <text x="133" y="159" text-anchor="middle" fill="#0f172a" font-size="9.2" font-weight="700" font-family="Consolas, monospace">S20_TRIM_CLOSE</text>
+      <text x="133" y="170" text-anchor="middle" fill="#475569" font-size="7.6" font-family="Segoe UI, sans-serif">P: Close CM_FEED_XV</text>
+
+      <!-- Vertical line + T30 -->
+      <line x1="133" y1="174" x2="133" y2="202" stroke="#334155" stroke-width="1.8"/>
+      <line x1="121" y1="188" x2="145" y2="188" stroke="#1d4ed8" stroke-width="2.5"/>
+      <text x="150" y="191" fill="#1d4ed8" font-size="8.2" font-weight="700" font-family="Consolas, monospace">T30_SHUT_OK</text>
+
+      <!-- S30_AGITATE -->
+      <rect x="53" y="202" width="160" height="28" fill="#ffffff" stroke="#475569" stroke-width="1.5"/>
+      <text x="133" y="215" text-anchor="middle" fill="#0f172a" font-size="9.2" font-weight="700" font-family="Consolas, monospace">S30_AGITATE</text>
+      <text x="133" y="226" text-anchor="middle" fill="#475569" font-size="7.6" font-family="Segoe UI, sans-serif">P: Start CM_AGIT_MTR → Done</text>
+
+      <text x="133" y="248" text-anchor="middle" fill="#64748b" font-size="8" font-style="italic">Double box = Initial • Crossbar (┼) = Transition</text>
+
+      <!-- Right Panel: FBD Left-to-Right Sample (Pattern 3 Cutoff Chain) -->
+      <rect x="270" y="8" width="402" height="249" rx="5" fill="#ffffff" fill-opacity="0.7" stroke="#cbd5e1" stroke-width="1"/>
+      <text x="471" y="24" text-anchor="middle" fill="#0f2942" font-size="9.5" font-weight="700" font-family="Segoe UI, sans-serif">PATTERNS 2–4: FBD Sheet (Left → Right, Every Scan)</text>
+
+      <!-- Left Margin Pentagon Flags -->
+      <polygon points="280,55 344,55 354,65 344,75 280,75" fill="#f1f5f9" stroke="#64748b" stroke-width="1.2"/>
+      <text x="314" y="68" text-anchor="middle" fill="#0f172a" font-size="7.8" font-weight="700" font-family="Consolas, monospace">CM_TANK_WT</text>
+
+      <polygon points="280,95 344,95 354,105 344,115 280,115" fill="#f1f5f9" stroke="#64748b" stroke-width="1.2"/>
+      <text x="314" y="108" text-anchor="middle" fill="#0f172a" font-size="7.8" font-weight="700" font-family="Consolas, monospace">^/START_WT</text>
+
+      <!-- Solid wires into CALC1 -->
+      <line x1="354" y1="65" x2="386" y2="65" stroke="#1e293b" stroke-width="2"/>
+      <line x1="354" y1="105" x2="386" y2="105" stroke="#1e293b" stroke-width="2"/>
+
+      <!-- Block CALC1 (#1) -->
+      <rect x="386" y="44" width="98" height="82" rx="3" fill="#ffffff" stroke="#475569" stroke-width="1.5"/>
+      <rect x="386" y="44" width="98" height="18" rx="2" fill="#dbeafe" stroke="#475569" stroke-width="1"/>
+      <text x="435" y="56" text-anchor="middle" fill="#1e3a8a" font-size="8.8" font-weight="700" font-family="Consolas, monospace">CALC1 (CALC)</text>
+      <text x="391" y="70" fill="#334155" font-size="7.5" font-family="Consolas, monospace">IN1</text>
+      <text x="391" y="108" fill="#334155" font-size="7.5" font-family="Consolas, monospace">IN2</text>
+      <text x="479" y="86" text-anchor="end" fill="#334155" font-size="7.5" font-family="Consolas, monospace">OUT</text>
+      <text x="435" y="92" text-anchor="middle" fill="#475569" font-size="7.2" font-family="Segoe UI, sans-serif">Net = IN1 - IN2</text>
+      <!-- Execution order badge #1 -->
+      <rect x="462" y="109" width="20" height="14" rx="2" fill="#e2e8f0"/>
+      <text x="472" y="119" text-anchor="middle" fill="#334155" font-size="8" font-weight="700" font-family="Consolas, monospace">#1</text>
+
+      <!-- Live Value Pill on Analog Wire -->
+      <line x1="484" y1="83" x2="526" y2="83" stroke="#1e293b" stroke-width="2"/>
+      <rect x="488" y="62" width="44" height="16" rx="3" fill="#fef9c3" stroke="#ca8a04" stroke-width="1"/>
+      <text x="510" y="73" text-anchor="middle" fill="#0f172a" font-size="7.5" font-weight="700" font-family="Consolas, monospace">485 kg</text>
+
+      <!-- Block CND3 (#2) -->
+      <rect x="526" y="54" width="96" height="72" rx="3" fill="#ffffff" stroke="#475569" stroke-width="1.5"/>
+      <rect x="526" y="54" width="96" height="18" rx="2" fill="#dbeafe" stroke="#475569" stroke-width="1"/>
+      <text x="574" y="66" text-anchor="middle" fill="#1e3a8a" font-size="8.8" font-weight="700" font-family="Consolas, monospace">CND3 (CND)</text>
+      <text x="531" y="86" fill="#334155" font-size="7.5" font-family="Consolas, monospace">IN1</text>
+      <text x="617" y="96" text-anchor="end" fill="#1d4ed8" font-size="7.5" font-family="Consolas, monospace">OUT_D</text>
+      <text x="574" y="106" text-anchor="middle" fill="#475569" font-size="7.2" font-family="Segoe UI, sans-serif">At Cutoff?</text>
+      <!-- Execution order badge #2 -->
+      <rect x="600" y="109" width="20" height="14" rx="2" fill="#e2e8f0"/>
+      <text x="610" y="119" text-anchor="middle" fill="#334155" font-size="8" font-weight="700" font-family="Consolas, monospace">#2</text>
+
+      <!-- Dashed discrete wire out to right flag -->
+      <path d="M 622 93 L 642 93 L 642 152 L 586 152" fill="none" stroke="#16a34a" stroke-width="2" stroke-dasharray="5,3"/>
+
+      <!-- Right Output Pentagon Flag -->
+      <polygon points="512,142 576,142 586,152 576,162 512,162" fill="#dcfce7" stroke="#16a34a" stroke-width="1.3"/>
+      <text x="546" y="155" text-anchor="middle" fill="#14532d" font-size="7.8" font-weight="700" font-family="Consolas, monospace">T20_PRECLOSE</text>
+
+      <!-- Wire Legend Box inside FBD panel -->
+      <rect x="282" y="176" width="378" height="72" rx="4" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
+      <text x="292" y="191" fill="#0f2942" font-size="8.4" font-weight="700" font-family="Segoe UI, sans-serif">Control Studio Wire &amp; Visual Key:</text>
+      <line x1="292" y1="205" x2="334" y2="205" stroke="#1e293b" stroke-width="2.2"/>
+      <text x="342" y="208" fill="#334155" font-size="8" font-family="Segoe UI, sans-serif"><tspan font-weight="700">Solid wire</tspan> = Analog number (.CV in kg, °C, %)</text>
+      <line x1="292" y1="221" x2="334" y2="221" stroke="#2563eb" stroke-width="2.2" stroke-dasharray="5,3"/>
+      <text x="342" y="224" fill="#334155" font-size="8" font-family="Segoe UI, sans-serif"><tspan font-weight="700">Dashed wire</tspan> = Discrete (True/False), Mode check, or Status</text>
+      <rect x="292" y="232" width="22" height="12" rx="2" fill="#e2e8f0"/>
+      <text x="303" y="241" text-anchor="middle" fill="#334155" font-size="7.5" font-weight="700" font-family="Consolas, monospace">#1</text>
+      <text x="322" y="241" fill="#334155" font-size="8" font-family="Segoe UI, sans-serif"><tspan font-weight="700">Scan Order</tspan> • Yellow pill = On-Line live .CV • Green = Active/True</text>
+    </svg>
+    <div class="diagram-caption">Figure 2: Authentic Control Studio layouts — Pattern 1 steps top-to-bottom (SFC); Patterns 2–4 solve left-to-right every Scan (FBD).</div>
+  </div>
+
+  <!-- ==================== CHAPTER 3 ==================== -->
+  <h2 class="page-break">Chapter 3: Operating Modes &amp; Signal Health (.CV vs. .ST)</h2>
+  <p>Every DeltaV function block has a <strong>Mode</strong> that answers one simple question: <em>"Who has the steering wheel right now?"</em></p>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 14%;">Mode</th>
+        <th style="width: 24%;">Full Name</th>
+        <th>Plain-English Meaning in EM_TANK_CHARGE</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>OOS</code></td>
+        <td>Out of Service</td>
+        <td><strong>Locked out in software.</strong> Stops normal control and stamps <code>.ST = BAD</code> on its outputs so upstream modules refuse to trust it.</td>
+      </tr>
+      <tr>
+        <td><code>MAN</code></td>
+        <td>Manual</td>
+        <td><strong>Operator has the wheel.</strong> A human drives the valve/motor directly from the faceplate; automated commands from the EM are ignored.</td>
+      </tr>
+      <tr>
+        <td><code>AUTO</code></td>
+        <td>Automatic</td>
+        <td><strong>Self-driven.</strong> Follows its own local target typed on its faceplate (does not listen to the EM upstairs).</td>
+      </tr>
+      <tr>
+        <td><code>CAS</code></td>
+        <td>Cascade</td>
+        <td><strong>Following the boss upstairs.</strong> When <code>CM_FEED_XV/DC1</code> is in <code>CAS</code>, it obeys Open/Close commands written to <code>CAS_IN_D</code> by <code>EM_TANK_CHARGE</code>.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="two-col">
+    <div class="callout warn" style="margin:0;">
+      <div class="callout-title">MODE.TARGET vs. MODE.ACTUAL</div>
+      <p style="margin:0;"><code>MODE.TARGET</code> is what you <em>ask</em> for. <code>MODE.ACTUAL</code> is what the block is <em>truly</em> in right now. A field interlock or operator switch can keep <code>MODE.ACTUAL</code> in <code>MAN</code> even if the EM writes <code>MODE.TARGET := CAS</code>. <strong>Rule:</strong> Always write <code>TARGET</code>, always verify <code>ACTUAL</code>.</p>
+    </div>
+    <div class="callout danger" style="margin:0;">
+      <div class="callout-title">.CV (Value) vs. .ST (Health Grade)</div>
+      <p style="margin:0;">Every DeltaV wire carries <em>two</em> pieces of data together: <code>.CV</code> (the live number or state, like <code>340.5 kg</code>) and <code>.ST</code> (<code>GOOD</code>, <code>UNCERTAIN</code>, or <code>BAD</code>). If the scale wire breaks, <code>.ST</code> turns <code>BAD</code> and Pattern 2 trips immediately instead of trusting a frozen number.</p>
+    </div>
+  </div>
+
+  <!-- ==================== CHAPTER 4 ==================== -->
+  <h2>Chapter 4: How to Decode Any DeltaV Path in 5 Seconds</h2>
+  <p>DeltaV parameter paths read left-to-right just like a mailing address: <strong><code>Module / Block / Parameter.Detail</code></strong>.</p>
+
+  <div class="path-anatomy">
+    <div class="path-part">
+      <div class="token">'CM_FEED_XV</div>
+      <div class="desc">Module Name<br/>(Feed Valve CM)</div>
+    </div>
+    <div class="path-sep">/</div>
+    <div class="path-part">
+      <div class="token">DC1</div>
+      <div class="desc">Function Block<br/>(Device Control)</div>
+    </div>
+    <div class="path-sep">/</div>
+    <div class="path-part">
+      <div class="token">MODE</div>
+      <div class="desc">Parameter<br/>(Operating Mode)</div>
+    </div>
+    <div class="path-sep">.</div>
+    <div class="path-part">
+      <div class="token">ACTUAL'</div>
+      <div class="desc">Detail Field<br/>(True Live Mode)</div>
+    </div>
+    <div class="path-sep">=</div>
+    <div class="path-part" style="background:#dcfce7; border-color:#86efac;">
+      <div class="token">CAS</div>
+      <div class="desc">Unquoted Keyword<br/>(Listening to EM)</div>
+    </div>
+  </div>
+
+  <ul>
+    <li><strong>Single quotes <code>'...'</code>:</strong> Required around cross-module paths and local shortcuts in DeltaV Structured Text expressions.</li>
+    <li><strong>The <code>^/</code> shortcut:</strong> Means <em>"right here inside this same module"</em> (e.g., <code>'^/TARGET_WT.CV'</code> points to <code>TARGET_WT</code> inside <code>EM_TANK_CHARGE</code>).</li>
+    <li><strong>Named Sets:</strong> Word labels mapped to integers so expressions read <code>Close</code> / <code>Open</code> or <code>Idle</code> / <code>Charge</code> / <code>Hold</code> instead of raw numbers.</li>
+    <li><strong>Mode keywords are unquoted:</strong> Write <code>= CAS</code> or <code>:= CAS</code>, not <code>'CAS'</code>.</li>
+  </ul>
+
+  <!-- ==================== CHAPTER 5 ==================== -->
+  <h2 class="page-break">Chapter 5: Hold, Restart, Abort, Golden Tare &amp; EPH Handshake</h2>
+
+  <h3>1. Permissive vs. Interlock (Wait Peacefully vs. Hit the Brakes)</h3>
+  <ul>
+    <li><strong>Permissive (Start Gate — <code>CND1</code>):</strong> Checked <em>before</em> leaving <code>S0_IDLE</code> (e.g., valves in <code>CAS</code>, tank not already full, scale <code>.ST = GOOD</code>). If false, the EM waits calmly in Idle.</li>
+    <li><strong>Interlock (Mid-Run Trip — <code>CND2 → ACT1</code>):</strong> Watched every Scan while running. If triggered (High-High tank level or scale <code>.ST = BAD</code>), it immediately stamps <code>Close</code> onto <code>CM_FEED_XV</code> and forces the EM to <strong>HOLD</strong> or <strong>ABORT</strong>.</li>
+  </ul>
+
+  <h3>2. Hold, Restart &amp; Abort — and the Golden Tare Rule</h3>
+  <div class="formula-box">
+    <span class="cmt">// Captured ONCE on transition S0_IDLE → S10_CHARGE_OPEN (NEVER on Restart!)</span><br/>
+    <span class="str">'^/START_WT.CV'</span>     <span class="kw">:=</span> <span class="str">'CM_TANK_WT/AI1/OUT.CV'</span>;<br/>
+    <span class="str">'^/DELIVERED_WT.CV'</span> <span class="kw">:=</span> <span class="str">'CM_TANK_WT/AI1/OUT.CV'</span> - <span class="str">'^/START_WT.CV'</span>;<br/>
+    <span class="str">'^/REMAINING_WT.CV'</span> <span class="kw">:=</span> <span class="str">'^/TARGET_WT.CV'</span> - <span class="str">'^/DELIVERED_WT.CV'</span>;
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 14%;">Action</th>
+        <th style="width: 44%;">What EM_TANK_CHARGE Does</th>
+        <th>What Happens to START_WT.CV?</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>HOLD</strong></td>
+        <td>Safe pause (operator click or Pattern 2 trip). Immediately closes <code>CM_FEED_XV</code> and pauses step progression.</td>
+        <td><strong>PRESERVED.</strong> Still remembers the original pre-charge heel weight.</td>
+      </tr>
+      <tr>
+        <td><strong>RESTART</strong></td>
+        <td>After the fault clears and Pattern 2 permissives return, re-opens <code>CM_FEED_XV</code> to finish the remaining weight.</td>
+        <td><strong>NOT OVERWRITTEN!</strong> If it re-tared on Restart, it would forget solvent already added and overfill the tank.</td>
+      </tr>
+      <tr>
+        <td><strong>ABORT</strong></td>
+        <td>Full emergency stop. Immediately closes <code>CM_FEED_XV</code>, stops <code>CM_AGIT_MTR</code>, and exits the charge command.</td>
+        <td>Requires a full Reset back to <code>S0_IDLE</code> before starting a fresh charge.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>3. The Top Boundary: How the EPH (Recipe Boss) Talks to the EM</h3>
+  <ol>
+    <li><strong>Acquire (Ownership):</strong> The <code>EPH</code> acquires <code>EM_TANK_CHARGE</code> so no other recipe phase or operator fights over the same tank.</li>
+    <li><strong>Command + Setpoint (Downward):</strong> Writes <code>A_COMMAND := Charge</code> into Pattern 1 and passes <code>RECIPE_WT</code> into Pattern 3 (<code>BSEL1</code>).</li>
+    <li><strong>State Back (Upward):</strong> Reads <code>EM_STATE</code> (<code>IDLE</code>, <code>RUNNING</code>, <code>HELD</code>, <code>COMPLETE</code>, <code>ABORTED</code>) so the recipe knows when to advance—or hold the batch.</li>
+  </ol>
+
+  <div class="callout good">
+    <div class="callout-title">Real-Plant Troubleshooting Check: Stuck in S20_TRIM_CLOSE?</div>
+    If the EM commanded <code>Close</code> (<code>CAS_IN_D := Close</code>) but won't advance across <code>T30_SHUT_OK</code> into <code>S30_AGITATE</code>, jump straight to <strong>Pattern 4 (CM Command &amp; Feedback)</strong>. Check <code>'CM_FEED_XV/DC1/PV_D'</code>—if the valve limit switch still reads <code>Open</code>, <code>CND4</code> holds <code>T30_SHUT_OK</code> false and <code>CND5</code> raises <code>VALVE_MISMATCH_ALM</code> so the agitator never starts with a leaking feed valve.
+  </div>
+
+  <!-- ==================== APPENDIX A: MASTER VOCAB ==================== -->
+  <h2 class="page-break">Appendix A: Master Plain-English DeltaV Vocabulary</h2>
+  <p>Quick-flip reference of every DeltaV term, block, mode, and pin you have learned so far.</p>
+
+  <h3>Equipment Tiers &amp; Execution</h3>
+  <table>
+    <thead>
+      <tr><th style="width:17%;">Term</th><th style="width:27%;">Full Name</th><th>Plain-English Definition</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>EPH</code></td><td>Equipment Phase</td><td><strong>The Recipe Boss.</strong> Acquires the EM, sends command + recipe weight, and monitors <code>EM_STATE</code>.</td></tr>
+      <tr><td><code>EM</code></td><td>Equipment Module</td><td><strong>The Team Coordinator.</strong> Coordinates multiple CMs as one task (e.g., <code>EM_TANK_CHARGE</code>). Never wires straight to physical I/O.</td></tr>
+      <tr><td><code>CM</code></td><td>Control Module</td><td><strong>Single-Device Controller.</strong> Owns one physical valve, motor, or sensor (<code>CM_FEED_XV</code>, <code>CM_TANK_WT</code>, <code>CM_AGIT_MTR</code>).</td></tr>
+      <tr><td><code>Scan</code></td><td>Module Scan Cycle</td><td><strong>One Heartbeat</strong> (e.g., 500 ms or 1 s). Reads inputs, solves FBD blocks in <code>#1 → #2 → #3</code> order, writes outputs.</td></tr>
+      <tr><td><code>Algorithm</code></td><td>EM Outer Container</td><td>The <strong>1</strong> outer structure picked when creating an EM: Command-Driven, State-Driven, FBD, or SFC.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Core Function Blocks (Control Studio Sheet)</h3>
+  <table>
+    <thead>
+      <tr><th style="width:17%;">Block</th><th style="width:27%;">Full Name</th><th>Plain-English Job</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>SFC</code></td><td>Sequential Function Chart</td><td><strong>Step-by-Step Checklist.</strong> Runs one active step at a time and waits at a Transition crossbar (<code>┼</code>) before advancing.</td></tr>
+      <tr><td><code>CND</code></td><td>Condition Block</td><td><strong>Yes/No Question Box.</strong> Evaluates a logic expression and turns <code>OUT_D</code> ON when true (can include a <code>DURATION</code> confirm timer).</td></tr>
+      <tr><td><code>ACT</code></td><td>Action Block</td><td><strong>"Write It Once" Stamp.</strong> Triggered by an SFC step or CND block; writes a command/value and leaves it until another ACT overwrites it.</td></tr>
+      <tr><td><code>CALC</code></td><td>Calculation Block</td><td><strong>Scratchpad Calculator.</strong> Runs every Scan to compute math (like <code>DELIVERED_WT</code>) or combine logic.</td></tr>
+      <tr><td><code>BSEL</code></td><td>Selector Block</td><td><strong>Value Switch.</strong> Picks one winning input from two choices (e.g., Recipe Weight vs. Local Operator Weight).</td></tr>
+      <tr><td><code>DC</code></td><td>Device Control Block</td><td><strong>On/Off Equipment Driver.</strong> Lives inside a valve/motor CM; drives Open/Close or Start/Stop and compares against limit switches.</td></tr>
+      <tr><td><code>AI</code></td><td>Analog Input Block</td><td><strong>Sensor Reader.</strong> Lives inside a sensor CM (<code>CM_TANK_WT</code>); outputs engineering value (<code>OUT.CV</code>) + health grade (<code>OUT.ST</code>).</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Pins, Endings, Modes &amp; Safety Words</h3>
+  <table>
+    <thead>
+      <tr><th style="width:17%;">Term / Pin</th><th style="width:27%;">Full Name</th><th>Plain-English Meaning</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>.CV</code></td><td>Current Value</td><td>The live number or state riding on a pin right now (e.g., <code>340.5 kg</code> or <code>Open</code>).</td></tr>
+      <tr><td><code>.ST</code></td><td>Status</td><td>Signal health tag beside <code>.CV</code>: <code>GOOD</code>, <code>UNCERTAIN</code>, or <code>BAD</code>.</td></tr>
+      <tr><td><code>CAS_IN_D</code></td><td>Cascade Input (Discrete)</td><td>Command inbox on a CM's <code>DC</code> block where the EM stamps Open/Close or Start/Stop.</td></tr>
+      <tr><td><code>PV_D</code></td><td>Process Variable (Discrete)</td><td>Confirmed physical state on a <code>DC</code> block proven by real field limit switches.</td></tr>
+      <tr><td><code>MODE.TARGET</code></td><td>Target Mode</td><td>The mode you <em>request</em> a block to enter (e.g., <code>CAS</code>).</td></tr>
+      <tr><td><code>MODE.ACTUAL</code></td><td>Actual Mode</td><td>The mode the block is <em>truly</em> operating in right now (check this before trusting control).</td></tr>
+      <tr><td><code>Named Set</code></td><td>Named Set Enumeration</td><td>Word labels for raw integers (<code>Close/Open</code>, <code>Idle/Charge/Hold</code>).</td></tr>
+      <tr><td><code>^/</code></td><td>Local Module Shortcut</td><td>Shorthand for "a parameter inside this exact module" (<code>'^/TARGET_WT.CV'</code>).</td></tr>
+      <tr><td><code>Permissive</code></td><td>Start Permissive</td><td>Pre-start gate checked before leaving <code>S0_IDLE</code>; waits peacefully if false.</td></tr>
+      <tr><td><code>Interlock</code></td><td>Active Interlock (Trip)</td><td>Mid-run safety brake checked every Scan; forces valve closed and Hold/Abort immediately.</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ==================== APPENDIX B: QUICK SELF-CHECK ==================== -->
+  <h2>Appendix B: 60-Second Self-Check Quiz</h2>
+  <ol>
+    <li>Of the 4 inner patterns inside <code>EM_TANK_CHARGE</code>, which one is the <em>only</em> pattern that steps through time?</li>
+    <li>You see a dashed blue wire and a solid black wire on a Control Studio FBD sheet. Which carries a tank weight in kg, and which carries a True/False command or status?</li>
+    <li>Why do you check <code>'CM_FEED_XV/DC1/MODE.ACTUAL' = CAS</code> instead of checking <code>MODE.TARGET</code>?</li>
+    <li>If <code>EM_TANK_CHARGE</code> is paused on <strong>HOLD</strong> halfway through a 500 kg charge and then <strong>RESTARTED</strong>, should it re-capture <code>START_WT.CV</code>? Why or why not?</li>
+    <li>What is the difference between a <code>CND</code> block and an <code>ACT</code> block?</li>
+    <li>In Pattern 4, what two pins on <code>CM_FEED_XV/DC1</code> do you compare to catch a stuck valve?</li>
+  </ol>
+
+  <div class="quiz-ans">
+    <strong>Answer Key:</strong>
+    <strong>(1)</strong> Pattern 1 (SFC — Command, State &amp; Step Progression); Patterns 2–4 run continuously every Scan.
+    <strong>(2)</strong> Solid = analog numeric <code>.CV</code> (kg); Dashed = discrete True/False, mode, or status.
+    <strong>(3)</strong> Because an operator switch or local interlock can block a mode change—<code>MODE.TARGET</code> only shows what was requested, while <code>MODE.ACTUAL</code> proves the block is truly listening to the EM.
+    <strong>(4)</strong> Never! Re-taring on Restart would erase the solvent already delivered and overfill the tank.
+    <strong>(5)</strong> <code>CND</code> asks a Yes/No question (outputs <code>OUT_D</code>); <code>ACT</code> is a "write it once" stamp that writes a command/value when triggered.
+    <strong>(6)</strong> Outbound command <code>CAS_IN_D</code> vs. confirmed limit-switch feedback <code>PV_D</code>.
+  </div>
+
+  <div class="footer-note">
+    <span>DeltaV Control Studio Running Study Guide — Strictly Native DeltaV</span>
+    <span>Workspace: visualExplorer\DeltaV_Study_Guide.pdf • v1.0</span>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,2089 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DeltaV Control Studio Visual Explorer — EM_TANK_CHARGE</title>
+<style>
+  :root {
+    --bg-app: #0f172a;
+    --bg-panel: #1e293b;
+    --bg-panel-2: #162032;
+    --border-ui: #334155;
+    --text-main: #f1f5f9;
+    --text-muted: #94a3b8;
+    --accent: #38bdf8;
+    --accent-strong: #0284c7;
+    --ok: #22c55e;
+    --warn: #f59e0b;
+    --danger: #ef4444;
+    --trip: #db2777;
+    --canvas-bg: #f8fafc;
+    --grid-line: #e2e8f0;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg-app);
+    color: var(--text-main);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* Top Bar */
+  header {
+    background: #0b1324;
+    border-bottom: 1px solid var(--border-ui);
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .brand-badge {
+    background: linear-gradient(135deg, #0284c7, #2563eb);
+    color: white;
+    font-weight: 800;
+    font-size: 12px;
+    padding: 4px 8px;
+    border-radius: 5px;
+    letter-spacing: 0.5px;
+  }
+  .brand h1 {
+    font-size: 15px;
+    font-weight: 700;
+    color: #f8fafc;
+  }
+  .brand span.sub {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 400;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .tab-btn {
+    background: var(--bg-panel);
+    color: #cbd5e1;
+    border: 1px solid var(--border-ui);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .tab-btn:hover { background: #263449; color: #fff; }
+  .tab-btn.active {
+    background: #0284c7;
+    border-color: #38bdf8;
+    color: #fff;
+    box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.35);
+  }
+  .tab-btn .tag-kind {
+    font-size: 10px;
+    padding: 1px 5px;
+    border-radius: 4px;
+    margin-left: 5px;
+    background: rgba(15, 23, 42, 0.45);
+    color: #bae6fd;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .mode-switch {
+    display: flex;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-ui);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .mode-switch button {
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    padding: 6px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .mode-switch button.active {
+    background: #16a34a;
+    color: #fff;
+  }
+  .mode-switch button.active.offline-active {
+    background: #475569;
+    color: #fff;
+  }
+  .btn-util {
+    background: var(--bg-panel);
+    color: #e2e8f0;
+    border: 1px solid var(--border-ui);
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .btn-util:hover { background: #334155; }
+
+  /* Simulation Control Bar */
+  .sim-bar {
+    background: var(--bg-panel-2);
+    border-bottom: 1px solid var(--border-ui);
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    font-size: 12px;
+  }
+  .sim-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding-right: 12px;
+    border-right: 1px solid var(--border-ui);
+  }
+  .sim-group:last-child { border-right: none; padding-right: 0; }
+  .sim-label {
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+  .sim-btn {
+    background: #263449;
+    color: #f1f5f9;
+    border: 1px solid #475569;
+    padding: 4px 9px;
+    border-radius: 5px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .sim-btn:hover { background: #334155; }
+  .sim-btn.primary { background: #0284c7; border-color: #38bdf8; }
+  .sim-btn.primary:hover { background: #0369a1; }
+  .sim-btn.warn { background: #b45309; border-color: #f59e0b; }
+  .sim-btn.warn:hover { background: #92400e; }
+  .sim-btn.danger { background: #b91c1c; border-color: #ef4444; }
+  .sim-btn.danger:hover { background: #991b1b; }
+  .sim-btn.ok { background: #15803d; border-color: #22c55e; }
+  .sim-btn.ok:hover { background: #166534; }
+  .sim-btn.active-toggle {
+    background: #dc2626;
+    border-color: #fca5a5;
+    color: #fff;
+  }
+  .sim-select {
+    background: #0f172a;
+    color: #f8fafc;
+    border: 1px solid #475569;
+    border-radius: 5px;
+    padding: 4px 6px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .wt-slider {
+    width: 110px;
+    accent-color: #38bdf8;
+    cursor: pointer;
+  }
+  .state-pill {
+    padding: 3px 8px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.4px;
+  }
+  .state-IDLE { background: #334155; color: #e2e8f0; }
+  .state-RUNNING { background: #15803d; color: #dcfce7; }
+  .state-HELD { background: #b45309; color: #fef3c7; }
+  .state-COMPLETE { background: #0369a1; color: #e0f2fe; }
+  .state-ABORTED { background: #b91c1c; color: #fee2e2; }
+
+  /* Diagnostic Banner */
+  .diag-banner {
+    background: #172554;
+    border-bottom: 1px solid #1e40af;
+    color: #dbeafe;
+    padding: 6px 16px;
+    font-size: 12.5px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .diag-banner.alert {
+    background: #450a0a;
+    border-bottom-color: #dc2626;
+    color: #fecaca;
+  }
+  .diag-banner.warn {
+    background: #451a03;
+    border-bottom-color: #d97706;
+    color: #fde68a;
+  }
+  .diag-banner.ok {
+    background: #052e16;
+    border-bottom-color: #16a34a;
+    color: #bbf7d0;
+  }
+  .diag-metrics {
+    display: flex;
+    gap: 14px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 11.5px;
+    white-space: nowrap;
+  }
+
+  /* Main Workspace */
+  main {
+    flex: 1;
+    display: flex;
+    min-height: 0;
+  }
+
+  /* Canvas Area */
+  .canvas-wrap {
+    flex: 1;
+    position: relative;
+    background: var(--canvas-bg);
+    overflow: hidden;
+    cursor: grab;
+  }
+  .canvas-wrap:active { cursor: grabbing; }
+  svg#schematic {
+    width: 100%;
+    height: 100%;
+    display: block;
+    user-select: none;
+  }
+  .zoom-controls {
+    position: absolute;
+    bottom: 14px;
+    left: 14px;
+    display: flex;
+    gap: 4px;
+    background: rgba(15, 23, 42, 0.9);
+    padding: 5px;
+    border-radius: 7px;
+    border: 1px solid #334155;
+  }
+  .zoom-controls button {
+    background: #1e293b;
+    color: #f1f5f9;
+    border: 1px solid #475569;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .zoom-controls button:hover { background: #334155; }
+
+  .legend-box {
+    position: absolute;
+    bottom: 14px;
+    right: 14px;
+    background: rgba(255, 255, 255, 0.94);
+    border: 1px solid #cbd5e1;
+    border-radius: 7px;
+    padding: 8px 12px;
+    color: #1e293b;
+    font-size: 11px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+    pointer-events: none;
+  }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-weight: 600; }
+  .swatch-solid { width: 20px; height: 2px; background: #1e293b; }
+  .swatch-dashed { width: 20px; height: 0; border-top: 2px dashed #2563eb; }
+  .swatch-active { width: 12px; height: 12px; background: #dcfce7; border: 2px solid #16a34a; border-radius: 2px; }
+  .swatch-trip { width: 12px; height: 12px; background: #fee2e2; border: 2px solid #dc2626; border-radius: 2px; }
+
+  /* Right Inspector Drawer */
+  aside.inspector {
+    width: 345px;
+    background: var(--bg-panel);
+    border-left: 1px solid var(--border-ui);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    padding: 14px;
+    gap: 12px;
+  }
+  .insp-header {
+    border-bottom: 1px solid var(--border-ui);
+    padding-bottom: 10px;
+  }
+  .insp-type {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--accent);
+    font-weight: 700;
+  }
+  .insp-title {
+    font-size: 17px;
+    font-weight: 700;
+    margin-top: 2px;
+    color: #fff;
+  }
+  .insp-card {
+    background: #0f172a;
+    border: 1px solid var(--border-ui);
+    border-radius: 8px;
+    padding: 10px 12px;
+  }
+  .insp-card h3 {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+  .insp-card p {
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: #e2e8f0;
+  }
+  .code-block {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 11.5px;
+    line-height: 1.45;
+    background: #020617;
+    color: #7dd3fc;
+    border: 1px solid #1e293b;
+    border-radius: 6px;
+    padding: 8px;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .path-decode {
+    list-style: none;
+    font-size: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .path-decode li {
+    display: flex;
+    gap: 6px;
+    line-height: 1.4;
+  }
+  .path-decode code {
+    color: #38bdf8;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    background: #1e293b;
+    padding: 1px 5px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+  .live-kv {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 6px;
+    font-size: 12px;
+  }
+  .live-kv .k { color: var(--text-muted); }
+  .live-kv .v {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-weight: 700;
+  }
+  .v-good { color: #4ade80; }
+  .v-bad { color: #f87171; }
+  .v-warn { color: #fbbf24; }
+  .v-info { color: #38bdf8; }
+
+  /* SVG Clickable Elements */
+  .clickable { cursor: pointer; transition: filter 0.12s; }
+  .clickable:hover { filter: drop-shadow(0 0 4px rgba(2, 132, 199, 0.55)); }
+  .selected-outline { stroke: #0284c7 !important; stroke-width: 3 !important; }
+
+  /* Vocab Modal */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(2, 6, 23, 0.72);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+    padding: 20px;
+  }
+  .modal-backdrop.open { display: flex; }
+  .modal {
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 10px;
+    max-width: 780px;
+    width: 100%;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .modal-head {
+    padding: 12px 16px;
+    background: #1e293b;
+    border-bottom: 1px solid #334155;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .modal-head h2 { font-size: 15px; }
+  .modal-search {
+    background: #0f172a;
+    color: #f8fafc;
+    border: 1px solid #475569;
+    border-radius: 5px;
+    padding: 5px 10px;
+    font-size: 12.5px;
+    width: 240px;
+  }
+  .modal-body {
+    padding: 14px 16px;
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+    gap: 10px;
+  }
+  .vocab-item {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 7px;
+    padding: 9px 11px;
+  }
+  .vocab-item .vt {
+    font-weight: 700;
+    color: #38bdf8;
+    font-size: 13px;
+  }
+  .vocab-item .vf {
+    color: #94a3b8;
+    font-size: 11px;
+    margin-left: 6px;
+  }
+  .vocab-item p {
+    font-size: 12px;
+    color: #e2e8f0;
+    margin-top: 4px;
+    line-height: 1.4;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <span class="brand-badge">DeltaV Control Studio</span>
+    <div>
+      <h1>EM_TANK_CHARGE <span class="sub">— Command-Driven Equipment Module</span></h1>
+    </div>
+  </div>
+
+  <div class="tabs" id="patternTabs">
+    <button class="tab-btn active" data-tab="p1">1. Step Flow <span class="tag-kind">SFC</span></button>
+    <button class="tab-btn" data-tab="p2">2. Permissives &amp; Interlocks <span class="tag-kind">FBD</span></button>
+    <button class="tab-btn" data-tab="p3">3. Mode &amp; Setpoint Routing <span class="tag-kind">FBD</span></button>
+    <button class="tab-btn" data-tab="p4">4. CM Command &amp; Feedback <span class="tag-kind">FBD</span></button>
+  </div>
+
+  <div class="header-right">
+    <div class="mode-switch" title="Switch between Control Studio Off-Line blueprint and On-Line live telemetry">
+      <button id="btnOffline">Off-Line</button>
+      <button id="btnOnline" class="active">On-Line</button>
+    </div>
+    <button class="btn-util" id="btnVocab">Session Vocab</button>
+  </div>
+</header>
+
+<div class="sim-bar">
+  <div class="sim-group">
+    <span class="sim-label">EM State</span>
+    <span id="emStatePill" class="state-pill state-IDLE">IDLE</span>
+    <button class="sim-btn" id="btnPrev" title="Step backward">◀ Prev</button>
+    <button class="sim-btn primary" id="btnNext" title="Advance to next step if transition is satisfied">Next Step ▶</button>
+    <button class="sim-btn warn" id="btnHold" title="Pause safely without losing START_WT tare">Hold</button>
+    <button class="sim-btn ok" id="btnRestart" title="Resume from Hold without re-taring START_WT">Restart</button>
+    <button class="sim-btn danger" id="btnAbort" title="Emergency stop all outputs">Abort</button>
+    <button class="sim-btn" id="btnReset" title="Reset back to S0_IDLE">Reset</button>
+  </div>
+
+  <div class="sim-group">
+    <span class="sim-label">CM_FEED_XV</span>
+    <select id="selValveMode" class="sim-select" title="Operating mode of Feed Valve DC1 block">
+      <option value="CAS">MODE: CAS</option>
+      <option value="MAN">MODE: MAN</option>
+      <option value="OOS">MODE: OOS</option>
+    </select>
+    <button class="sim-btn" id="btnStuck" title="Simulate valve failing to close when commanded">Valve: Normal</button>
+  </div>
+
+  <div class="sim-group">
+    <span class="sim-label">CM_TANK_WT</span>
+    <button class="sim-btn" id="btnScaleSt" title="Toggle scale signal health (.ST)">.ST: GOOD</button>
+    <input type="range" id="wtSlider" class="wt-slider" min="100" max="650" step="5" value="100" />
+    <button class="sim-btn" id="btnFillCutoff" title="Jump tank weight to preclose cutoff">Fill to Cutoff</button>
+  </div>
+
+  <div class="sim-group">
+    <span class="sim-label">Safety &amp; Source</span>
+    <button class="sim-btn" id="btnHiHi" title="Trigger High-High Tank Level Interlock">HI_HI: Normal</button>
+    <button class="sim-btn" id="btnSource" title="Switch BSEL1 between EPH Recipe Weight and Local Operator Weight">SP: Recipe (500 kg)</button>
+  </div>
+</div>
+
+<div class="diag-banner" id="diagBanner">
+  <span id="diagText">Ready in S0_IDLE. Click any block, SFC step, transition, or margin flag to inspect its DeltaV path and plain-English role.</span>
+  <div class="diag-metrics" id="diagMetrics"></div>
+</div>
+
+<main>
+  <div class="canvas-wrap" id="canvasWrap">
+    <svg id="schematic" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+          <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#e2e8f0" stroke-width="1" />
+        </pattern>
+        <marker id="arrow-solid" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#1e293b" />
+        </marker>
+        <marker id="arrow-dashed" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#2563eb" />
+        </marker>
+        <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#16a34a" />
+        </marker>
+        <marker id="arrow-red" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#dc2626" />
+        </marker>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#grid)" />
+      <g id="viewport"></g>
+    </svg>
+
+    <div class="zoom-controls">
+      <button id="zoomOut">−</button>
+      <button id="zoomReset">100%</button>
+      <button id="zoomIn">+</button>
+      <button id="zoomFit">Fit</button>
+    </div>
+
+    <div class="legend-box">
+      <div class="legend-item"><span class="swatch-solid"></span>Analog (.CV)</div>
+      <div class="legend-item"><span class="swatch-dashed"></span>Discrete / Mode / .ST</div>
+      <div class="legend-item"><span class="swatch-active"></span>Active / True (On-Line)</div>
+      <div class="legend-item"><span class="swatch-trip"></span>Interlock / BAD .ST</div>
+    </div>
+  </div>
+
+  <aside class="inspector" id="inspector">
+    <div class="insp-header">
+      <div class="insp-type" id="inspType">DELTAV INSPECTOR</div>
+      <div class="insp-title" id="inspTitle">Select Any Element</div>
+    </div>
+    <div class="insp-card">
+      <h3>Plain-English Role</h3>
+      <p id="inspRole">Click any SFC step, transition crossbar, function block (CND, ACT, CALC, BSEL), or margin flag on the Control Studio sheet to inspect how it works inside EM_TANK_CHARGE.</p>
+    </div>
+    <div class="insp-card">
+      <h3>Decoded DeltaV Address</h3>
+      <ul class="path-decode" id="inspPath">
+        <li><code>Module/Block/Param.Detail</code><span>Read left-to-right like a mailing address. <code>^/</code> means inside this module.</span></li>
+      </ul>
+    </div>
+    <div class="insp-card">
+      <h3>DeltaV Expression / Action</h3>
+      <div class="code-block" id="inspExpr">(* Click a block to inspect its native DeltaV Structured Text *)</div>
+    </div>
+    <div class="insp-card">
+      <h3>Live Scan Telemetry</h3>
+      <div class="live-kv" id="inspLive"></div>
+    </div>
+  </aside>
+</main>
+
+<!-- Vocab Modal -->
+<div class="modal-backdrop" id="vocabModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>Session Dictionary — Native DeltaV Plain English</h2>
+      <input type="text" id="vocabSearch" class="modal-search" placeholder="Filter term (e.g., CAS, .ST, ACT)..." />
+      <button class="btn-util" id="btnCloseVocab">Close ✕</button>
+    </div>
+    <div class="modal-body" id="vocabList"></div>
+  </div>
+</div>
+
+<script>
+// =========================================================================
+// 1. SIMULATION STATE & PURE DELTAV LOGIC ENGINE (EM_TANK_CHARGE)
+// =========================================================================
+const STEPS = ["S0_IDLE", "S10_CHARGE_OPEN", "S20_TRIM_CLOSE", "S30_AGITATE"];
+
+const state = {
+  tab: "p1",
+  online: true,
+  stepIdx: 0,           // 0..3
+  emState: "IDLE",      // IDLE, RUNNING, HELD, COMPLETE, ABORTED
+  valveMode: "CAS",     // CAS, MAN, OOS
+  scaleSt: "GOOD",      // GOOD, BAD
+  hiHi: false,
+  useRecipe: true,      // true = Recipe (500 kg), false = Local (250 kg)
+  recipeWt: 500.0,
+  localWt: 250.0,
+  precloseLead: 15.0,
+  currentWt: 100.0,     // Tank heel = 100 kg
+  startWt: 100.0,       // Tare snapshot taken ONLY on S0 -> S10
+  tareLocked: false,
+  valveStuck: false,
+  selectedId: "S0_IDLE",
+  notice: "",
+  noticeLevel: "info",  // info, ok, warn, alert
+  // Pan & Zoom
+  zoom: 1,
+  panX: 0,
+  panY: 0
+};
+
+function computeDerived() {
+  const targetWt = state.useRecipe ? state.recipeWt : state.localWt;
+  const deliveredWt = Math.max(0, +(state.currentWt - state.startWt).toFixed(1));
+  const remainingWt = +(targetWt - deliveredWt).toFixed(1);
+
+  // Pattern 2 — Strip A: Start Permissives (CND1)
+  const permValveCas = state.valveMode === "CAS";
+  const permTargetOk = targetWt > 0;
+  const permScaleGood = state.scaleSt === "GOOD";
+  const permHiHiClear = !state.hiHi;
+  const permReady = permValveCas && permTargetOk && permScaleGood && permHiHiClear;
+
+  // Pattern 2 — Strip B: Active Interlock Trip (CND2)
+  const activeChargeStep = (state.stepIdx === 1 || state.stepIdx === 2) && state.emState === "RUNNING";
+  const tripCondition = state.scaleSt === "BAD" || state.hiHi;
+  const interlockTrip = activeChargeStep && tripCondition;
+
+  // Auto-enforce Hold if interlock trips while charging
+  if (interlockTrip) {
+    state.emState = "HELD";
+    state.notice = state.scaleSt === "BAD"
+      ? "INTERLOCK TRIP (Pattern 2): CM_TANK_WT/AI1/OUT.ST went BAD mid-charge! ACT1 stamped Close on CM_FEED_XV and forced EM_STATE := HELD. Notice START_WT.CV stayed locked at " + state.startWt.toFixed(1) + " kg."
+      : "INTERLOCK TRIP (Pattern 2): HI_HI_LVL tripped mid-charge! ACT1 stamped Close on CM_FEED_XV and forced EM_STATE := HELD.";
+    state.noticeLevel = "alert";
+  }
+
+  // Pattern 3 — Preclose cutoff (CND3)
+  const precloseReached = remainingWt <= state.precloseLead;
+
+  // Pattern 4 — Valve & Agitator Commands (CAS_IN_D) and Feedback (PV_D)
+  const feedCmdOpen = (state.emState === "RUNNING" && state.stepIdx === 1 && !tripCondition);
+  const feedCmdText = feedCmdOpen ? "Open" : "Close";
+
+  let valvePvText = feedCmdText === "Open" ? "Open" : "Closed";
+  if (state.valveMode !== "CAS") {
+    // In MAN or OOS, valve ignores CAS_IN_D and stays Closed unless stuck
+    valvePvText = state.valveStuck ? "Open" : (state.valveMode === "OOS" ? "Bad / OOS" : "Closed (MAN)");
+  } else if (state.valveStuck) {
+    valvePvText = "Open";
+  }
+
+  const valveShutOk = (valvePvText === "Closed");
+  const valveMismatch = (feedCmdText === "Close" && valvePvText === "Open") || (feedCmdText === "Open" && valvePvText !== "Open");
+
+  const agitCmdRun = (state.emState === "RUNNING" || state.emState === "COMPLETE") && state.stepIdx === 3;
+  const agitCmdText = agitCmdRun ? "Start" : "Stop";
+  const agitPvText = agitCmdRun ? "Running" : "Stopped";
+
+  // Transitions
+  const t10Ok = permReady && state.emState !== "ABORTED";
+  const t20Ok = precloseReached && state.emState === "RUNNING";
+  const t30Ok = valveShutOk && !valveMismatch && state.emState === "RUNNING";
+
+  return {
+    targetWt, deliveredWt, remainingWt,
+    permValveCas, permTargetOk, permScaleGood, permHiHiClear, permReady,
+    tripCondition, interlockTrip, precloseReached,
+    feedCmdOpen, feedCmdText, valvePvText, valveShutOk, valveMismatch,
+    agitCmdRun, agitCmdText, agitPvText,
+    t10Ok, t20Ok, t30Ok
+  };
+}
+
+// =========================================================================
+// 2. SESSION VOCABULARY DATA
+// =========================================================================
+const VOCAB = [
+  { term: "EPH", full: "Equipment Phase", desc: "The Recipe Boss. Sits above the EM, acquires ownership, sends command (A_COMMAND) + RECIPE_WT, and waits for EM_STATE to finish." },
+  { term: "EM", full: "Equipment Module", desc: "The Team Coordinator (EM_TANK_CHARGE). Coordinates valve, scale, and agitator CMs together. Never wires directly to physical I/O." },
+  { term: "CM", full: "Control Module", desc: "Single-Device Controller owning one piece of field equipment: CM_FEED_XV, CM_TANK_WT, or CM_AGIT_MTR." },
+  { term: "Scan", full: "Module Scan Cycle", desc: "One heartbeat (e.g., 500 ms or 1 s). Reads inputs, solves FBD blocks in #1 → #2 → #3 order, and updates outputs." },
+  { term: "SFC", full: "Sequential Function Chart", desc: "Step-by-step checklist (Pattern 1 only). Runs one active Step at a time and waits on a Transition crossbar (┼) to advance." },
+  { term: "CND", full: "Condition Block", desc: "Yes/No question box. Evaluates an expression every Scan and sets OUT_D to True (1) when satisfied." },
+  { term: "ACT", full: "Action Block", desc: "Write-it-once stamp. Writes a command/value when triggered and leaves it there until another ACT writes something else." },
+  { term: "CALC", full: "Calculation Block", desc: "Scratchpad calculator solved every Scan (e.g., DELIVERED_WT := CURRENT_WT - START_WT)." },
+  { term: "BSEL", full: "Selector Block", desc: "Value switch. Picks one winning number (Recipe Weight vs. Operator Local Weight) based on SEL_D." },
+  { term: "DC", full: "Device Control Block", desc: "On/Off equipment driver inside a valve or motor CM. Receives CAS_IN_D commands and verifies limit switches via PV_D." },
+  { term: "AI", full: "Analog Input Block", desc: "Sensor reader inside CM_TANK_WT converting raw scale input into engineering units (.CV) plus health status (.ST)." },
+  { term: "CAS", full: "Cascade Mode", desc: "Following the Boss Upstairs. When CM_FEED_XV is in CAS, it obeys Open/Close orders from EM_TANK_CHARGE." },
+  { term: "AUTO / MAN / OOS", full: "Operating Modes", desc: "AUTO = self-driven local target; MAN = human operator has the wheel; OOS = Out of Service (locked out, marks .ST as BAD)." },
+  { term: "MODE.ACTUAL vs .TARGET", full: "Actual vs Requested Mode", desc: "Write CAS to MODE.TARGET, but always check MODE.ACTUAL in permissives—a local interlock can hold MODE.ACTUAL out of CAS." },
+  { term: ".CV & .ST", full: "Current Value & Status", desc: "Every wire carries both the live number/state (.CV) and its health tag (.ST = GOOD, UNCERTAIN, or BAD)." },
+  { term: "CAS_IN_D & PV_D", full: "Cascade Input & Process Variable", desc: "CAS_IN_D is the EM's command inbox on a CM's DC block; PV_D is the confirmed physical state coming back from limit switches." },
+  { term: "Permissive vs Interlock", full: "Start Gate vs Mid-Run Brake", desc: "Permissive stops a charge from starting in S0_IDLE without tripping. Interlock stops an active charge immediately and forces Hold." },
+  { term: "Golden Tare Rule", full: "START_WT.CV Snapshot", desc: "Snapshot START_WT.CV ONLY on S0_IDLE → S10_CHARGE_OPEN. Never overwrite it on Restart from Hold, or you will overfill the tank." }
+];
+
+// =========================================================================
+// 3. SVG DRAWING HELPERS (AUTHENTIC DELTAV CONTROL STUDIO STENCILS)
+// =========================================================================
+const SVG_NS = "http://www.w3.org/2000/svg";
+function el(tag, attrs = {}, text = null) {
+  const node = document.createElementNS(SVG_NS, tag);
+  for (const [k, v] of Object.entries(attrs)) node.setAttribute(k, v);
+  if (text !== null) node.textContent = text;
+  return node;
+}
+
+function drawFlag(parent, { id, x, y, w = 210, h = 34, side = "left", label, sub = "", liveText = "", status = "normal" }) {
+  const g = el("g", { class: "clickable", "data-id": id });
+  const tip = 12;
+  let pts;
+  if (side === "left") {
+    pts = `${x},${y} ${x + w - tip},${y} ${x + w},${y + h / 2} ${x + w - tip},${y + h} ${x},${y + h}`;
+  } else {
+    pts = `${x},${y} ${x + w - tip},${y} ${x + w},${y + h / 2} ${x + w - tip},${y + h} ${x},${y + h}`;
+  }
+  let fill = "#f1f5f9", stroke = "#64748b";
+  if (state.online) {
+    if (status === "bad") { fill = "#fee2e2"; stroke = "#dc2626"; }
+    else if (status === "ok") { fill = "#dcfce7"; stroke = "#16a34a"; }
+    else if (status === "warn") { fill = "#fef3c7"; stroke = "#d97706"; }
+  }
+  const poly = el("polygon", {
+    points: pts,
+    fill,
+    stroke,
+    "stroke-width": state.selectedId === id ? 3 : 1.5,
+    class: state.selectedId === id ? "selected-outline" : ""
+  });
+  g.appendChild(poly);
+
+  g.appendChild(el("text", {
+    x: x + 9, y: y + (sub ? 14 : 21),
+    "font-size": 11, "font-weight": 700, fill: "#0f172a",
+    "font-family": "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
+  }, label));
+
+  if (sub) {
+    g.appendChild(el("text", {
+      x: x + 9, y: y + 27,
+      "font-size": 9.5, fill: "#475569"
+    }, sub));
+  }
+
+  if (state.online && liveText) {
+    const pillW = Math.max(58, liveText.length * 6.8 + 12);
+    const px = side === "left" ? x + w - pillW - 14 : x + w - pillW - 14;
+    const py = y - 13;
+    const pillFill = status === "bad" ? "#dc2626" : status === "ok" ? "#15803d" : status === "warn" ? "#d97706" : "#0284c7";
+    g.appendChild(el("rect", { x: px, y: py, width: pillW, height: 17, rx: 4, fill: pillFill }));
+    g.appendChild(el("text", {
+      x: px + pillW / 2, y: py + 12,
+      "text-anchor": "middle", "font-size": 10, "font-weight": 700, fill: "#ffffff",
+      "font-family": "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
+    }, liveText));
+  }
+
+  parent.appendChild(g);
+}
+
+function drawFbdBlock(parent, { id, x, y, w = 185, h = 110, cls, name, execNum, inputs = [], outputs = [], bodyLines = [], status = "normal", liveBadge = "" }) {
+  const g = el("g", { class: "clickable", "data-id": id });
+
+  // Block class label above box (authentic Control Studio style)
+  g.appendChild(el("text", {
+    x: x + w / 2, y: y - 6,
+    "text-anchor": "middle", "font-size": 11, "font-weight": 800, fill: "#334155",
+    "letter-spacing": "0.6px"
+  }, cls));
+
+  let stroke = "#475569", headerFill = "#dbeafe", bodyFill = "#ffffff";
+  if (state.online) {
+    if (status === "bad") { stroke = "#dc2626"; headerFill = "#fecaca"; bodyFill = "#fff5f5"; }
+    else if (status === "ok") { stroke = "#16a34a"; headerFill = "#bbf7d0"; bodyFill = "#f0fdf4"; }
+    else if (status === "warn") { stroke = "#d97706"; headerFill = "#fde68a"; bodyFill = "#fffbeb"; }
+  }
+
+  // Main rect
+  g.appendChild(el("rect", {
+    x, y, width: w, height: h, rx: 3,
+    fill: bodyFill, stroke,
+    "stroke-width": state.selectedId === id ? 3 : 1.75,
+    class: state.selectedId === id ? "selected-outline" : ""
+  }));
+
+  // Header bar
+  g.appendChild(el("rect", {
+    x: x + 1, y: y + 1, width: w - 2, height: 24, rx: 2,
+    fill: headerFill
+  }));
+  g.appendChild(el("line", { x1: x, y1: y + 25, x2: x + w, y2: y + 25, stroke, "stroke-width": 1 }));
+
+  g.appendChild(el("text", {
+    x: x + 10, y: y + 17,
+    "font-size": 12, "font-weight": 800, fill: "#1e3a8a",
+    "font-family": "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
+  }, name));
+
+  // Body lines
+  bodyLines.forEach((line, idx) => {
+    g.appendChild(el("text", {
+      x: x + w / 2, y: y + 48 + idx * 15,
+      "text-anchor": "middle", "font-size": 10.5, fill: "#334155", "font-weight": 600
+    }, line));
+  });
+
+  // Left pins
+  inputs.forEach(pin => {
+    g.appendChild(el("circle", { cx: x, cy: y + pin.dy, r: 3.5, fill: "#1e293b" }));
+    g.appendChild(el("text", {
+      x: x + 7, y: y + pin.dy + 3.5,
+      "font-size": 9.5, "font-weight": 700, fill: "#334155",
+      "font-family": "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
+    }, pin.name));
+  });
+
+  // Right pins
+  outputs.forEach(pin => {
+    g.appendChild(el("circle", { cx: x + w, cy: y + pin.dy, r: 3.5, fill: "#1e293b" }));
+    g.appendChild(el("text", {
+      x: x + w - 7, y: y + pin.dy + 3.5,
+      "text-anchor": "end", "font-size": 9.5, "font-weight": 700, fill: "#334155",
+      "font-family": "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
+    }, pin.name));
+  });
+
+  // Execution Order Badge (#1, #2, ...) bottom-right
+  g.appendChild(el("rect", {
+    x: x + w - 30, y: y + h - 20, width: 26, height: 16, rx: 3,
+    fill: "#e2e8f0", stroke: "#94a3b8", "stroke-width": 1
+  }));
+  g.appendChild(el("text", {
+    x: x + w - 17, y: y + h - 8.5,
+    "text-anchor": "middle", "font-size": 10, "font-weight": 800, fill: "#0f172a",
+    "font-family": "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
+  }, `#${execNum}`));
+
+  // On-Line live badge on top right
+  if (state.online && liveBadge) {
+    const bw = Math.max(54, liveBadge.length * 6.5 + 12);
+    const bFill = status === "bad" ? "#dc2626" : status === "ok" ? "#15803d" : status === "warn" ? "#d97706" : "#0284c7";
+    g.appendChild(el("rect", { x: x + w - bw - 4, y: y + 4, width: bw, height: 17, rx: 4, fill: bFill }));
+    g.appendChild(el("text", {
+      x: x + w - bw / 2 - 4, y: y + 16,
+      "text-anchor": "middle", "font-size": 9.5, "font-weight": 700, fill: "#ffffff",
+      "font-family": "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
+    }, liveBadge));
+  }
+
+  parent.appendChild(g);
+}
+
+function drawWire(parent, points, { kind = "solid", active = false, fault = false, label = "", labelPos = null } = {}) {
+  const d = points.map((p, i) => `${i === 0 ? "M" : "L"} ${p[0]} ${p[1]}`).join(" ");
+  let stroke = kind === "dashed" ? "#2563eb" : "#1e293b";
+  let marker = kind === "dashed" ? "url(#arrow-dashed)" : "url(#arrow-solid)";
+  if (state.online) {
+    if (fault) { stroke = "#dc2626"; marker = "url(#arrow-red)"; }
+    else if (active) { stroke = "#16a34a"; marker = "url(#arrow-green)"; }
+  }
+  const attrs = {
+    d, fill: "none", stroke, "stroke-width": 2.2, "marker-end": marker
+  };
+  if (kind === "dashed") attrs["stroke-dasharray"] = "6,4";
+  parent.appendChild(el("path", attrs));
+
+  if (label && labelPos) {
+    const lw = label.length * 6.4 + 12;
+    parent.appendChild(el("rect", {
+      x: labelPos[0] - lw / 2, y: labelPos[1] - 11, width: lw, height: 18, rx: 4,
+      fill: state.online ? "#fef9c3" : "#ffffff",
+      stroke: "#cbd5e1", "stroke-width": 1
+    }));
+    parent.appendChild(el("text", {
+      x: labelPos[0], y: labelPos[1] + 2,
+      "text-anchor": "middle", "font-size": 10, "font-weight": 700, fill: "#0f172a",
+      "font-family": "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
+    }, label));
+  }
+}
+
+function drawSectionStrip(parent, x, y, w, h, title, color = "#334155") {
+  parent.appendChild(el("rect", {
+    x, y, width: w, height: h, rx: 8,
+    fill: "rgba(255,255,255,0.65)", stroke: "#cbd5e1", "stroke-width": 1.2, "stroke-dasharray": "4,3"
+  }));
+  parent.appendChild(el("text", {
+    x: x + 14, y: y + 20,
+    "font-size": 11.5, "font-weight": 800, fill: color, "letter-spacing": "0.5px"
+  }, title));
+}
+
+// =========================================================================
+// 4. PATTERN RENDERERS (P1 SFC, P2 PERM/INT, P3 MODE/SP, P4 CM CMD/FB)
+// =========================================================================
+function renderPattern1(vp, d) {
+  // Top Boundary: EPH -> EM Handshake Banner
+  const ephGroup = el("g", { class: "clickable", "data-id": "EPH_HANDSHAKE" });
+  ephGroup.appendChild(el("rect", {
+    x: 50, y: 20, width: 760, height: 68, rx: 8,
+    fill: state.online ? "#eff6ff" : "#f1f5f9",
+    stroke: state.selectedId === "EPH_HANDSHAKE" ? "#0284c7" : "#64748b",
+    "stroke-width": state.selectedId === "EPH_HANDSHAKE" ? 3 : 1.5
+  }));
+  ephGroup.appendChild(el("text", { x: 68, y: 42, "font-size": 11.5, "font-weight": 800, fill: "#1e3a8a" },
+    "TOP BOUNDARY — EPH (EQUIPMENT PHASE / RECIPE BOSS) ↔ EM_TANK_CHARGE HANDSHAKE"));
+  ephGroup.appendChild(el("text", { x: 68, y: 62, "font-size": 11.5, fill: "#334155", "font-family": "ui-monospace, monospace" },
+    `ACQUIRED: ${state.useRecipe ? "EPH_SOLVENT_ADD" : "OPERATOR_LOCAL"}   |   A_COMMAND: ${state.stepIdx > 0 ? "CHARGE" : "IDLE (255)"}   |   RECIPE_WT: ${state.recipeWt.toFixed(1)} kg   |   EM_STATE ↑: ${state.emState}`));
+  vp.appendChild(ephGroup);
+
+  // Downward arrow from EPH to SFC
+  drawWire(vp, [[220, 88], [220, 118]], { kind: "dashed", active: state.emState === "RUNNING" });
+
+  // Vertical SFC Column (x=115..325, center=220)
+  const stepSpecs = [
+    { id: "S0_IDLE", idx: 0, y: 120, title: "S0_IDLE", sub: "Rest State (Initial Step)", initial: true },
+    { id: "S10_CHARGE_OPEN", idx: 1, y: 245, title: "S10_CHARGE_OPEN", sub: "Open Valve & Snapshot Tare" },
+    { id: "S20_TRIM_CLOSE", idx: 2, y: 370, title: "S20_TRIM_CLOSE", sub: "Close Valve & Settle Tank" },
+    { id: "S30_AGITATE", idx: 3, y: 495, title: "S30_AGITATE", sub: "Start Agitator & Complete" }
+  ];
+
+  const transSpecs = [
+    { id: "T10_START_OK", y: 205, label: "T10_START_OK", expr: "START_CMD AND PERM_READY", ok: d.t10Ok, fromIdx: 0 },
+    { id: "T20_PRECLOSE", y: 330, label: "T20_PRECLOSE", expr: "REMAINING_WT <= PRECLOSE_LEAD", ok: d.t20Ok, fromIdx: 1 },
+    { id: "T30_SHUT_OK", y: 455, label: "T30_SHUT_OK", expr: "VALVE_SHUT_OK AND Settle_5s", ok: d.t30Ok, fromIdx: 2 }
+  ];
+
+  // Vertical spine lines
+  for (let i = 0; i < 3; i++) {
+    const sy = stepSpecs[i].y + 56;
+    const ey = stepSpecs[i + 1].y;
+    vp.appendChild(el("line", { x1: 220, y1: sy, x2: 220, y2: ey, stroke: "#334155", "stroke-width": 2.2 }));
+  }
+
+  // Draw SFC Steps
+  stepSpecs.forEach(s => {
+    const isActive = state.stepIdx === s.idx;
+    const isHeldHere = isActive && state.emState === "HELD";
+    const isAbortedHere = isActive && state.emState === "ABORTED";
+
+    let fill = "#ffffff", stroke = "#334155";
+    if (state.online && isActive) {
+      if (isAbortedHere) { fill = "#fee2e2"; stroke = "#dc2626"; }
+      else if (isHeldHere) { fill = "#fef3c7"; stroke = "#d97706"; }
+      else { fill = "#dcfce7"; stroke = "#16a34a"; }
+    }
+
+    const g = el("g", { class: "clickable", "data-id": s.id });
+    g.appendChild(el("rect", {
+      x: 110, y: s.y, width: 220, height: 56, rx: 4,
+      fill, stroke,
+      "stroke-width": state.selectedId === s.id ? 3 : (isActive && state.online ? 2.5 : 1.8)
+    }));
+    // Double border for Initial Step S0_IDLE
+    if (s.initial) {
+      g.appendChild(el("rect", {
+        x: 115, y: s.y + 5, width: 210, height: 46, rx: 2,
+        fill: "none", stroke, "stroke-width": 1.3
+      }));
+    }
+    g.appendChild(el("text", {
+      x: 220, y: s.y + 25, "text-anchor": "middle",
+      "font-size": 13, "font-weight": 800, fill: "#0f172a",
+      "font-family": "ui-monospace, monospace"
+    }, s.title));
+    g.appendChild(el("text", {
+      x: 220, y: s.y + 42, "text-anchor": "middle",
+      "font-size": 10.5, fill: "#475569", "font-weight": 600
+    }, s.sub));
+
+    if (state.online && isActive) {
+      const tagText = isAbortedHere ? "ABORTED" : isHeldHere ? "HELD" : (s.idx === 0 ? "IDLE" : "ACTIVE");
+      const tagColor = isAbortedHere ? "#dc2626" : isHeldHere ? "#d97706" : (s.idx === 0 ? "#475569" : "#15803d");
+      g.appendChild(el("rect", { x: 256, y: s.y - 11, width: 68, height: 18, rx: 4, fill: tagColor }));
+      g.appendChild(el("text", { x: 290, y: s.y + 1, "text-anchor": "middle", "font-size": 10, "font-weight": 800, fill: "#fff" }, tagText));
+    }
+    vp.appendChild(g);
+  });
+
+  // Draw SFC Transitions (Horizontal Crossbars)
+  transSpecs.forEach(t => {
+    const g = el("g", { class: "clickable", "data-id": t.id });
+    const barColor = !state.online ? "#1e293b" : (t.ok ? "#16a34a" : "#dc2626");
+    // Invisible hit box
+    g.appendChild(el("rect", { x: 180, y: t.y - 14, width: 250, height: 28, fill: "transparent" }));
+    // Crossbar
+    g.appendChild(el("line", { x1: 196, y1: t.y, x2: 244, y2: t.y, stroke: barColor, "stroke-width": 4.5 }));
+    g.appendChild(el("text", {
+      x: 254, y: t.y - 2, "font-size": 11.5, "font-weight": 800, fill: barColor,
+      "font-family": "ui-monospace, monospace"
+    }, t.label + (state.online ? (t.ok ? " [TRUE]" : " [FALSE]") : "")));
+    g.appendChild(el("text", {
+      x: 254, y: t.y + 12, "font-size": 10, fill: "#475569",
+      "font-family": "ui-monospace, monospace"
+    }, t.expr));
+    vp.appendChild(g);
+  });
+
+  // Right Side Panel inside Canvas: Embedded Step Actions & Golden Tare Rule Watch
+  const subX = 460, subY = 120, subW = 350;
+  // Active Step Actions Box
+  const activeStepId = STEPS[state.stepIdx];
+  const actBox = el("g", { class: "clickable", "data-id": activeStepId });
+  actBox.appendChild(el("rect", {
+    x: subX, y: subY, width: subW, height: 175, rx: 7,
+    fill: "#ffffff", stroke: "#475569", "stroke-width": 1.6
+  }));
+  actBox.appendChild(el("rect", { x: subX + 1, y: subY + 1, width: subW - 2, height: 28, rx: 6, fill: "#dbeafe" }));
+  actBox.appendChild(el("text", {
+    x: subX + 12, y: subY + 19, "font-size": 11.5, "font-weight": 800, fill: "#1e3a8a"
+  }, `INSIDE ACTIVE STEP: ${activeStepId}`));
+
+  const stepActionsMap = {
+    S0_IDLE: [
+      "[N] 'CM_FEED_XV/DC1/CAS_IN_D' := Close;",
+      "[N] 'CM_AGIT_MTR/DC1/CAS_IN_D' := Stop;",
+      "Waiting on T10_START_OK (PERM_READY = True)."
+    ],
+    S10_CHARGE_OPEN: [
+      "[P] Snapshot START_WT.CV := 'CM_TANK_WT/AI1/OUT.CV';",
+      "    (Pulse ONCE on Idle -> S10; NEVER on Restart!)",
+      "[N] 'CM_FEED_XV/DC1/CAS_IN_D' := Open;"
+    ],
+    S20_TRIM_CLOSE: [
+      "[N] 'CM_FEED_XV/DC1/CAS_IN_D' := Close;",
+      "Waiting on CM_FEED_XV/DC1/PV_D = Closed",
+      "+ 5 sec tank settle timer before S30_AGITATE."
+    ],
+    S30_AGITATE: [
+      "[N] 'CM_FEED_XV/DC1/CAS_IN_D' := Close;",
+      "[N] 'CM_AGIT_MTR/DC1/CAS_IN_D' := Start;",
+      "Report EM_STATE := COMPLETE to EPH."
+    ]
+  };
+  stepActionsMap[activeStepId].forEach((ln, i) => {
+    actBox.appendChild(el("text", {
+      x: subX + 14, y: subY + 52 + i * 22,
+      "font-size": 10.8, fill: "#0f172a",
+      "font-family": "ui-monospace, monospace"
+    }, ln));
+  });
+  actBox.appendChild(el("text", {
+    x: subX + 14, y: subY + 150, "font-size": 10.5, fill: "#475569", "font-style": "italic"
+  }, "Note: In DeltaV SFC, ACT writes live inside each step box."));
+  vp.appendChild(actBox);
+
+  // Golden Tare & Hold/Restart Box
+  const tareBox = el("g", { class: "clickable", "data-id": "GOLDEN_TARE" });
+  const tareBorder = state.emState === "HELD" ? "#d97706" : state.emState === "ABORTED" ? "#dc2626" : "#0284c7";
+  tareBox.appendChild(el("rect", {
+    x: subX, y: 315, width: subW, height: 236, rx: 7,
+    fill: state.emState === "HELD" ? "#fffbeb" : "#ffffff",
+    stroke: state.selectedId === "GOLDEN_TARE" ? "#0284c7" : tareBorder,
+    "stroke-width": state.selectedId === "GOLDEN_TARE" ? 3 : 1.8
+  }));
+  tareBox.appendChild(el("rect", {
+    x: subX + 1, y: 316, width: subW - 2, height: 28, rx: 6,
+    fill: state.emState === "HELD" ? "#fde68a" : "#e0f2fe"
+  }));
+  tareBox.appendChild(el("text", {
+    x: subX + 12, y: 334, "font-size": 11.5, "font-weight": 800, fill: "#0f172a"
+  }, "HOLD / RESTART & GOLDEN TARE WATCH"));
+
+  const rows = [
+    ["START_WT.CV (Tare):", `${state.startWt.toFixed(1)} kg ${state.tareLocked ? "[LOCKED]" : "[READY]"}`],
+    ["CM_TANK_WT/AI1/OUT.CV:", `${state.currentWt.toFixed(1)} kg (${state.scaleSt})`],
+    ["DELIVERED_WT (Net):", `${d.deliveredWt.toFixed(1)} kg`],
+    ["TARGET_WT.CV:", `${d.targetWt.toFixed(1)} kg`],
+    ["REMAINING_WT.CV:", `${d.remainingWt.toFixed(1)} kg (Lead: ${state.precloseLead} kg)`],
+    ["CM_FEED_XV CAS_IN_D:", d.feedCmdText]
+  ];
+  rows.forEach(([k, v], i) => {
+    tareBox.appendChild(el("text", { x: subX + 14, y: 368 + i * 24, "font-size": 11, fill: "#475569", "font-weight": 600 }, k));
+    tareBox.appendChild(el("text", {
+      x: subX + subW - 14, y: 368 + i * 24, "text-anchor": "end",
+      "font-size": 11.5, "font-weight": 800, fill: "#0f172a",
+      "font-family": "ui-monospace, monospace"
+    }, v));
+  });
+
+  tareBox.appendChild(el("text", { x: subX + 14, y: 520, "font-size": 10.5, fill: "#1e3a8a", "font-weight": 700 },
+    "Try it: Advance to S10, move Weight slider, press HOLD,"));
+  tareBox.appendChild(el("text", { x: subX + 14, y: 536, "font-size": 10.5, fill: "#1e3a8a", "font-weight": 700 },
+    "then press RESTART — START_WT.CV will NOT re-tare!"));
+  vp.appendChild(tareBox);
+}
+
+function renderPattern2(vp, d) {
+  // Strip A: Pre-Start Permissives
+  drawSectionStrip(vp, 30, 28, 860, 215, "STRIP A: PRE-START PERMISSIVES (RUNS EVERY SCAN — GATES T10_START_OK WITHOUT TRIPPING)", "#1e3a8a");
+
+  drawFlag(vp, {
+    id: "FLAG_VALVE_MODE", x: 50, y: 68, w: 225, side: "left",
+    label: "'CM_FEED_XV/DC1/MODE.ACTUAL'", sub: "Must equal CAS",
+    liveText: state.valveMode, status: d.permValveCas ? "ok" : "bad"
+  });
+  drawFlag(vp, {
+    id: "FLAG_TARGET_WT", x: 50, y: 122, w: 225, side: "left",
+    label: "'^/TARGET_WT.CV'", sub: "Must be > 0.0 kg",
+    liveText: `${d.targetWt.toFixed(1)} kg`, status: d.permTargetOk ? "ok" : "bad"
+  });
+  drawFlag(vp, {
+    id: "FLAG_SCALE_ST_P2A", x: 50, y: 176, w: 225, side: "left",
+    label: "'CM_TANK_WT/AI1/OUT.ST'", sub: "Health must be >= GOOD",
+    liveText: state.scaleSt, status: d.permScaleGood ? "ok" : "bad"
+  });
+
+  drawFbdBlock(vp, {
+    id: "CND1", x: 375, y: 80, w: 210, h: 126, cls: "CND", name: "CND1", execNum: 1,
+    inputs: [{ name: "IN1", dy: 44 }, { name: "IN2", dy: 74 }, { name: "IN3", dy: 104 }],
+    outputs: [{ name: "OUT_D", dy: 74 }],
+    bodyLines: ["Pre-Start Gate", "CAS & WT>0 & GOOD"],
+    status: d.permReady ? "ok" : "warn",
+    liveBadge: d.permReady ? "TRUE (1)" : "FALSE (0)"
+  });
+
+  drawFlag(vp, {
+    id: "FLAG_PERM_READY", x: 660, y: 136, w: 210, side: "right",
+    label: "'^/PERM_READY'", sub: "Feeds SFC Transition T10",
+    liveText: d.permReady ? "READY (1)" : "BLOCKED (0)", status: d.permReady ? "ok" : "warn"
+  });
+
+  drawWire(vp, [[275, 85], [325, 85], [325, 124], [375, 124]], { kind: "dashed", active: d.permValveCas, fault: !d.permValveCas });
+  drawWire(vp, [[275, 139], [325, 139], [325, 154], [375, 154]], { kind: "solid", active: d.permTargetOk });
+  drawWire(vp, [[275, 193], [325, 193], [325, 184], [375, 184]], { kind: "dashed", active: d.permScaleGood, fault: !d.permScaleGood });
+  drawWire(vp, [[585, 154], [660, 154]], { kind: "dashed", active: d.permReady, fault: !d.permReady });
+
+  // Strip B: Active Interlock Trip
+  drawSectionStrip(vp, 30, 275, 860, 235, "STRIP B: ACTIVE INTERLOCK TRIP (RUNS EVERY SCAN — FORCES VALVE CLOSED & EM HOLD)", "#991b1b");
+
+  drawFlag(vp, {
+    id: "FLAG_SCALE_ST_P2B", x: 50, y: 328, w: 225, side: "left",
+    label: "'CM_TANK_WT/AI1/OUT.ST'", sub: "Trips if status = BAD",
+    liveText: state.scaleSt, status: state.scaleSt === "BAD" ? "bad" : "ok"
+  });
+  drawFlag(vp, {
+    id: "FLAG_HI_HI", x: 50, y: 398, w: 225, side: "left",
+    label: "'^/HI_HI_LVL.CV'", sub: "Trips if High-High = 1",
+    liveText: state.hiHi ? "TRIP (1)" : "NORMAL (0)", status: state.hiHi ? "bad" : "ok"
+  });
+
+  drawFbdBlock(vp, {
+    id: "CND2", x: 335, y: 330, w: 190, h: 118, cls: "CND", name: "CND2", execNum: 2,
+    inputs: [{ name: "IN1", dy: 45 }, { name: "IN2", dy: 88 }],
+    outputs: [{ name: "OUT_D", dy: 66 }],
+    bodyLines: ["Mid-Charge Trip", "ST=BAD OR HI_HI"],
+    status: d.tripCondition ? "bad" : "normal",
+    liveBadge: d.tripCondition ? "TRIPPED (1)" : "CLEAR (0)"
+  });
+
+  drawFbdBlock(vp, {
+    id: "ACT1", x: 575, y: 330, w: 165, h: 118, cls: "ACT", name: "ACT1", execNum: 3,
+    inputs: [{ name: "IN_D", dy: 66 }],
+    outputs: [{ name: "CMD", dy: 48 }, { name: "STATE", dy: 88 }],
+    bodyLines: ["Stamp Close &", "Force EM Hold"],
+    status: (d.tripCondition && state.emState === "HELD") ? "bad" : "normal",
+    liveBadge: d.tripCondition ? "FIRED" : "IDLE"
+  });
+
+  drawFlag(vp, {
+    id: "FLAG_TRIP_VALVE", x: 770, y: 356, w: 110, side: "right",
+    label: "CAS_IN_D", sub: ":= Close",
+    liveText: d.feedCmdText, status: d.tripCondition ? "bad" : "normal"
+  });
+  drawFlag(vp, {
+    id: "FLAG_TRIP_HOLD", x: 770, y: 406, w: 110, side: "right",
+    label: "EM_STATE", sub: ":= HELD",
+    liveText: state.emState, status: state.emState === "HELD" ? "warn" : "normal"
+  });
+
+  drawWire(vp, [[275, 345], [305, 345], [305, 375], [335, 375]], { kind: "dashed", fault: state.scaleSt === "BAD" });
+  drawWire(vp, [[275, 415], [305, 415], [305, 418], [335, 418]], { kind: "dashed", fault: state.hiHi });
+  drawWire(vp, [[525, 396], [575, 396]], { kind: "dashed", fault: d.tripCondition });
+  drawWire(vp, [[740, 378], [770, 378]], { kind: "dashed", fault: d.tripCondition });
+  drawWire(vp, [[740, 418], [770, 418]], { kind: "dashed", fault: d.tripCondition });
+}
+
+function renderPattern3(vp, d) {
+  drawSectionStrip(vp, 25, 25, 895, 295, "SECTION A: TARGET WEIGHT ARBITRATION & NET MASS MATH (SOLVED #1 → #2 → #3 EVERY SCAN)", "#1e3a8a");
+
+  drawFlag(vp, {
+    id: "FLAG_RECIPE_WT", x: 42, y: 70, w: 165, side: "left",
+    label: "'^/RECIPE_WT.CV'", sub: "From EPH Boss",
+    liveText: `${state.recipeWt.toFixed(1)} kg`, status: state.useRecipe ? "ok" : "normal"
+  });
+  drawFlag(vp, {
+    id: "FLAG_LOCAL_WT", x: 42, y: 122, w: 165, side: "left",
+    label: "'^/LOCAL_WT.CV'", sub: "Operator Entry",
+    liveText: `${state.localWt.toFixed(1)} kg`, status: !state.useRecipe ? "ok" : "normal"
+  });
+  drawFlag(vp, {
+    id: "FLAG_USE_RECIPE", x: 42, y: 174, w: 165, side: "left",
+    label: "'^/USE_RECIPE'", sub: "Selector Flag",
+    liveText: state.useRecipe ? "TRUE (1)" : "FALSE (0)", status: "normal"
+  });
+
+  drawFbdBlock(vp, {
+    id: "BSEL1", x: 255, y: 74, w: 155, h: 128, cls: "BSEL", name: "BSEL1", execNum: 1,
+    inputs: [{ name: "IN1", dy: 38 }, { name: "IN2", dy: 70 }, { name: "SEL_D", dy: 104 }],
+    outputs: [{ name: "OUT", dy: 65 }],
+    bodyLines: ["Pick Active", "Target Wt"],
+    status: "ok",
+    liveBadge: `${d.targetWt.toFixed(0)} kg`
+  });
+
+  drawFlag(vp, {
+    id: "FLAG_TANK_WT_CV", x: 240, y: 230, w: 185, side: "left",
+    label: "'CM_TANK_WT/AI1/OUT'", sub: "Live Gross Weight",
+    liveText: `${state.currentWt.toFixed(1)} kg`, status: state.scaleSt === "BAD" ? "bad" : "ok"
+  });
+  drawFlag(vp, {
+    id: "FLAG_START_WT", x: 240, y: 274, w: 185, side: "left",
+    label: "'^/START_WT.CV'", sub: "Tare Snapshot (Idle→S10)",
+    liveText: `${state.startWt.toFixed(1)} kg`, status: "normal"
+  });
+
+  drawFbdBlock(vp, {
+    id: "CALC1", x: 475, y: 112, w: 175, h: 145, cls: "CALC", name: "CALC1", execNum: 2,
+    inputs: [{ name: "IN1 (Tgt)", dy: 38 }, { name: "IN2 (Cur)", dy: 82 }, { name: "IN3 (Tare)", dy: 118 }],
+    outputs: [{ name: "OUT", dy: 68 }],
+    bodyLines: ["Net = Cur - Tare", "Rem = Tgt - Net"],
+    status: state.scaleSt === "BAD" ? "bad" : "normal",
+    liveBadge: `${d.remainingWt.toFixed(1)} kg`
+  });
+
+  drawFbdBlock(vp, {
+    id: "CND3", x: 705, y: 120, w: 155, h: 118, cls: "CND", name: "CND3", execNum: 3,
+    inputs: [{ name: "IN1", dy: 60 }],
+    outputs: [{ name: "OUT_D", dy: 60 }],
+    bodyLines: ["Rem <= Lead", `(${state.precloseLead} kg)`],
+    status: d.precloseReached ? "ok" : "normal",
+    liveBadge: d.precloseReached ? "CUTOFF!" : "FILLING"
+  });
+
+  // Wires Section A
+  drawWire(vp, [[207, 87], [230, 87], [230, 112], [255, 112]], { kind: "solid", active: state.useRecipe });
+  drawWire(vp, [[207, 139], [230, 139], [230, 144], [255, 144]], { kind: "solid", active: !state.useRecipe });
+  drawWire(vp, [[207, 191], [230, 191], [230, 178], [255, 178]], { kind: "dashed", active: state.useRecipe });
+
+  drawWire(vp, [[410, 139], [442, 139], [442, 150], [475, 150]], {
+    kind: "solid", active: true, label: state.online ? `${d.targetWt.toFixed(0)} kg` : "TARGET_WT", labelPos: [442, 126]
+  });
+  drawWire(vp, [[425, 247], [448, 247], [448, 194], [475, 194]], { kind: "solid", fault: state.scaleSt === "BAD" });
+  drawWire(vp, [[425, 291], [460, 291], [460, 230], [475, 230]], { kind: "solid" });
+
+  drawWire(vp, [[650, 180], [705, 180]], {
+    kind: "solid", active: d.precloseReached, label: state.online ? `${d.remainingWt.toFixed(1)}` : "REM_WT", labelPos: [678, 165]
+  });
+  drawWire(vp, [[860, 180], [908, 180]], { kind: "dashed", active: d.precloseReached });
+  vp.appendChild(el("text", { x: 865, y: 165, "font-size": 10, "font-weight": 800, fill: "#1e3a8a" }, "→ T20"));
+
+  // Section B: Cascade Mode Push
+  drawSectionStrip(vp, 25, 345, 895, 170, "SECTION B: CASCADE MODE ALIGNMENT (WHEN EM IS IN AUTO, PUSH MODE.TARGET := CAS TO CMs)", "#0f766e");
+
+  drawFlag(vp, {
+    id: "FLAG_EM_AUTO", x: 50, y: 412, w: 195, side: "left",
+    label: "'^/EM_MODE.ACTUAL'", sub: "Triggers when EM = AUTO",
+    liveText: "AUTO", status: "ok"
+  });
+
+  drawFbdBlock(vp, {
+    id: "ACT2", x: 315, y: 382, w: 220, h: 108, cls: "ACT", name: "ACT2", execNum: 4,
+    inputs: [{ name: "IN_D", dy: 47 }],
+    outputs: [{ name: "OUT1", dy: 38 }, { name: "OUT2", dy: 76 }],
+    bodyLines: ["Request CAS Mode", "on Downstream CMs"],
+    status: "ok",
+    liveBadge: "MODE := CAS"
+  });
+
+  drawFlag(vp, {
+    id: "FLAG_FEED_MODE_TGT", x: 610, y: 392, w: 280, side: "right",
+    label: "'CM_FEED_XV/DC1/MODE.TARGET'", sub: "Requested: CAS | Actual: " + state.valveMode,
+    liveText: `ACT: ${state.valveMode}`, status: state.valveMode === "CAS" ? "ok" : "bad"
+  });
+  drawFlag(vp, {
+    id: "FLAG_AGIT_MODE_TGT", x: 610, y: 444, w: 280, side: "right",
+    label: "'CM_AGIT_MTR/DC1/MODE.TARGET'", sub: "Requested: CAS | Actual: CAS",
+    liveText: "ACT: CAS", status: "ok"
+  });
+
+  drawWire(vp, [[245, 429], [315, 429]], { kind: "dashed", active: true });
+  drawWire(vp, [[535, 420], [572, 420], [572, 409], [610, 409]], { kind: "dashed", active: state.valveMode === "CAS", fault: state.valveMode !== "CAS" });
+  drawWire(vp, [[535, 458], [572, 458], [572, 461], [610, 461]], { kind: "dashed", active: true });
+}
+
+function renderPattern4(vp, d) {
+  // Strip A: Outbound Commands
+  drawSectionStrip(vp, 30, 25, 860, 155, "STRIP A: OUTBOUND COMMANDS (EM → CONTROL MODULES VIA CAS_IN_D)", "#1e3a8a");
+
+  drawFlag(vp, {
+    id: "FLAG_STEP_SRC_XV", x: 55, y: 65, w: 250, side: "left",
+    label: "Active SFC Step / Interlock", sub: `Current Step: ${STEPS[state.stepIdx]} (${state.emState})`,
+    liveText: d.feedCmdText, status: d.feedCmdOpen ? "ok" : "normal"
+  });
+  drawFlag(vp, {
+    id: "FLAG_STEP_SRC_MTR", x: 55, y: 120, w: 250, side: "left",
+    label: "Step S30_AGITATE Action", sub: "Runs agitator after valve shut",
+    liveText: d.agitCmdText, status: d.agitCmdRun ? "ok" : "normal"
+  });
+
+  drawFlag(vp, {
+    id: "FLAG_OUT_XV_CMD", x: 595, y: 65, w: 270, side: "right",
+    label: "'CM_FEED_XV/DC1/CAS_IN_D'", sub: "Feed Valve Command Inbox",
+    liveText: d.feedCmdText, status: d.feedCmdOpen ? "ok" : (state.valveMode !== "CAS" ? "warn" : "normal")
+  });
+  drawFlag(vp, {
+    id: "FLAG_OUT_MTR_CMD", x: 595, y: 120, w: 270, side: "right",
+    label: "'CM_AGIT_MTR/DC1/CAS_IN_D'", sub: "Agitator Motor Command Inbox",
+    liveText: d.agitCmdText, status: d.agitCmdRun ? "ok" : "normal"
+  });
+
+  drawWire(vp, [[305, 82], [595, 82]], {
+    kind: "dashed", active: d.feedCmdOpen, fault: d.valveMismatch,
+    label: state.online ? `CMD := ${d.feedCmdText}` : "CAS_IN_D", labelPos: [450, 72]
+  });
+  drawWire(vp, [[305, 137], [595, 137]], {
+    kind: "dashed", active: d.agitCmdRun,
+    label: state.online ? `CMD := ${d.agitCmdText}` : "CAS_IN_D", labelPos: [450, 127]
+  });
+
+  // Strip B: Inbound Feedback & Discrepancy Watch
+  drawSectionStrip(vp, 30, 205, 860, 315, "STRIP B: INBOUND LIMIT-SWITCH FEEDBACK & TRAVEL MISMATCH WATCH (CM → EM VIA PV_D)", "#0f766e");
+
+  drawFlag(vp, {
+    id: "FLAG_IN_PV_D", x: 55, y: 262, w: 245, side: "left",
+    label: "'CM_FEED_XV/DC1/PV_D'", sub: "Confirmed Physical Limit Switch",
+    liveText: d.valvePvText, status: d.valveMismatch ? "bad" : (d.valveShutOk ? "ok" : "normal")
+  });
+  drawFlag(vp, {
+    id: "FLAG_IN_CMD_ECHO", x: 55, y: 405, w: 245, side: "left",
+    label: "'CM_FEED_XV/DC1/CAS_IN_D'", sub: "Command Sent to Valve",
+    liveText: d.feedCmdText, status: "normal"
+  });
+
+  drawFbdBlock(vp, {
+    id: "CND4", x: 380, y: 240, w: 205, h: 108, cls: "CND", name: "CND4", execNum: 1,
+    inputs: [{ name: "IN1", dy: 48 }],
+    outputs: [{ name: "OUT_D", dy: 48 }],
+    bodyLines: ["Confirm Valve Shut", "PV_D = Closed"],
+    status: d.valveShutOk ? "ok" : "warn",
+    liveBadge: d.valveShutOk ? "SHUT OK (1)" : "NOT SHUT (0)"
+  });
+
+  drawFbdBlock(vp, {
+    id: "CND5", x: 380, y: 382, w: 205, h: 118, cls: "CND", name: "CND5", execNum: 2,
+    inputs: [{ name: "CMD", dy: 44 }, { name: "PV_D", dy: 82 }],
+    outputs: [{ name: "OUT_D", dy: 62 }],
+    bodyLines: ["Mismatch > 10s", "CAS_IN_D != PV_D"],
+    status: d.valveMismatch ? "bad" : "normal",
+    liveBadge: d.valveMismatch ? "ALARM (1)" : "NORMAL (0)"
+  });
+
+  drawFlag(vp, {
+    id: "FLAG_VALVE_SHUT_OK", x: 645, y: 270, w: 220, side: "right",
+    label: "'^/VALVE_SHUT_OK'", sub: "Feeds SFC Transition T30",
+    liveText: d.valveShutOk ? "TRUE (1)" : "FALSE (0)", status: d.valveShutOk ? "ok" : "warn"
+  });
+  drawFlag(vp, {
+    id: "FLAG_MISMATCH_ALM", x: 645, y: 426, w: 220, side: "right",
+    label: "'^/VALVE_MISMATCH_ALM'", sub: "Stuck Valve Diagnostic",
+    liveText: d.valveMismatch ? "ACTIVE ALM!" : "CLEAR", status: d.valveMismatch ? "bad" : "ok"
+  });
+
+  // Wires Strip B
+  drawWire(vp, [[300, 279], [340, 279], [340, 288], [380, 288]], { kind: "dashed", active: d.valveShutOk, fault: d.valveMismatch });
+  // Branch PV_D down to CND5
+  drawWire(vp, [[340, 279], [340, 464], [380, 464]], { kind: "dashed", fault: d.valveMismatch });
+  drawWire(vp, [[300, 422], [322, 422], [322, 426], [380, 426]], { kind: "dashed", fault: d.valveMismatch });
+
+  drawWire(vp, [[585, 288], [645, 288]], { kind: "dashed", active: d.valveShutOk, fault: !d.valveShutOk && state.stepIdx === 2 });
+  drawWire(vp, [[585, 444], [645, 444]], { kind: "dashed", fault: d.valveMismatch });
+}
+
+// =========================================================================
+// 5. CONTEXTUAL INSPECTOR DATABASE
+// =========================================================================
+function getInspectorInfo(id, d) {
+  const map = {
+    EPH_HANDSHAKE: {
+      type: "TOP BOUNDARY (EPH ↔ EM)",
+      title: "Equipment Phase Handshake",
+      role: "The Equipment Phase (EPH — Recipe Boss) acquires EM_TANK_CHARGE, sends the Charge command (A_COMMAND) plus Recipe target weight (RECIPE_WT), and watches EM_STATE come back up so the recipe knows when the addition is complete or held.",
+      paths: [
+        ["^/A_COMMAND", "Named Set command sent from EPH (Charge / Idle=255)"],
+        ["^/RECIPE_WT.CV", "Target mass passed down into Pattern 3 (BSEL1)"],
+        ["^/EM_STATE", "Live state reported back up to the EPH"]
+      ],
+      expr: `(* EPH writes downward *)\n'EM_TANK_CHARGE/A_COMMAND' := CHARGE;\n'EM_TANK_CHARGE/RECIPE_WT.CV' := 500.0;\n(* EPH monitors upward *)\nWAIT UNTIL 'EM_TANK_CHARGE/EM_STATE' = COMPLETE;`,
+      live: [
+        ["Owner", state.useRecipe ? "EPH_SOLVENT_ADD" : "Local Operator", "v-info"],
+        ["EM_STATE", state.emState, state.emState === "RUNNING" ? "v-good" : state.emState === "HELD" ? "v-warn" : "v-info"],
+        ["RECIPE_WT.CV", `${state.recipeWt.toFixed(1)} kg`, "v-info"]
+      ]
+    },
+    S0_IDLE: {
+      type: "PATTERN 1 — SFC INITIAL STEP",
+      title: "S0_IDLE (Double-Bordered Step)",
+      role: "Resting start state of EM_TANK_CHARGE. Keeps CM_FEED_XV closed and CM_AGIT_MTR stopped while waiting for a Start command and all Pattern 2 pre-start permissives (PERM_READY).",
+      paths: [
+        ["CM_FEED_XV/DC1/CAS_IN_D", "Feed valve command inbox — held at Close"],
+        ["CM_AGIT_MTR/DC1/CAS_IN_D", "Agitator command inbox — held at Stop"]
+      ],
+      expr: `(* Step S0_IDLE Embedded Actions *)\n'CM_FEED_XV/DC1/CAS_IN_D' := Close;\n'CM_AGIT_MTR/DC1/CAS_IN_D' := Stop;`,
+      live: [
+        ["Active?", state.stepIdx === 0 ? "YES" : "NO", state.stepIdx === 0 ? "v-good" : "v-info"],
+        ["PERM_READY", d.permReady ? "TRUE (Ready)" : "FALSE (Blocked)", d.permReady ? "v-good" : "v-warn"]
+      ]
+    },
+    T10_START_OK: {
+      type: "PATTERN 1 — SFC TRANSITION",
+      title: "T10_START_OK (Pre-Start Gate)",
+      role: "Horizontal crossbar gate between S0_IDLE and S10_CHARGE_OPEN. Will NOT let the charge start unless Pattern 2's CND1 (PERM_READY) is True (valve in CAS, scale GOOD, target > 0, no High-High).",
+      paths: [
+        ["^/START_CMD.CV", "Start request from EPH or operator"],
+        ["^/PERM_READY", "Output of Pattern 2 pre-start gate (CND1)"]
+      ],
+      expr: `('^/START_CMD.CV' = 1) AND ('^/PERM_READY' = 1);`,
+      live: [
+        ["T10 Result", d.t10Ok ? "TRUE (Can Start)" : "FALSE (Waiting)", d.t10Ok ? "v-good" : "v-warn"],
+        ["CM_FEED_XV Mode", state.valveMode, state.valveMode === "CAS" ? "v-good" : "v-bad"],
+        ["Scale .ST", state.scaleSt, state.scaleSt === "GOOD" ? "v-good" : "v-bad"]
+      ]
+    },
+    S10_CHARGE_OPEN: {
+      type: "PATTERN 1 — SFC STEP",
+      title: "S10_CHARGE_OPEN",
+      role: "Opens CM_FEED_XV to feed solvent into the tank. On initial entry from S0_IDLE ONLY (Pulse action), snapshots CM_TANK_WT into START_WT.CV so Pattern 3 calculates net delivered mass accurately.",
+      paths: [
+        ["^/START_WT.CV", "Tare snapshot locked on Idle → S10 edge"],
+        ["CM_FEED_XV/DC1/CAS_IN_D", "Written := Open while step runs"]
+      ],
+      expr: `(* [P] Pulse Once on Idle -> S10 ONLY *)\n'^/START_WT.CV' := 'CM_TANK_WT/AI1/OUT.CV';\n(* [N] While Running *)\n'CM_FEED_XV/DC1/CAS_IN_D' := Open;`,
+      live: [
+        ["START_WT.CV", `${state.startWt.toFixed(1)} kg`, "v-info"],
+        ["DELIVERED_WT", `${d.deliveredWt.toFixed(1)} kg`, "v-good"],
+        ["REMAINING_WT", `${d.remainingWt.toFixed(1)} kg`, d.precloseReached ? "v-good" : "v-info"]
+      ]
+    },
+    T20_PRECLOSE: {
+      type: "PATTERN 1 — SFC TRANSITION",
+      title: "T20_PRECLOSE (In-Flight Cutoff Gate)",
+      role: "Advances from S10_CHARGE_OPEN to S20_TRIM_CLOSE slightly early (Target minus Preclose Lead) to account for valve closing stroke time and module Scan rate.",
+      paths: [
+        ["^/REMAINING_WT.CV", "Computed every Scan by Pattern 3 CALC1"],
+        ["^/PRECLOSE_LEAD.CV", "In-flight lead compensation (15.0 kg)"]
+      ],
+      expr: `'^/REMAINING_WT.CV' <= '^/PRECLOSE_LEAD.CV';`,
+      live: [
+        ["REMAINING_WT", `${d.remainingWt.toFixed(1)} kg`, "v-info"],
+        ["PRECLOSE_LEAD", `${state.precloseLead.toFixed(1)} kg`, "v-info"],
+        ["T20 Result", d.t20Ok ? "TRUE (Cutoff Reached)" : "FALSE (Still Filling)", d.t20Ok ? "v-good" : "v-warn"]
+      ]
+    },
+    S20_TRIM_CLOSE: {
+      type: "PATTERN 1 — SFC STEP",
+      title: "S20_TRIM_CLOSE",
+      role: "Stamps Close onto CM_FEED_XV/DC1/CAS_IN_D and waits for confirmed limit-switch closure (PV_D = Closed) plus tank settle time before starting the agitator.",
+      paths: [
+        ["CM_FEED_XV/DC1/CAS_IN_D", "Written := Close"],
+        ["CM_FEED_XV/DC1/PV_D", "Monitored by Pattern 4 CND4 for confirmed shut"]
+      ],
+      expr: `'CM_FEED_XV/DC1/CAS_IN_D' := Close;`,
+      live: [
+        ["Valve Command", d.feedCmdText, "v-info"],
+        ["Valve PV_D", d.valvePvText, d.valveShutOk ? "v-good" : "v-bad"]
+      ]
+    },
+    T30_SHUT_OK: {
+      type: "PATTERN 1 — SFC TRANSITION",
+      title: "T30_SHUT_OK (Confirmed Closed Gate)",
+      role: "Prevents the agitator from starting until Pattern 4 (CND4) proves CM_FEED_XV physically closed via its limit switch (PV_D = Closed). If the valve is stuck open, the EM stays safely paused here!",
+      paths: [
+        ["^/VALVE_SHUT_OK", "Output of Pattern 4 CND4 checking PV_D = Closed"]
+      ],
+      expr: `('^/VALVE_SHUT_OK' = 1) AND (STEP_TIME >= 5);`,
+      live: [
+        ["VALVE_SHUT_OK", d.valveShutOk ? "TRUE" : "FALSE (Stuck!)", d.valveShutOk ? "v-good" : "v-bad"],
+        ["T30 Result", d.t30Ok ? "TRUE" : "FALSE", d.t30Ok ? "v-good" : "v-bad"]
+      ]
+    },
+    S30_AGITATE: {
+      type: "PATTERN 1 — SFC STEP",
+      title: "S30_AGITATE (Post-Charge)",
+      role: "Starts CM_AGIT_MTR once the feed valve is confirmed closed and signals charge completion back up to the EPH.",
+      paths: [
+        ["CM_AGIT_MTR/DC1/CAS_IN_D", "Written := Start"],
+        ["^/EM_STATE", "Reports COMPLETE to EPH"]
+      ],
+      expr: `'CM_AGIT_MTR/DC1/CAS_IN_D' := Start;\n'^/EM_STATE' := COMPLETE;`,
+      live: [
+        ["Agitator Cmd", d.agitCmdText, d.agitCmdRun ? "v-good" : "v-info"],
+        ["Agitator PV_D", d.agitPvText, d.agitCmdRun ? "v-good" : "v-info"]
+      ]
+    },
+    GOLDEN_TARE: {
+      type: "ENGINEERING RULE — TARE & HOLD/RESTART",
+      title: "Hold / Restart & The Golden Tare Rule",
+      role: "HOLD safely pauses a charge by stamping Close on the valve while keeping START_WT.CV locked. RESTART resumes charging without re-taring—because overwriting START_WT.CV mid-charge would forget the solvent already delivered and overfill the tank!",
+      paths: [
+        ["^/START_WT.CV", "Captured ONCE on S0_IDLE → S10_CHARGE_OPEN"],
+        ["^/DELIVERED_WT.CV", "CM_TANK_WT/AI1/OUT.CV minus START_WT.CV"]
+      ],
+      expr: `(* Correct: Pulse on initial Idle -> S10 only *)\nIF (IDLE_TO_RUN_EDGE) THEN\n  '^/START_WT.CV' := 'CM_TANK_WT/AI1/OUT.CV';\nENDIF;`,
+      live: [
+        ["START_WT.CV", `${state.startWt.toFixed(1)} kg`, "v-info"],
+        ["Tare Locked?", state.tareLocked ? "YES (Safe on Restart)" : "NO (In Idle)", state.tareLocked ? "v-good" : "v-info"],
+        ["Delivered So Far", `${d.deliveredWt.toFixed(1)} kg`, "v-good"]
+      ]
+    },
+    CND1: {
+      type: "PATTERN 2 — FBD CONDITION BLOCK (#1)",
+      title: "CND1 — Pre-Start Permissive Gate",
+      role: "Yes/No Question Box running every Scan. Checks that the valve is actually listening in CAS (MODE.ACTUAL = CAS), target weight > 0, and tank scale health (.ST) is GOOD. If false in Idle, it simply holds T10 closed without firing an alarm.",
+      paths: [
+        ["CM_FEED_XV/DC1/MODE.ACTUAL", "True current mode (NOT MODE.TARGET!)"],
+        ["CM_TANK_WT/AI1/OUT.ST", "Signal health tag riding alongside weight"]
+      ],
+      expr: `('CM_FEED_XV/DC1/MODE.ACTUAL' = CAS)\nAND ('^/TARGET_WT.CV' > 0.0)\nAND ('CM_TANK_WT/AI1/OUT.ST' >= GOOD)\nAND ('^/HI_HI_LVL.CV' = 0);`,
+      live: [
+        ["Execution Order", "#1 (First in Scan)", "v-info"],
+        ["OUT_D (PERM_READY)", d.permReady ? "TRUE (1)" : "FALSE (0)", d.permReady ? "v-good" : "v-warn"]
+      ]
+    },
+    CND2: {
+      type: "PATTERN 2 — FBD CONDITION BLOCK (#2)",
+      title: "CND2 — Active Interlock Watch",
+      role: "Runs every single Scan without waiting for SFC steps. Watches for scale health turning BAD (.ST = BAD) or High-High tank level during an active charge.",
+      paths: [
+        ["CM_TANK_WT/AI1/OUT.ST", "Detects broken sensor / OOS scale immediately"],
+        ["^/HI_HI_LVL.CV", "High-High tank overfill switch"]
+      ],
+      expr: `('CM_TANK_WT/AI1/OUT.ST' = BAD)\nOR ('^/HI_HI_LVL.CV' = 1);`,
+      live: [
+        ["Execution Order", "#2 (Before ACT1)", "v-info"],
+        ["OUT_D (Trip)", d.tripCondition ? "TRUE — TRIP!" : "FALSE — Clear", d.tripCondition ? "v-bad" : "v-good"]
+      ]
+    },
+    ACT1: {
+      type: "PATTERN 2 — FBD ACTION BLOCK (#3)",
+      title: "ACT1 — Interlock Trip Stamp",
+      role: "Write-it-once Stamp triggered immediately by CND2 (#2). Forces CM_FEED_XV closed and pushes EM_STATE to HELD so the tank cannot charge blind on a bad scale.",
+      paths: [
+        ["CM_FEED_XV/DC1/CAS_IN_D", "Immediately stamped := Close"],
+        ["^/EM_STATE", "Forced := HELD (preserves START_WT.CV)"]
+      ],
+      expr: `'CM_FEED_XV/DC1/CAS_IN_D' := Close;\n'^/EM_STATE' := HELD;`,
+      live: [
+        ["Execution Order", "#3 (Immediately after CND2)", "v-info"],
+        ["ACT1 Status", d.tripCondition ? "FIRED" : "Standby", d.tripCondition ? "v-bad" : "v-good"]
+      ]
+    },
+    BSEL1: {
+      type: "PATTERN 3 — FBD SELECTOR BLOCK (#1)",
+      title: "BSEL1 — Target Weight Switch",
+      role: "Value Switch solving FIRST (#1) every Scan. Chooses between EPH Recipe Weight (IN1 = 500 kg) and Operator Local Weight (IN2 = 250 kg) based on discrete wire USE_RECIPE (SEL_D).",
+      paths: [
+        ["^/RECIPE_WT.CV", "IN1 — Solid analog wire from EPH"],
+        ["^/LOCAL_WT.CV", "IN2 — Solid analog wire from operator faceplate"],
+        ["^/USE_RECIPE", "SEL_D — Dashed discrete selector wire"]
+      ],
+      expr: `OUT := IF (SEL_D = 1) THEN IN1 ELSE IN2;`,
+      live: [
+        ["Execution Order", "#1 (Before CALC1)", "v-info"],
+        ["Active Source", state.useRecipe ? "Recipe (IN1)" : "Local (IN2)", "v-info"],
+        ["OUT (TARGET_WT)", `${d.targetWt.toFixed(1)} kg`, "v-good"]
+      ]
+    },
+    CALC1: {
+      type: "PATTERN 3 — FBD CALCULATION BLOCK (#2)",
+      title: "CALC1 — Net Delivered & Remaining Mass",
+      role: "Scratchpad Calculator solving SECOND (#2) right after BSEL1 (#1) and BEFORE CND3 (#3). Subtracts START_WT tare from live vessel weight so we compare net solvent added against TARGET_WT.",
+      paths: [
+        ["CM_TANK_WT/AI1/OUT.CV", "IN2 — Total vessel weight (heel + added solvent)"],
+        ["^/START_WT.CV", "IN3 — Locked tare snapshot from Idle → S10"]
+      ],
+      expr: `DELIVERED := IN2 - IN3;\nOUT := IN1 - DELIVERED; (* REMAINING_WT *)`,
+      live: [
+        ["Execution Order", "#2 (After BSEL1, Before CND3)", "v-info"],
+        ["DELIVERED_WT", `${d.deliveredWt.toFixed(1)} kg`, "v-info"],
+        ["OUT (REMAINING)", `${d.remainingWt.toFixed(1)} kg`, "v-good"]
+      ]
+    },
+    CND3: {
+      type: "PATTERN 3 — FBD CONDITION BLOCK (#3)",
+      title: "CND3 — Preclose Cutoff Comparator",
+      role: "Solves THIRD (#3) in the same Scan so zero dead-time is wasted. Fires True when REMAINING_WT drops at or below PRECLOSE_LEAD (15 kg), triggering SFC Transition T20_PRECLOSE.",
+      paths: [
+        ["^/REMAINING_WT.CV", "Solid output wire from CALC1 (#2)"],
+        ["^/PRECLOSE_LEAD.CV", "Valve stroke + Scan latency lead (15.0 kg)"]
+      ],
+      expr: `IN1 <= '^/PRECLOSE_LEAD.CV';`,
+      live: [
+        ["Execution Order", "#3 (Same Scan as CALC1)", "v-info"],
+        ["OUT_D (→ T20)", d.precloseReached ? "TRUE (Cutoff!)" : "FALSE (Filling)", d.precloseReached ? "v-good" : "v-info"]
+      ]
+    },
+    ACT2: {
+      type: "PATTERN 3 — FBD ACTION BLOCK (#4)",
+      title: "ACT2 — Cascade Mode Alignment",
+      role: "When the EM is in AUTO, ACT2 requests CAS mode on downstream CM Device Control blocks (MODE.TARGET := CAS) so those CMs listen to the EM's CAS_IN_D commands.",
+      paths: [
+        ["CM_FEED_XV/DC1/MODE.TARGET", "Requests CAS mode on Feed Valve"],
+        ["CM_AGIT_MTR/DC1/MODE.TARGET", "Requests CAS mode on Agitator Motor"]
+      ],
+      expr: `'CM_FEED_XV/DC1/MODE.TARGET' := CAS;\n'CM_AGIT_MTR/DC1/MODE.TARGET' := CAS;`,
+      live: [
+        ["Valve MODE.TARGET", "CAS", "v-info"],
+        ["Valve MODE.ACTUAL", state.valveMode, state.valveMode === "CAS" ? "v-good" : "v-bad"]
+      ]
+    },
+    CND4: {
+      type: "PATTERN 4 — FBD CONDITION BLOCK (#1)",
+      title: "CND4 — Confirmed Valve Closed Check",
+      role: "Checks CM_FEED_XV's physical limit-switch feedback (PV_D) instead of blindly trusting the command we sent. Feeds SFC Transition T30_SHUT_OK.",
+      paths: [
+        ["CM_FEED_XV/DC1/PV_D", "Confirmed physical valve state from field limit switches"],
+        ["^/VALVE_SHUT_OK", "True only when PV_D proves Closed"]
+      ],
+      expr: `'CM_FEED_XV/DC1/PV_D' = Closed;`,
+      live: [
+        ["PV_D Feedback", d.valvePvText, d.valveShutOk ? "v-good" : "v-bad"],
+        ["VALVE_SHUT_OK", d.valveShutOk ? "TRUE (1)" : "FALSE (0)", d.valveShutOk ? "v-good" : "v-warn"]
+      ]
+    },
+    CND5: {
+      type: "PATTERN 4 — FBD CONDITION BLOCK (#2)",
+      title: "CND5 — Command vs. Feedback Mismatch Alarm",
+      role: "Pairs the outward command (CAS_IN_D) against inward physical proof (PV_D) with a 10-second duration timer. If the EM commanded Close while PV_D stays Open, flags VALVE_MISMATCH_ALM.",
+      paths: [
+        ["CM_FEED_XV/DC1/CAS_IN_D", "Outbound command sent by EM"],
+        ["CM_FEED_XV/DC1/PV_D", "Inbound confirmed limit-switch feedback"]
+      ],
+      expr: `(* Duration = 10s *)\n'CM_FEED_XV/DC1/CAS_IN_D' <> 'CM_FEED_XV/DC1/PV_D';`,
+      live: [
+        ["CAS_IN_D (Cmd)", d.feedCmdText, "v-info"],
+        ["PV_D (Feedback)", d.valvePvText, d.valveMismatch ? "v-bad" : "v-good"],
+        ["MISMATCH_ALM", d.valveMismatch ? "ACTIVE!" : "Clear", d.valveMismatch ? "v-bad" : "v-good"]
+      ]
+    }
+  };
+
+  if (map[id]) return map[id];
+
+  // Fallback for margin flags
+  return {
+    type: "CONTROL STUDIO REFERENCE FLAG",
+    title: id.replace(/^FLAG_/, ""),
+    role: "Pointed margin reference flag connecting an external Control Module parameter or internal EM parameter onto this Function Block Diagram sheet.",
+    paths: [
+      ["Left Margin Flag", "Brings live measurements, modes, or limit-switch feedback INTO the sheet."],
+      ["Right Margin Flag", "Sends commands (CAS_IN_D) or mode requests (MODE.TARGET) OUT to CMs."]
+    ],
+    expr: `(* Click any nearby CND, ACT, CALC, or BSEL block to inspect its full Structured Text expression *)`,
+    live: [
+      ["EM_STATE", state.emState, "v-info"],
+      ["Active Step", STEPS[state.stepIdx], "v-info"]
+    ]
+  };
+}
+
+// =========================================================================
+// 6. MAIN RENDER & UI SYNC
+// =========================================================================
+function render() {
+  const d = computeDerived();
+
+  // Update State Pill
+  const pill = document.getElementById("emStatePill");
+  pill.textContent = state.emState;
+  pill.className = `state-pill state-${state.emState}`;
+
+  // Update Toggle Buttons
+  const btnScale = document.getElementById("btnScaleSt");
+  btnScale.textContent = `.ST: ${state.scaleSt}`;
+  btnScale.className = state.scaleSt === "BAD" ? "sim-btn active-toggle" : "sim-btn";
+
+  const btnHiHi = document.getElementById("btnHiHi");
+  btnHiHi.textContent = state.hiHi ? "HI_HI: TRIP!" : "HI_HI: Normal";
+  btnHiHi.className = state.hiHi ? "sim-btn active-toggle" : "sim-btn";
+
+  const btnStuck = document.getElementById("btnStuck");
+  btnStuck.textContent = state.valveStuck ? "Valve: STUCK OPEN" : "Valve: Normal";
+  btnStuck.className = state.valveStuck ? "sim-btn active-toggle" : "sim-btn";
+
+  document.getElementById("btnSource").textContent = state.useRecipe ? "SP: Recipe (500 kg)" : "SP: Local (250 kg)";
+  document.getElementById("selValveMode").value = state.valveMode;
+  document.getElementById("wtSlider").value = state.currentWt;
+
+  // Update Diagnostic Banner
+  const banner = document.getElementById("diagBanner");
+  banner.className = "diag-banner" + (state.noticeLevel !== "info" ? " " + state.noticeLevel : "");
+  document.getElementById("diagText").textContent = state.notice ||
+    `Step: ${STEPS[state.stepIdx]} | Pattern 1 steps through time; Patterns 2, 3, and 4 solve continuously every Scan. Click any block to inspect.`;
+  document.getElementById("diagMetrics").textContent =
+    `Tare: ${state.startWt.toFixed(0)} kg | Scale: ${state.currentWt.toFixed(0)} kg (${state.scaleSt}) | Net: ${d.deliveredWt.toFixed(0)} / ${d.targetWt.toFixed(0)} kg | Rem: ${d.remainingWt.toFixed(0)} kg`;
+
+  // Render SVG Viewport
+  const vp = document.getElementById("viewport");
+  vp.innerHTML = "";
+  if (state.tab === "p1") renderPattern1(vp, d);
+  else if (state.tab === "p2") renderPattern2(vp, d);
+  else if (state.tab === "p3") renderPattern3(vp, d);
+  else if (state.tab === "p4") renderPattern4(vp, d);
+
+  applyTransform();
+
+  // Render Inspector
+  const info = getInspectorInfo(state.selectedId, d);
+  document.getElementById("inspType").textContent = info.type;
+  document.getElementById("inspTitle").textContent = info.title;
+  document.getElementById("inspRole").textContent = info.role;
+  document.getElementById("inspExpr").textContent = info.expr;
+
+  const ul = document.getElementById("inspPath");
+  ul.innerHTML = "";
+  info.paths.forEach(([code, desc]) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<code>${code}</code><span>${desc}</span>`;
+    ul.appendChild(li);
+  });
+
+  const kv = document.getElementById("inspLive");
+  kv.innerHTML = "";
+  info.live.forEach(([k, v, cls]) => {
+    const kDiv = document.createElement("div");
+    kDiv.className = "k";
+    kDiv.textContent = k;
+    const vDiv = document.createElement("div");
+    vDiv.className = `v ${cls}`;
+    vDiv.textContent = v;
+    kv.appendChild(kDiv);
+    kv.appendChild(vDiv);
+  });
+}
+
+function applyTransform() {
+  document.getElementById("viewport").setAttribute("transform", `translate(${state.panX}, ${state.panY}) scale(${state.zoom})`);
+  document.getElementById("zoomReset").textContent = `${Math.round(state.zoom * 100)}%`;
+}
+
+function fitToView() {
+  const wrap = document.getElementById("canvasWrap");
+  const w = wrap.clientWidth || 900;
+  const h = wrap.clientHeight || 600;
+  const contentW = 940, contentH = 570;
+  const scale = Math.min((w - 30) / contentW, (h - 30) / contentH, 1.15);
+  state.zoom = Math.max(0.55, +scale.toFixed(2));
+  state.panX = Math.max(10, Math.round((w - contentW * state.zoom) / 2));
+  state.panY = Math.max(10, Math.round((h - contentH * state.zoom) / 2));
+  applyTransform();
+}
+
+// =========================================================================
+// 7. EVENT HANDLERS
+// =========================================================================
+document.querySelectorAll("#patternTabs .tab-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll("#patternTabs .tab-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    state.tab = btn.dataset.tab;
+    const defaultSel = { p1: STEPS[state.stepIdx], p2: "CND1", p3: "BSEL1", p4: "CND4" };
+    state.selectedId = defaultSel[state.tab];
+    render();
+    fitToView();
+  });
+});
+
+document.getElementById("btnOffline").addEventListener("click", () => {
+  state.online = false;
+  document.getElementById("btnOffline").className = "active offline-active";
+  document.getElementById("btnOnline").className = "";
+  render();
+});
+document.getElementById("btnOnline").addEventListener("click", () => {
+  state.online = true;
+  document.getElementById("btnOnline").className = "active";
+  document.getElementById("btnOffline").className = "";
+  render();
+});
+
+// Click selection inside SVG
+document.getElementById("schematic").addEventListener("click", (e) => {
+  const target = e.target.closest("[data-id]");
+  if (target) {
+    state.selectedId = target.getAttribute("data-id");
+    render();
+  }
+});
+
+// Step & State Controls
+document.getElementById("btnNext").addEventListener("click", () => {
+  const d = computeDerived();
+  if (state.emState === "ABORTED") {
+    state.notice = "EM is ABORTED. Click Reset to return safely to S0_IDLE before starting a new charge.";
+    state.noticeLevel = "alert";
+    render(); return;
+  }
+  if (state.emState === "HELD") {
+    state.notice = "EM is HELD. Clear any fault and click Restart to resume without losing your START_WT.CV tare.";
+    state.noticeLevel = "warn";
+    render(); return;
+  }
+
+  if (state.stepIdx === 0) {
+    if (!d.permReady) {
+      state.notice = "Blocked at T10_START_OK! Check Pattern 2 CND1: CM_FEED_XV must be in CAS, scale .ST = GOOD, and HI_HI = Normal.";
+      state.noticeLevel = "warn";
+      render(); return;
+    }
+    // Golden Tare Rule: Snapshot START_WT ONCE on S0_IDLE -> S10_CHARGE_OPEN
+    state.startWt = state.currentWt;
+    state.tareLocked = true;
+    state.stepIdx = 1;
+    state.emState = "RUNNING";
+    state.selectedId = "S10_CHARGE_OPEN";
+    state.notice = `Entered S10_CHARGE_OPEN! Snapshot START_WT.CV := ${state.startWt.toFixed(1)} kg (locked). Valve commanded Open. Move the Tank Weight slider or click 'Fill to Cutoff' to reach T20_PRECLOSE.`;
+    state.noticeLevel = "ok";
+  } else if (state.stepIdx === 1) {
+    if (!d.precloseReached) {
+      state.notice = `Waiting at T20_PRECLOSE: REMAINING_WT (${d.remainingWt.toFixed(1)} kg) is still above PRECLOSE_LEAD (${state.precloseLead} kg). Drag the scale slider or click 'Fill to Cutoff'.`;
+      state.noticeLevel = "warn";
+      render(); return;
+    }
+    state.stepIdx = 2;
+    state.selectedId = "S20_TRIM_CLOSE";
+    state.notice = "Entered S20_TRIM_CLOSE! Valve commanded Close. Checking Pattern 4 CND4 (CM_FEED_XV/DC1/PV_D = Closed) before starting agitator.";
+    state.noticeLevel = "ok";
+  } else if (state.stepIdx === 2) {
+    if (!d.valveShutOk) {
+      state.notice = "Stuck at T30_SHUT_OK! Check Pattern 4: EM commanded Close (CAS_IN_D), but PV_D says the valve is still Open (CND5 Mismatch Alarm!).";
+      state.noticeLevel = "alert";
+      render(); return;
+    }
+    state.stepIdx = 3;
+    state.emState = "COMPLETE";
+    state.selectedId = "S30_AGITATE";
+    state.notice = "Entered S30_AGITATE! Feed valve confirmed closed, agitator started, and EM_STATE := COMPLETE reported to EPH.";
+    state.noticeLevel = "ok";
+  } else {
+    state.notice = "Charge is already complete in S30_AGITATE. Click Reset to start a fresh cycle.";
+    state.noticeLevel = "info";
+  }
+  render();
+});
+
+document.getElementById("btnPrev").addEventListener("click", () => {
+  if (state.stepIdx > 0) {
+    state.stepIdx--;
+    state.emState = state.stepIdx === 0 ? "IDLE" : "RUNNING";
+    if (state.stepIdx === 0) state.tareLocked = false;
+    state.selectedId = STEPS[state.stepIdx];
+    state.notice = `Stepped back to ${STEPS[state.stepIdx]}.`;
+    state.noticeLevel = "info";
+    render();
+  }
+});
+
+document.getElementById("btnHold").addEventListener("click", () => {
+  if (state.stepIdx === 0 || state.emState === "ABORTED") return;
+  state.emState = "HELD";
+  state.notice = `EM HELD in ${STEPS[state.stepIdx]}: Feed valve stamped Close immediately, and START_WT.CV stays safely locked at ${state.startWt.toFixed(1)} kg!`;
+  state.noticeLevel = "warn";
+  render();
+});
+
+document.getElementById("btnRestart").addEventListener("click", () => {
+  if (state.emState !== "HELD") {
+    state.notice = "Restart is used to resume from a HELD state.";
+    state.noticeLevel = "info";
+    render(); return;
+  }
+  const d = computeDerived();
+  if (!d.permReady) {
+    state.notice = "Cannot Restart yet: clear the fault / restore CAS mode and GOOD scale status first (Pattern 2 CND1).";
+    state.noticeLevel = "warn";
+    render(); return;
+  }
+  state.emState = "RUNNING";
+  state.notice = `RESTARTED in ${STEPS[state.stepIdx]}! Golden Tare Rule preserved: START_WT.CV stayed at ${state.startWt.toFixed(1)} kg (did NOT re-tare!), so only the remaining ${d.remainingWt.toFixed(1)} kg will be added.`;
+  state.noticeLevel = "ok";
+  render();
+});
+
+document.getElementById("btnAbort").addEventListener("click", () => {
+  state.emState = "ABORTED";
+  state.notice = "EM ABORTED: Feed valve closed and agitator stopped immediately. Click Reset to return to S0_IDLE.";
+  state.noticeLevel = "alert";
+  render();
+});
+
+document.getElementById("btnReset").addEventListener("click", () => {
+  state.stepIdx = 0;
+  state.emState = "IDLE";
+  state.tareLocked = false;
+  state.currentWt = 100.0;
+  state.startWt = 100.0;
+  state.scaleSt = "GOOD";
+  state.hiHi = false;
+  state.valveStuck = false;
+  state.valveMode = "CAS";
+  state.selectedId = "S0_IDLE";
+  state.notice = "Reset to S0_IDLE with clean field status and 100 kg tank heel.";
+  state.noticeLevel = "info";
+  render();
+});
+
+// Field Toggles
+document.getElementById("selValveMode").addEventListener("change", (e) => {
+  state.valveMode = e.target.value;
+  state.notice = state.valveMode === "CAS"
+    ? "CM_FEED_XV/DC1/MODE.ACTUAL is now CAS — listening to EM_TANK_CHARGE."
+    : `CM_FEED_XV/DC1/MODE.ACTUAL switched to ${state.valveMode} — EM commands on CAS_IN_D are ignored! Check Pattern 2 CND1.`;
+  state.noticeLevel = state.valveMode === "CAS" ? "ok" : "warn";
+  render();
+});
+
+document.getElementById("btnScaleSt").addEventListener("click", () => {
+  state.scaleSt = state.scaleSt === "GOOD" ? "BAD" : "GOOD";
+  state.notice = state.scaleSt === "BAD"
+    ? "CM_TANK_WT/AI1/OUT.ST set to BAD! Watch Pattern 2 react immediately."
+    : "CM_TANK_WT/AI1/OUT.ST restored to GOOD.";
+  state.noticeLevel = state.scaleSt === "BAD" ? "alert" : "ok";
+  render();
+});
+
+document.getElementById("btnHiHi").addEventListener("click", () => {
+  state.hiHi = !state.hiHi;
+  state.notice = state.hiHi
+    ? "HI_HI_LVL tripped (1)! Active interlock forces feed valve closed and EM HELD."
+    : "HI_HI_LVL cleared (0).";
+  state.noticeLevel = state.hiHi ? "alert" : "ok";
+  render();
+});
+
+document.getElementById("btnStuck").addEventListener("click", () => {
+  state.valveStuck = !state.valveStuck;
+  state.notice = state.valveStuck
+    ? "Simulated Stuck Valve: PV_D remains Open even when CAS_IN_D commands Close. Check Pattern 4 CND4 & CND5!"
+    : "Valve mechanical response restored to Normal.";
+  state.noticeLevel = state.valveStuck ? "warn" : "ok";
+  render();
+});
+
+document.getElementById("btnSource").addEventListener("click", () => {
+  state.useRecipe = !state.useRecipe;
+  state.notice = state.useRecipe
+    ? "BSEL1 switched to Recipe Weight (500.0 kg from EPH)."
+    : "BSEL1 switched to Operator Local Weight (250.0 kg). Check Pattern 3 CALC1!";
+  state.noticeLevel = "info";
+  render();
+});
+
+document.getElementById("wtSlider").addEventListener("input", (e) => {
+  state.currentWt = parseFloat(e.target.value);
+  if (!state.tareLocked) state.startWt = state.currentWt;
+  render();
+});
+
+document.getElementById("btnFillCutoff").addEventListener("click", () => {
+  const target = state.useRecipe ? state.recipeWt : state.localWt;
+  state.currentWt = Math.min(650, state.startWt + target - state.precloseLead);
+  state.notice = `Tank weight reached ${state.currentWt.toFixed(1)} kg (REMAINING_WT = ${state.precloseLead} kg). Pattern 3 CND3 fired T20_PRECLOSE = TRUE! Click Next Step.`;
+  state.noticeLevel = "ok";
+  render();
+});
+
+// Pan & Zoom
+const wrap = document.getElementById("canvasWrap");
+let dragging = false, dragStartX = 0, dragStartY = 0, startPanX = 0, startPanY = 0;
+
+wrap.addEventListener("mousedown", (e) => {
+  if (e.target.closest(".clickable") || e.target.closest(".zoom-controls")) return;
+  dragging = true;
+  dragStartX = e.clientX; dragStartY = e.clientY;
+  startPanX = state.panX; startPanY = state.panY;
+});
+window.addEventListener("mousemove", (e) => {
+  if (!dragging) return;
+  state.panX = startPanX + (e.clientX - dragStartX);
+  state.panY = startPanY + (e.clientY - dragStartY);
+  applyTransform();
+});
+window.addEventListener("mouseup", () => { dragging = false; });
+
+wrap.addEventListener("wheel", (e) => {
+  e.preventDefault();
+  const delta = e.deltaY < 0 ? 0.1 : -0.1;
+  state.zoom = Math.min(2.2, Math.max(0.45, +(state.zoom + delta).toFixed(2)));
+  applyTransform();
+}, { passive: false });
+
+document.getElementById("zoomIn").addEventListener("click", () => { state.zoom = Math.min(2.2, +(state.zoom + 0.15).toFixed(2)); applyTransform(); });
+document.getElementById("zoomOut").addEventListener("click", () => { state.zoom = Math.max(0.45, +(state.zoom - 0.15).toFixed(2)); applyTransform(); });
+document.getElementById("zoomReset").addEventListener("click", () => { state.zoom = 1; state.panX = 20; state.panY = 15; applyTransform(); });
+document.getElementById("zoomFit").addEventListener("click", fitToView);
+
+// Vocab Modal
+function renderVocab(filter = "") {
+  const list = document.getElementById("vocabList");
+  list.innerHTML = "";
+  const q = filter.trim().toLowerCase();
+  VOCAB.filter(v => !q || v.term.toLowerCase().includes(q) || v.full.toLowerCase().includes(q) || v.desc.toLowerCase().includes(q))
+    .forEach(v => {
+      const div = document.createElement("div");
+      div.className = "vocab-item";
+      div.innerHTML = `<div><span class="vt">${v.term}</span><span class="vf">${v.full}</span></div><p>${v.desc}</p>`;
+      list.appendChild(div);
+    });
+}
+document.getElementById("btnVocab").addEventListener("click", () => {
+  renderVocab("");
+  document.getElementById("vocabSearch").value = "";
+  document.getElementById("vocabModal").classList.add("open");
+});
+document.getElementById("btnCloseVocab").addEventListener("click", () => {
+  document.getElementById("vocabModal").classList.remove("open");
+});
+document.getElementById("vocabModal").addEventListener("click", (e) => {
+  if (e.target.id === "vocabModal") document.getElementById("vocabModal").classList.remove("open");
+});
+document.getElementById("vocabSearch").addEventListener("input", (e) => renderVocab(e.target.value));
+
+window.addEventListener("resize", fitToView);
+render();
+fitToView();
+</script>
+</body>
+</html>
