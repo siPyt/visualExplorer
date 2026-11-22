@@ -1,0 +1,99 @@
+================================================================================
+DELTAV CONTROL STUDIO MASTERY — PROGRESS & MISSION TRACKER
+Last Updated: 2026-11-22
+Repository:   https://github.com/siPyt/visualExplorer.git
+================================================================================
+
+ULTIMATE MISSION
+----------------
+Walk up to ANY Emerson DeltaV Control Studio workstation at ANY plant, open ANY
+module (CM, EM, or EPH — Off-Line or On-Line), and immediately read what every
+block, wire, pin, mode, status, and interlock is doing like the sharpest
+engineer in the room.
+
+HOW THIS WORKSPACE OPERATES
+---------------------------
+1. Visual Explorer (index.html):
+   The interactive visual Control Studio trainer. Every major concept taught in
+   chat gets visualized here using authentic DeltaV Control Studio stencils,
+   wires, pins, On-Line live values, and fault simulations.
+2. Running Study Handbook (DeltaV_Study_Guide.pdf):
+   Print-ready study guide + plain-English DeltaV vocabulary + self-check quizzes.
+3. Session Tracker (WHERE_WE_ARE.txt — this file):
+   Single source of truth so even a brand-new chat instantly knows where we came
+   from, where we are right now, and where we are going next.
+
+================================================================================
+1. WHERE WE CAME FROM (MASTERED SO FAR)
+================================================================================
+[DONE] Ch. 1 — Equipment Hierarchy & Scan Heartbeat
+       - EPH (Recipe Boss) -> EM (Team Coordinator) -> CM (Single-Device Controller).
+       - Module Scan cycle and #1 -> #2 -> #3 FBD execution order.
+
+[DONE] Ch. 2 — 1 Outer EM Algorithm vs. 4 Inner Patterns
+       - 1 Outer Algorithm chosen at creation: Command-Driven, State-Driven, FBD, SFC.
+       - 4 Inner Patterns inside EM_TANK_CHARGE:
+         * Pattern 1 (SFC, top-to-bottom): ONLY pattern that steps through time.
+         * Pattern 2 (FBD, left-to-right): Permissives (pre-start) & Interlocks (trips).
+         * Pattern 3 (FBD, left-to-right): Weight selection (BSEL), Tare math (CALC),
+           Cutoff check (CND), Mode push (ACT).
+         * Pattern 4 (FBD, left-to-right): CM commands (CAS_IN_D) & field proof (PV_D).
+       - Solid wires = Analog (.CV numbers); Dashed wires = Discrete / Mode / Status.
+
+[DONE] Ch. 3 — Operating Modes & Signal Health
+       - OOS, MAN, AUTO, CAS.
+       - Write MODE.TARGET, always verify MODE.ACTUAL.
+       - Every wire carries .CV (value) + .ST (GOOD / UNCERTAIN / BAD).
+
+[DONE] Ch. 4 — 5-Second DeltaV Path Decoding
+       - 'Module/Block/Parameter.Detail' (e.g., 'CM_FEED_XV/DC1/MODE.ACTUAL' = CAS).
+       - '^/' shortcut for local module parameters, Named Sets, unquoted mode keywords.
+
+[DONE] Ch. 5 — Hold, Restart, Abort, Golden Tare Rule & EPH Handshake
+       - Golden Tare Rule: Snapshot START_WT.CV once on S0_IDLE -> S10_CHARGE_OPEN;
+         NEVER overwrite START_WT.CV on Restart from Hold (prevents overfill).
+       - EPH <-> EM 3-signal handshake: Acquire, Command + Setpoint down, EM_STATE up.
+
+[DONE] Ch. 6 — 30-Second On-Line Troubleshooting Method
+       - Read order: Pattern 1 Active Step -> Transition Crossbar (┼) -> FBD Pattern.
+       - Diagnosing stuck-in-Idle (MODE.ACTUAL != CAS), mid-run Hold (OUT.ST = BAD),
+         and stuck valve in S20_TRIM_CLOSE (CAS_IN_D vs. PV_D mismatch, DURATION,
+         FAIL_ACTIVE).
+
+================================================================================
+2. WHERE WE ARE RIGHT NOW
+================================================================================
+- Completed Phase 1 (Chapters 1–6) anchored on Command-Driven EM_TANK_CHARGE.
+- Visual Explorer (index.html) currently models EM_TANK_CHARGE across all 4
+  patterns with Off-Line / On-Line toggle, Hold/Restart/Abort, Golden Tare Watch,
+  EPH Handshake, and field fault simulations.
+- NEXT IMMEDIATE STEP:
+  -> Chapter 7: State-Driven Equipment Modules (how multi-valve headers & transfer
+     manifolds align states cleanly without multi-step SFCs) + adding a live
+     State-Driven EM module view inside Visual Explorer!
+
+================================================================================
+3. WHAT WE HOPE TO ACCOMPLISH (FULL CONTROL STUDIO MASTERY ROADMAP)
+================================================================================
+[DONE] Phase 1: Command-Driven EMs, Modes, Paths & Discrete CMs (Ch. 1–6)
+
+[NEXT] Phase 2: State-Driven Equipment Modules (Ch. 7)
+       - Multi-valve headers (e.g., EM_XFER_HDR: Closed, Route_Tank_A, Route_Tank_B,
+         CIP_Flush), State tables/device masks, command vs. confirmed state alignment.
+
+[PLAN] Phase 3: Analog Control, PID, Cascade & Back-Calculation (Ch. 8–9)
+       - Inside an Analog CM (AI -> PID -> AO): CAS_IN vs. CAS_IN_D, SP, PV, OUT.
+       - The pro secret most people miss: BKCAL_IN / BKCAL_OUT dashed wires
+         (bumpless transfer, anti-reset windup, downstream valve MAN/OOS protection).
+       - Master-Slave Cascade loops, Split-Range (SPLTR), Ratio, and Override (ISEL).
+
+[PLAN] Phase 4: Advanced Interlocks, Tracking & Composite Blocks (Ch. 10)
+       - Forced Tracking (TRK_IN_D / TRK_VAL), First-Out & latched trips, Composite
+         Function Blocks (drilling "Inside" nested blocks in Control Studio), and
+         Module Class vs. Module Instance templates.
+
+[PLAN] Phase 5: Batch Equipment Phases (EPH) & "Cold-Read" Mastery (Ch. 11–12)
+       - Inside an EPH (Run / Hold / Restart / Abort / Stop charts), arbitration,
+         failure monitoring, and Cold-Read Diagnostics inside Visual Explorer where
+         you open unfamiliar broken Control Studio sheets and diagnose them cold.
+================================================================================
