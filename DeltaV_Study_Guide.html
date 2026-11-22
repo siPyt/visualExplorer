@@ -330,12 +330,12 @@
   <div class="doc-header">
     <div class="eyebrow">Emerson DeltaV Control Studio • Running Study Handbook</div>
     <h1>DeltaV Equipment Modules &amp; Vocabulary Guide</h1>
-    <p class="subtitle">Strictly native DeltaV concepts explained in plain English, anchored on <strong>EM_TANK_CHARGE</strong>.</p>
+    <p class="subtitle">Strictly native DeltaV concepts explained in plain English — paired with <strong>Visual Explorer</strong>.</p>
     <div class="meta-strip">
-      <span class="meta-pill">Living Document: v1.0</span>
+      <span class="meta-pill">Living Document: v1.1</span>
       <span class="meta-pill">Updated: Nov 22, 2026</span>
-      <span class="meta-pill">Anchor EM: EM_TANK_CHARGE</span>
-      <span class="meta-pill">Companion App: index.html</span>
+      <span class="meta-pill">Modules: EM_TANK_CHARGE + EM_XFER_HDR</span>
+      <span class="meta-pill">Companion: Visual Explorer</span>
     </div>
   </div>
 
@@ -352,19 +352,19 @@
     </div>
     <div class="roadmap-item done">
       <span class="tag done">Learned</span><br />
-      <strong>Ch. 5:</strong> Hold / Restart / Abort, Golden Tare Rule &amp; EPH Handshake
+      <strong>Ch. 5–6:</strong> Hold / Restart / Tare Rule, EPH Handshake &amp; Fault Drills
+    </div>
+    <div class="roadmap-item done">
+      <span class="tag done">Learned</span><br />
+      <strong>Ch. 7:</strong> State-Driven EMs (EM_XFER_HDR &amp; Device Masks)
     </div>
     <div class="roadmap-item next">
       <span class="tag next">Up Next</span><br />
-      <strong>Ch. 6:</strong> Troubleshooting Drills (Stuck Valve &amp; Hold/Restart)
+      <strong>Ch. 8:</strong> Analog Control Loops (AI → PID → AO &amp; BKCAL)
     </div>
     <div class="roadmap-item next">
       <span class="tag next">Up Next</span><br />
-      <strong>Ch. 7:</strong> State-Driven EMs (Multi-Valve Headers)
-    </div>
-    <div class="roadmap-item next">
-      <span class="tag next">Up Next</span><br />
-      <strong>Ch. 8:</strong> Analog Control Loops (AI → PID → AO &amp; CAS_IN)
+      <strong>Ch. 9–12:</strong> Cascade/Split-Range, Composites &amp; Batch EPH
     </div>
   </div>
 
@@ -728,6 +728,122 @@
     If the EM commanded <code>Close</code> (<code>CAS_IN_D := Close</code>) but won't advance across <code>T30_SHUT_OK</code> into <code>S30_AGITATE</code>, jump straight to <strong>Pattern 4 (CM Command &amp; Feedback)</strong>. Check <code>'CM_FEED_XV/DC1/PV_D'</code>—if the valve limit switch still reads <code>Open</code>, <code>CND4</code> holds <code>T30_SHUT_OK</code> false and <code>CND5</code> raises <code>VALVE_MISMATCH_ALM</code> so the agitator never starts with a leaking feed valve.
   </div>
 
+  <!-- ==================== CHAPTER 6 ==================== -->
+  <h2 class="page-break">Chapter 6: The 30-Second On-Line Troubleshooting Method</h2>
+  <p>When an operator calls and says <em>"The Equipment Module is stuck,"</em> never hunt across wires at random. Read every Command-Driven EM in this exact 3-step sequence:</p>
+  <ol>
+    <li><strong>Pattern 1 (SFC) — Where is it?</strong> Find the green active step box.</li>
+    <li><strong>Transition Crossbar (<code>┼</code>) — What is blocking it?</strong> Read the transition directly below the active step—whichever condition is <code>FALSE</code> is the exact bottleneck.</li>
+    <li><strong>Jump to the Matching FBD Pattern — Why is it false?</strong> Check Pattern 2 (Permissive/Trip), Pattern 3 (Setpoint/Cutoff math), or Pattern 4 (CM limit-switch feedback).</li>
+  </ol>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width:22%;">Plant Symptom</th>
+        <th style="width:23%;">Where It's Waiting</th>
+        <th style="width:20%;">FBD Sheet</th>
+        <th>Exact DeltaV Pin Tell</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Won't start from Idle</strong></td>
+        <td><code>S0_IDLE</code> above <code>T10_START_OK</code></td>
+        <td>Pattern 2 (<code>CND1</code>)</td>
+        <td><code>'CM_FEED_XV/DC1/MODE.ACTUAL'</code> left in <code>MAN</code> (not <code>CAS</code>) or scale <code>.ST &lt;&gt; GOOD</code>.</td>
+      </tr>
+      <tr>
+        <td><strong>Paused mid-fill, valve shut</strong></td>
+        <td><code>EM_STATE = HELD</code> in <code>S10_CHARGE_OPEN</code></td>
+        <td>Pattern 2 (<code>CND2 → ACT1</code>)</td>
+        <td><code>'CM_TANK_WT/AI1/OUT.ST' = BAD</code> or <code>HI_HI_LVL</code> tripped; <code>START_WT.CV</code> stays locked.</td>
+      </tr>
+      <tr>
+        <td><strong>Valve told Close, won't mix</strong></td>
+        <td><code>S20_TRIM_CLOSE</code> above <code>T30_SHUT_OK</code></td>
+        <td>Pattern 4 (<code>CND4</code> / <code>CND5</code>)</td>
+        <td><code>CAS_IN_D = Close</code>, but physical switch <code>PV_D = Open</code> → fires <code>FAIL_ACTIVE</code> after <code>DURATION</code>.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ==================== CHAPTER 7 ==================== -->
+  <h2>Chapter 7: State-Driven Equipment Modules (EM_XFER_HDR)</h2>
+  <p>Not every group of equipment runs a multi-step sequence over time. When coordinating a <strong>multi-valve transfer header or manifold</strong> (like <code>EM_XFER_HDR</code> routing solvent to Tank A, Tank B, or CIP Drain), engineers pick the <strong>State-Driven</strong> outer algorithm instead of Command-Driven.</p>
+
+  <div class="two-col">
+    <div class="card">
+      <h4>Command-Driven EM (EM_TANK_CHARGE)</h4>
+      <p style="margin:0;"><strong>"Do a task over time."</strong> Steps sequentially through <code>S10 → S20 → S30</code> until finished, then returns to Complete/Idle.</p>
+    </div>
+    <div class="card">
+      <h4>State-Driven EM (EM_XFER_HDR)</h4>
+      <p style="margin:0;"><strong>"Hold an alignment."</strong> Each Named Set state snaps directly to a fixed <strong>Device Alignment Mask</strong> (table of Open/Close &amp; Start/Stop targets).</p>
+    </div>
+  </div>
+
+  <div class="diagram-box">
+    <svg viewBox="0 0 680 206" width="100%" height="194" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <pattern id="grid7" width="20" height="20" patternUnits="userSpaceOnUse">
+          <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#e2e8f0" stroke-width="0.8"/>
+        </pattern>
+      </defs>
+      <rect width="680" height="206" fill="url(#grid7)" rx="4"/>
+
+      <!-- Left: Named-Set State Column -->
+      <text x="98" y="20" text-anchor="middle" fill="#0f2942" font-size="9" font-weight="700" font-family="Segoe UI, sans-serif">EM_S_COMMAND (Target State)</text>
+      <rect x="18" y="28" width="160" height="34" rx="4" fill="#ffffff" stroke="#475569" stroke-width="1.5"/>
+      <text x="98" y="49" text-anchor="middle" fill="#0f172a" font-size="8.8" font-weight="700" font-family="Consolas, monospace">0: HEADER_CLOSED</text>
+
+      <rect x="18" y="70" width="160" height="34" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="2.2"/>
+      <text x="98" y="91" text-anchor="middle" fill="#14532d" font-size="8.8" font-weight="700" font-family="Consolas, monospace">1: ROUTE_TANK_A [ACTIVE]</text>
+
+      <rect x="18" y="112" width="160" height="34" rx="4" fill="#ffffff" stroke="#475569" stroke-width="1.5"/>
+      <text x="98" y="133" text-anchor="middle" fill="#0f172a" font-size="8.8" font-weight="700" font-family="Consolas, monospace">2: ROUTE_TANK_B</text>
+
+      <rect x="18" y="154" width="160" height="34" rx="4" fill="#ffffff" stroke="#475569" stroke-width="1.5"/>
+      <text x="98" y="175" text-anchor="middle" fill="#0f172a" font-size="8.8" font-weight="700" font-family="Consolas, monospace">3: CIP_FLUSH</text>
+
+      <!-- Right: Device Alignment Mask Matrix -->
+      <rect x="196" y="12" width="468" height="180" rx="5" fill="#ffffff" stroke="#475569" stroke-width="1.5"/>
+      <rect x="197" y="13" width="466" height="22" rx="4" fill="#dbeafe"/>
+      <text x="208" y="28" fill="#1e3a8a" font-size="9" font-weight="700" font-family="Consolas, monospace">CONTROL STUDIO DEVICE ALIGNMENT MASK — ACTIVE: ROUTE_TANK_A</text>
+
+      <text x="208" y="50" fill="#334155" font-size="8.2" font-weight="700" font-family="Segoe UI, sans-serif">Child Control Module</text>
+      <text x="382" y="50" fill="#334155" font-size="8.2" font-weight="700" font-family="Segoe UI, sans-serif">Mask Cmd (CAS_IN_D)</text>
+      <text x="515" y="50" fill="#334155" font-size="8.2" font-weight="700" font-family="Segoe UI, sans-serif">Field Proof (PV_D)</text>
+      <line x1="206" y1="56" x2="654" y2="56" stroke="#cbd5e1" stroke-width="1"/>
+
+      <text x="208" y="76" fill="#0f172a" font-size="8.5" font-weight="700" font-family="Consolas, monospace">CM_HDR_XV101 (Tank A)</text>
+      <text x="382" y="76" fill="#1d4ed8" font-size="8.5" font-weight="700" font-family="Consolas, monospace">:= Open</text>
+      <text x="515" y="76" fill="#15803d" font-size="8.5" font-weight="700" font-family="Consolas, monospace">Open (MATCH)</text>
+
+      <text x="208" y="100" fill="#0f172a" font-size="8.5" font-weight="700" font-family="Consolas, monospace">CM_HDR_XV102 (Tank B)</text>
+      <text x="382" y="100" fill="#1d4ed8" font-size="8.5" font-weight="700" font-family="Consolas, monospace">:= Close</text>
+      <text x="515" y="100" fill="#15803d" font-size="8.5" font-weight="700" font-family="Consolas, monospace">Closed (MATCH)</text>
+
+      <text x="208" y="124" fill="#0f172a" font-size="8.5" font-weight="700" font-family="Consolas, monospace">CM_HDR_XV103 (CIP Drain)</text>
+      <text x="382" y="124" fill="#1d4ed8" font-size="8.5" font-weight="700" font-family="Consolas, monospace">:= Close</text>
+      <text x="515" y="124" fill="#15803d" font-size="8.5" font-weight="700" font-family="Consolas, monospace">Closed (MATCH)</text>
+
+      <text x="208" y="148" fill="#0f172a" font-size="8.5" font-weight="700" font-family="Consolas, monospace">CM_XFER_PMP (Xfer Pump)</text>
+      <text x="382" y="148" fill="#1d4ed8" font-size="8.5" font-weight="700" font-family="Consolas, monospace">:= Start (if path OK)</text>
+      <text x="515" y="148" fill="#15803d" font-size="8.5" font-weight="700" font-family="Consolas, monospace">Running (PV_D=ROUTE_TANK_A)</text>
+
+      <rect x="206" y="160" width="448" height="24" rx="4" fill="#eff6ff" stroke="#93c5fd"/>
+      <text x="430" y="175" text-anchor="middle" fill="#1e3a8a" font-size="8.1" font-weight="700" font-family="Segoe UI, sans-serif">Safety Rule: CM_XFER_PMP stays Stopped until XV101/102/103 limit switches prove aligned (prevents cross-mixing!)</text>
+    </svg>
+    <div class="diagram-caption">Figure 3: State-Driven EM_XFER_HDR — Switch to EM_XFER_HDR inside Visual Explorer to test stuck-valve and MAN faults live.</div>
+  </div>
+
+  <ul>
+    <li><strong><code>EM_S_COMMAND</code> vs. <code>PV_D</code>:</strong> <code>EM_S_COMMAND</code> is the desired route requested; <code>PV_D</code> only confirms that state once <em>every</em> child CM's <code>PV_D</code> matches the active mask.</li>
+    <li><strong><code>FAIL_ACTIVE</code> (Transition Timeout):</strong> If a valve is left in <code>MAN</code> or stuck open past <code>DURATION</code> (e.g., 8 s), <code>EM_S_COMMAND &lt;&gt; PV_D</code> sets <code>FAIL_ACTIVE = 1</code> and keeps <code>CM_XFER_PMP</code> stopped.</li>
+    <li><strong><code>FAIL_STATE</code> (Safe Fallback):</strong> If header pressure <code>'CM_HDR_PT/AI1/OUT.CV' &gt; 6.0</code> bar trips, the EM immediately drives all devices to <code>HEADER_CLOSED</code>.</li>
+  </ul>
+
   <!-- ==================== APPENDIX A: MASTER VOCAB ==================== -->
   <h2 class="page-break">Appendix A: Master Plain-English DeltaV Vocabulary</h2>
   <p>Quick-flip reference of every DeltaV term, block, mode, and pin you have learned so far.</p>
@@ -778,6 +894,11 @@
       <tr><td><code>^/</code></td><td>Local Module Shortcut</td><td>Shorthand for "a parameter inside this exact module" (<code>'^/TARGET_WT.CV'</code>).</td></tr>
       <tr><td><code>Permissive</code></td><td>Start Permissive</td><td>Pre-start gate checked before leaving <code>S0_IDLE</code>; waits peacefully if false.</td></tr>
       <tr><td><code>Interlock</code></td><td>Active Interlock (Trip)</td><td>Mid-run safety brake checked every Scan; forces valve closed and Hold/Abort immediately.</td></tr>
+      <tr><td><code>State-Driven EM</code></td><td>Target Alignment EM</td><td>EM container for headers/manifolds where each Named Set state snaps directly to a fixed Device Mask.</td></tr>
+      <tr><td><code>EM_S_COMMAND</code></td><td>Desired State Command</td><td>Target header state requested by the EPH or operator (compare against confirmed <code>PV_D</code>).</td></tr>
+      <tr><td><code>Device Mask</code></td><td>State Alignment Matrix</td><td>Table defining the exact <code>Open/Close</code> &amp; <code>Start/Stop</code> required of each CM in every state.</td></tr>
+      <tr><td><code>FAIL_STATE</code></td><td>Safe Fallback State</td><td>Safe state (e.g., <code>HEADER_CLOSED</code>) forced immediately when an active safety interlock trips.</td></tr>
+      <tr><td><code>DURATION</code> / <code>FAIL_ACTIVE</code></td><td>Confirm Delay &amp; Mismatch</td><td><code>DURATION</code> gives valves travel time; if <code>PV_D</code> still mismatches when time expires, <code>FAIL_ACTIVE</code> alarms.</td></tr>
     </tbody>
   </table>
 
@@ -790,6 +911,8 @@
     <li>If <code>EM_TANK_CHARGE</code> is paused on <strong>HOLD</strong> halfway through a 500 kg charge and then <strong>RESTARTED</strong>, should it re-capture <code>START_WT.CV</code>? Why or why not?</li>
     <li>What is the difference between a <code>CND</code> block and an <code>ACT</code> block?</li>
     <li>In Pattern 4, what two pins on <code>CM_FEED_XV/DC1</code> do you compare to catch a stuck valve?</li>
+    <li>When do you choose a <strong>State-Driven EM</strong> (<code>EM_XFER_HDR</code>) over a <strong>Command-Driven EM</strong> (<code>EM_TANK_CHARGE</code>)?</li>
+    <li>In <code>EM_XFER_HDR</code>, why must <code>CM_XFER_PMP</code> wait for <code>CND_PATH_OK</code> before starting?</li>
   </ol>
 
   <div class="quiz-ans">
@@ -800,11 +923,13 @@
     <strong>(4)</strong> Never! Re-taring on Restart would erase the solvent already delivered and overfill the tank.
     <strong>(5)</strong> <code>CND</code> asks a Yes/No question (outputs <code>OUT_D</code>); <code>ACT</code> is a "write it once" stamp that writes a command/value when triggered.
     <strong>(6)</strong> Outbound command <code>CAS_IN_D</code> vs. confirmed limit-switch feedback <code>PV_D</code>.
+    <strong>(7)</strong> Choose State-Driven for valve headers/manifolds that snap to and hold an alignment mask; choose Command-Driven for multi-step sequential tasks over time.
+    <strong>(8)</strong> So a stuck-open valve on another tank (e.g., <code>XV102</code>) cannot cross-contaminate batches when the pump starts!
   </div>
 
   <div class="footer-note">
     <span>DeltaV Control Studio Running Study Guide — Strictly Native DeltaV</span>
-    <span>Workspace: visualExplorer\DeltaV_Study_Guide.pdf • v1.0</span>
+    <span>Workspace: visualExplorer\DeltaV_Study_Guide.pdf • v1.1 (Ch. 1–7)</span>
   </div>
 
 </body>

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>DeltaV Control Studio Visual Explorer — EM_TANK_CHARGE</title>
+<title>DeltaV Control Studio — Visual Explorer</title>
 <style>
   :root {
     --bg-app: #0f172a;
@@ -37,11 +37,11 @@
   header {
     background: #0b1324;
     border-bottom: 1px solid var(--border-ui);
-    padding: 10px 16px;
+    padding: 9px 16px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
+    gap: 10px;
     flex-wrap: wrap;
   }
   .brand {
@@ -53,20 +53,36 @@
     background: linear-gradient(135deg, #0284c7, #2563eb);
     color: white;
     font-weight: 800;
-    font-size: 12px;
+    font-size: 11.5px;
     padding: 4px 8px;
     border-radius: 5px;
     letter-spacing: 0.5px;
+    white-space: nowrap;
   }
-  .brand h1 {
-    font-size: 15px;
-    font-weight: 700;
+  .module-picker-wrap {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .module-select {
+    background: #1e293b;
     color: #f8fafc;
+    border: 1px solid #38bdf8;
+    border-radius: 6px;
+    padding: 5px 9px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
   }
-  .brand span.sub {
-    font-size: 12px;
-    color: var(--text-muted);
-    font-weight: 400;
+  .alg-pill {
+    font-size: 11px;
+    color: #bae6fd;
+    background: rgba(2, 132, 199, 0.22);
+    border: 1px solid rgba(56, 189, 248, 0.35);
+    padding: 3px 8px;
+    border-radius: 999px;
+    font-weight: 600;
+    white-space: nowrap;
   }
 
   .tabs {
@@ -78,9 +94,9 @@
     background: var(--bg-panel);
     color: #cbd5e1;
     border: 1px solid var(--border-ui);
-    padding: 6px 12px;
+    padding: 6px 11px;
     border-radius: 6px;
-    font-size: 12.5px;
+    font-size: 12px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.15s;
@@ -153,6 +169,7 @@
     flex-wrap: wrap;
     font-size: 12px;
   }
+  .sim-bar.hidden { display: none; }
   .sim-group {
     display: flex;
     align-items: center;
@@ -192,6 +209,11 @@
     border-color: #fca5a5;
     color: #fff;
   }
+  .sim-btn.selected-cmd {
+    background: #0284c7;
+    border-color: #7dd3fc;
+    color: #fff;
+  }
   .sim-select {
     background: #0f172a;
     color: #f8fafc;
@@ -202,7 +224,7 @@
     font-weight: 600;
   }
   .wt-slider {
-    width: 110px;
+    width: 105px;
     accent-color: #38bdf8;
     cursor: pointer;
   }
@@ -214,10 +236,10 @@
     letter-spacing: 0.4px;
   }
   .state-IDLE { background: #334155; color: #e2e8f0; }
-  .state-RUNNING { background: #15803d; color: #dcfce7; }
-  .state-HELD { background: #b45309; color: #fef3c7; }
+  .state-RUNNING, .state-ALIGNED { background: #15803d; color: #dcfce7; }
+  .state-HELD, .state-TRANSITION { background: #b45309; color: #fef3c7; }
   .state-COMPLETE { background: #0369a1; color: #e0f2fe; }
-  .state-ABORTED { background: #b91c1c; color: #fee2e2; }
+  .state-ABORTED, .state-FAILED { background: #b91c1c; color: #fee2e2; }
 
   /* Diagnostic Banner */
   .diag-banner {
@@ -323,7 +345,7 @@
 
   /* Right Inspector Drawer */
   aside.inspector {
-    width: 345px;
+    width: 350px;
     background: var(--bg-panel);
     border-left: 1px solid var(--border-ui);
     display: flex;
@@ -436,7 +458,7 @@
     background: #0f172a;
     border: 1px solid #334155;
     border-radius: 10px;
-    max-width: 780px;
+    max-width: 820px;
     width: 100%;
     max-height: 85vh;
     display: flex;
@@ -466,7 +488,7 @@
     padding: 14px 16px;
     overflow-y: auto;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
     gap: 10px;
   }
   .vocab-item {
@@ -497,18 +519,17 @@
 
 <header>
   <div class="brand">
-    <span class="brand-badge">DeltaV Control Studio</span>
-    <div>
-      <h1>EM_TANK_CHARGE <span class="sub">— Command-Driven Equipment Module</span></h1>
+    <span class="brand-badge">Visual Explorer</span>
+    <div class="module-picker-wrap">
+      <select id="moduleSelect" class="module-select" title="Switch Control Studio Module">
+        <option value="charge">EM_TANK_CHARGE (Command-Driven)</option>
+        <option value="header">EM_XFER_HDR (State-Driven — Ch. 7)</option>
+      </select>
+      <span id="algPill" class="alg-pill">Algorithm: Command-Driven</span>
     </div>
   </div>
 
-  <div class="tabs" id="patternTabs">
-    <button class="tab-btn active" data-tab="p1">1. Step Flow <span class="tag-kind">SFC</span></button>
-    <button class="tab-btn" data-tab="p2">2. Permissives &amp; Interlocks <span class="tag-kind">FBD</span></button>
-    <button class="tab-btn" data-tab="p3">3. Mode &amp; Setpoint Routing <span class="tag-kind">FBD</span></button>
-    <button class="tab-btn" data-tab="p4">4. CM Command &amp; Feedback <span class="tag-kind">FBD</span></button>
-  </div>
+  <div class="tabs" id="patternTabs"></div>
 
   <div class="header-right">
     <div class="mode-switch" title="Switch between Control Studio Off-Line blueprint and On-Line live telemetry">
@@ -519,7 +540,8 @@
   </div>
 </header>
 
-<div class="sim-bar">
+<!-- Sim Bar 1: EM_TANK_CHARGE (Command-Driven) -->
+<div class="sim-bar" id="simBarCharge">
   <div class="sim-group">
     <span class="sim-label">EM State</span>
     <span id="emStatePill" class="state-pill state-IDLE">IDLE</span>
@@ -555,8 +577,40 @@
   </div>
 </div>
 
+<!-- Sim Bar 2: EM_XFER_HDR (State-Driven — Ch. 7) -->
+<div class="sim-bar hidden" id="simBarHeader">
+  <div class="sim-group">
+    <span class="sim-label">Status</span>
+    <span id="hdrStatusPill" class="state-pill state-ALIGNED">ALIGNED</span>
+    <span class="sim-label" style="margin-left:4px;">EM_S_COMMAND:</span>
+    <button class="sim-btn selected-cmd hdr-cmd-btn" data-hstate="HEADER_CLOSED">Header_Closed</button>
+    <button class="sim-btn hdr-cmd-btn" data-hstate="ROUTE_TANK_A">Route_Tank_A</button>
+    <button class="sim-btn hdr-cmd-btn" data-hstate="ROUTE_TANK_B">Route_Tank_B</button>
+    <button class="sim-btn hdr-cmd-btn" data-hstate="CIP_FLUSH">CIP_Flush</button>
+  </div>
+
+  <div class="sim-group">
+    <span class="sim-label">CM_HDR_XV102 (Tank B)</span>
+    <select id="selXv102Mode" class="sim-select" title="Operating mode of Tank B inlet valve DC1 block">
+      <option value="CAS">MODE: CAS</option>
+      <option value="MAN">MODE: MAN</option>
+    </select>
+    <button class="sim-btn" id="btnXv102Stuck" title="Simulate Tank B valve stuck open (cross-contamination hazard!)">XV102: Normal</button>
+  </div>
+
+  <div class="sim-group">
+    <span class="sim-label">CM_HDR_PT (Line Press)</span>
+    <input type="range" id="hdrPressSlider" class="wt-slider" min="1.0" max="7.5" step="0.5" value="2.5" />
+    <span id="hdrPressLabel" style="font-family:monospace; font-weight:700;">2.5 bar</span>
+  </div>
+
+  <div class="sim-group">
+    <button class="sim-btn" id="btnHdrReset" title="Clear all faults and return to HEADER_CLOSED">Reset Header</button>
+  </div>
+</div>
+
 <div class="diag-banner" id="diagBanner">
-  <span id="diagText">Ready in S0_IDLE. Click any block, SFC step, transition, or margin flag to inspect its DeltaV path and plain-English role.</span>
+  <span id="diagText">Ready. Click any block, state, SFC step, transition, or margin flag to inspect its DeltaV path and plain-English role.</span>
   <div class="diag-metrics" id="diagMetrics"></div>
 </div>
 
@@ -594,8 +648,8 @@
     <div class="legend-box">
       <div class="legend-item"><span class="swatch-solid"></span>Analog (.CV)</div>
       <div class="legend-item"><span class="swatch-dashed"></span>Discrete / Mode / .ST</div>
-      <div class="legend-item"><span class="swatch-active"></span>Active / True (On-Line)</div>
-      <div class="legend-item"><span class="swatch-trip"></span>Interlock / BAD .ST</div>
+      <div class="legend-item"><span class="swatch-active"></span>Active / Aligned</div>
+      <div class="legend-item"><span class="swatch-trip"></span>Mismatch / Interlock</div>
     </div>
   </div>
 
@@ -606,17 +660,15 @@
     </div>
     <div class="insp-card">
       <h3>Plain-English Role</h3>
-      <p id="inspRole">Click any SFC step, transition crossbar, function block (CND, ACT, CALC, BSEL), or margin flag on the Control Studio sheet to inspect how it works inside EM_TANK_CHARGE.</p>
+      <p id="inspRole">Click any element on the Control Studio sheet to inspect how it works in native DeltaV.</p>
     </div>
     <div class="insp-card">
       <h3>Decoded DeltaV Address</h3>
-      <ul class="path-decode" id="inspPath">
-        <li><code>Module/Block/Param.Detail</code><span>Read left-to-right like a mailing address. <code>^/</code> means inside this module.</span></li>
-      </ul>
+      <ul class="path-decode" id="inspPath"></ul>
     </div>
     <div class="insp-card">
       <h3>DeltaV Expression / Action</h3>
-      <div class="code-block" id="inspExpr">(* Click a block to inspect its native DeltaV Structured Text *)</div>
+      <div class="code-block" id="inspExpr"></div>
     </div>
     <div class="insp-card">
       <h3>Live Scan Telemetry</h3>
@@ -630,7 +682,7 @@
   <div class="modal">
     <div class="modal-head">
       <h2>Session Dictionary — Native DeltaV Plain English</h2>
-      <input type="text" id="vocabSearch" class="modal-search" placeholder="Filter term (e.g., CAS, .ST, ACT)..." />
+      <input type="text" id="vocabSearch" class="modal-search" placeholder="Filter term (e.g., State-Driven, CAS, .ST)..." />
       <button class="btn-util" id="btnCloseVocab">Close ✕</button>
     </div>
     <div class="modal-body" id="vocabList"></div>
@@ -639,54 +691,83 @@
 
 <script>
 // =========================================================================
-// 1. SIMULATION STATE & PURE DELTAV LOGIC ENGINE (EM_TANK_CHARGE)
+// 1. MODULE TABS & STATE ENGINES (MODULE 1: CHARGE, MODULE 2: HEADER)
 // =========================================================================
+const MODULE_TABS = {
+  charge: [
+    { id: "p1", label: "1. Step Flow", kind: "SFC", defaultSel: "S0_IDLE" },
+    { id: "p2", label: "2. Permissives & Interlocks", kind: "FBD", defaultSel: "CND1" },
+    { id: "p3", label: "3. Mode & Setpoint Routing", kind: "FBD", defaultSel: "BSEL1" },
+    { id: "p4", label: "4. CM Command & Feedback", kind: "FBD", defaultSel: "CND4" }
+  ],
+  header: [
+    { id: "h1", label: "1. State Diagram & Device Mask", kind: "STATE", defaultSel: "ST_HEADER_CLOSED" },
+    { id: "h2", label: "2. Path Alignment & Pump Gate", kind: "FBD", defaultSel: "CND_PATH_OK" },
+    { id: "h3", label: "3. State Confirmation & Timeout", kind: "FBD", defaultSel: "CALC_PV_STATE" }
+  ]
+};
+
 const STEPS = ["S0_IDLE", "S10_CHARGE_OPEN", "S20_TRIM_CLOSE", "S30_AGITATE"];
+const HDR_STATES = ["HEADER_CLOSED", "ROUTE_TANK_A", "ROUTE_TANK_B", "CIP_FLUSH"];
+
+// State Table / Device Mask for State-Driven EM_XFER_HDR
+const HDR_MASK = {
+  HEADER_CLOSED: { xv101: "Close", xv102: "Close", xv103: "Close", pmp: "Stop",  desc: "All header valves isolated, pump stopped" },
+  ROUTE_TANK_A:  { xv101: "Open",  xv102: "Close", xv103: "Close", pmp: "Start", desc: "XV101 Open to Tank A, XV102/103 Closed, Pump Run" },
+  ROUTE_TANK_B:  { xv101: "Close", xv102: "Open",  xv103: "Close", pmp: "Start", desc: "XV102 Open to Tank B, XV101/103 Closed, Pump Run" },
+  CIP_FLUSH:     { xv101: "Close", xv102: "Close", xv103: "Open",  pmp: "Start", desc: "XV103 Open to CIP Drain, Tank A/B Closed, Pump Run" }
+};
 
 const state = {
+  module: "charge",     // "charge" | "header"
   tab: "p1",
   online: true,
-  stepIdx: 0,           // 0..3
-  emState: "IDLE",      // IDLE, RUNNING, HELD, COMPLETE, ABORTED
-  valveMode: "CAS",     // CAS, MAN, OOS
-  scaleSt: "GOOD",      // GOOD, BAD
+  selectedId: "S0_IDLE",
+  notice: "",
+  noticeLevel: "info",
+  zoom: 1,
+  panX: 0,
+  panY: 0,
+
+  // Module 1: EM_TANK_CHARGE (Command-Driven)
+  stepIdx: 0,
+  emState: "IDLE",
+  valveMode: "CAS",
+  scaleSt: "GOOD",
   hiHi: false,
-  useRecipe: true,      // true = Recipe (500 kg), false = Local (250 kg)
+  useRecipe: true,
   recipeWt: 500.0,
   localWt: 250.0,
   precloseLead: 15.0,
-  currentWt: 100.0,     // Tank heel = 100 kg
-  startWt: 100.0,       // Tare snapshot taken ONLY on S0 -> S10
+  currentWt: 100.0,
+  startWt: 100.0,
   tareLocked: false,
   valveStuck: false,
-  selectedId: "S0_IDLE",
-  notice: "",
-  noticeLevel: "info",  // info, ok, warn, alert
-  // Pan & Zoom
-  zoom: 1,
-  panX: 0,
-  panY: 0
+
+  // Module 2: EM_XFER_HDR (State-Driven — Ch. 7)
+  hdrCmdState: "HEADER_CLOSED",   // EM_S_COMMAND requested state
+  xv102Mode: "CAS",               // CAS | MAN
+  xv102StuckOpen: false,          // Simulates Tank B valve stuck open
+  hdrPress: 2.5,                  // CM_HDR_PT/AI1/OUT.CV (trips > 6.0 bar)
+  hdrPressLimit: 6.0
 };
 
-function computeDerived() {
+function computeChargeDerived() {
   const targetWt = state.useRecipe ? state.recipeWt : state.localWt;
   const deliveredWt = Math.max(0, +(state.currentWt - state.startWt).toFixed(1));
   const remainingWt = +(targetWt - deliveredWt).toFixed(1);
 
-  // Pattern 2 — Strip A: Start Permissives (CND1)
   const permValveCas = state.valveMode === "CAS";
   const permTargetOk = targetWt > 0;
   const permScaleGood = state.scaleSt === "GOOD";
   const permHiHiClear = !state.hiHi;
   const permReady = permValveCas && permTargetOk && permScaleGood && permHiHiClear;
 
-  // Pattern 2 — Strip B: Active Interlock Trip (CND2)
   const activeChargeStep = (state.stepIdx === 1 || state.stepIdx === 2) && state.emState === "RUNNING";
   const tripCondition = state.scaleSt === "BAD" || state.hiHi;
   const interlockTrip = activeChargeStep && tripCondition;
 
-  // Auto-enforce Hold if interlock trips while charging
-  if (interlockTrip) {
+  if (interlockTrip && state.module === "charge") {
     state.emState = "HELD";
     state.notice = state.scaleSt === "BAD"
       ? "INTERLOCK TRIP (Pattern 2): CM_TANK_WT/AI1/OUT.ST went BAD mid-charge! ACT1 stamped Close on CM_FEED_XV and forced EM_STATE := HELD. Notice START_WT.CV stayed locked at " + state.startWt.toFixed(1) + " kg."
@@ -694,16 +775,12 @@ function computeDerived() {
     state.noticeLevel = "alert";
   }
 
-  // Pattern 3 — Preclose cutoff (CND3)
   const precloseReached = remainingWt <= state.precloseLead;
-
-  // Pattern 4 — Valve & Agitator Commands (CAS_IN_D) and Feedback (PV_D)
   const feedCmdOpen = (state.emState === "RUNNING" && state.stepIdx === 1 && !tripCondition);
   const feedCmdText = feedCmdOpen ? "Open" : "Close";
 
   let valvePvText = feedCmdText === "Open" ? "Open" : "Closed";
   if (state.valveMode !== "CAS") {
-    // In MAN or OOS, valve ignores CAS_IN_D and stays Closed unless stuck
     valvePvText = state.valveStuck ? "Open" : (state.valveMode === "OOS" ? "Bad / OOS" : "Closed (MAN)");
   } else if (state.valveStuck) {
     valvePvText = "Open";
@@ -716,7 +793,6 @@ function computeDerived() {
   const agitCmdText = agitCmdRun ? "Start" : "Stop";
   const agitPvText = agitCmdRun ? "Running" : "Stopped";
 
-  // Transitions
   const t10Ok = permReady && state.emState !== "ABORTED";
   const t20Ok = precloseReached && state.emState === "RUNNING";
   const t30Ok = valveShutOk && !valveMismatch && state.emState === "RUNNING";
@@ -731,27 +807,94 @@ function computeDerived() {
   };
 }
 
+function computeHeaderDerived() {
+  const highPressTrip = state.hdrPress > state.hdrPressLimit;
+  // If High Pressure Interlock fires, State-Driven FAIL_STATE forces HEADER_CLOSED
+  const effectiveTarget = highPressTrip ? "HEADER_CLOSED" : state.hdrCmdState;
+  const mask = HDR_MASK[effectiveTarget];
+
+  // Outbound commands for valves (CAS_IN_D)
+  const xv101Cmd = mask.xv101;
+  const xv102Cmd = mask.xv102;
+  const xv103Cmd = mask.xv103;
+
+  // Physical limit-switch feedback (PV_D)
+  const xv101Pv = xv101Cmd === "Open" ? "Open" : "Closed";
+  const xv103Pv = xv103Cmd === "Open" ? "Open" : "Closed";
+
+  let xv102Pv = xv102Cmd === "Open" ? "Open" : "Closed";
+  if (state.xv102StuckOpen) {
+    xv102Pv = "Open";
+  } else if (state.xv102Mode !== "CAS") {
+    // Left in MAN — stays Closed and ignores CAS_IN_D := Open!
+    xv102Pv = "Closed (MAN)";
+  }
+
+  const xv101Match = (xv101Cmd === "Open" && xv101Pv === "Open") || (xv101Cmd === "Close" && xv101Pv === "Closed");
+  const xv102Match = (xv102Cmd === "Open" && xv102Pv === "Open") || (xv102Cmd === "Close" && xv102Pv === "Closed");
+  const xv103Match = (xv103Cmd === "Open" && xv103Pv === "Open") || (xv103Cmd === "Close" && xv103Pv === "Closed");
+
+  const valvesAligned = xv101Match && xv102Match && xv103Match && (state.xv102Mode === "CAS" || xv102Cmd === "Close");
+
+  // Critical State-Driven Safety Rule: Pump only gets Start command AFTER isolation valves prove aligned!
+  const pmpWantRun = mask.pmp === "Start" && !highPressTrip;
+  const pmpCmd = (pmpWantRun && valvesAligned) ? "Start" : "Stop";
+  const pmpPv = pmpCmd === "Start" ? "Running" : "Stopped";
+  const pmpMatch = (mask.pmp === "Start" && pmpPv === "Running") || (mask.pmp === "Stop" && pmpPv === "Stopped");
+
+  // Decode confirmed PV_D state from live feedbacks
+  let pvState = "IN_TRANSITION / MISMATCH";
+  if (xv101Pv === "Closed" && (xv102Pv === "Closed" || xv102Pv === "Closed (MAN)") && xv103Pv === "Closed" && pmpPv === "Stopped") {
+    pvState = "HEADER_CLOSED";
+  } else if (xv101Pv === "Open" && (xv102Pv === "Closed" || xv102Pv === "Closed (MAN)") && xv103Pv === "Closed" && pmpPv === "Running") {
+    pvState = "ROUTE_TANK_A";
+  } else if (xv101Pv === "Closed" && xv102Pv === "Open" && xv103Pv === "Closed" && pmpPv === "Running") {
+    pvState = "ROUTE_TANK_B";
+  } else if (xv101Pv === "Closed" && (xv102Pv === "Closed" || xv102Pv === "Closed (MAN)") && xv103Pv === "Open" && pmpPv === "Running") {
+    pvState = "CIP_FLUSH";
+  }
+
+  const stateAligned = (pvState === state.hdrCmdState) && !highPressTrip;
+  const failActive = !stateAligned;
+
+  let bannerPill = "ALIGNED";
+  if (highPressTrip) bannerPill = "FAIL_STATE";
+  else if (!stateAligned) bannerPill = "FAILED";
+
+  return {
+    highPressTrip, effectiveTarget, mask,
+    xv101Cmd, xv102Cmd, xv103Cmd, pmpCmd,
+    xv101Pv, xv102Pv, xv103Pv, pmpPv,
+    xv101Match, xv102Match, xv103Match, pmpMatch,
+    valvesAligned, pmpWantRun, pvState, stateAligned, failActive, bannerPill
+  };
+}
+
 // =========================================================================
-// 2. SESSION VOCABULARY DATA
+// 2. SESSION VOCABULARY DATA (CHAPTERS 1–7)
 // =========================================================================
 const VOCAB = [
-  { term: "EPH", full: "Equipment Phase", desc: "The Recipe Boss. Sits above the EM, acquires ownership, sends command (A_COMMAND) + RECIPE_WT, and waits for EM_STATE to finish." },
-  { term: "EM", full: "Equipment Module", desc: "The Team Coordinator (EM_TANK_CHARGE). Coordinates valve, scale, and agitator CMs together. Never wires directly to physical I/O." },
-  { term: "CM", full: "Control Module", desc: "Single-Device Controller owning one piece of field equipment: CM_FEED_XV, CM_TANK_WT, or CM_AGIT_MTR." },
+  { term: "EPH", full: "Equipment Phase", desc: "The Recipe Boss. Sits above the EM, acquires ownership, sends command/state + setpoints, and monitors completion." },
+  { term: "EM", full: "Equipment Module", desc: "The Team Coordinator (EM_TANK_CHARGE or EM_XFER_HDR). Coordinates multiple CMs as one functional equipment group." },
+  { term: "CM", full: "Control Module", desc: "Single-Device Controller owning one field valve, motor, or sensor (CM_FEED_XV, CM_HDR_XV101, CM_TANK_WT)." },
+  { term: "Command-Driven EM", full: "Multi-Step Task EM", desc: "Used when equipment steps through a sequence over time (e.g., EM_TANK_CHARGE: Open -> Cutoff -> Close -> Agitate)." },
+  { term: "State-Driven EM", full: "Target Alignment EM (Ch. 7)", desc: "Used for valve headers & manifolds (EM_XFER_HDR). Each state snaps directly to a fixed device alignment mask without multi-step SFCs." },
+  { term: "EM_S_COMMAND vs PV_D", full: "Desired vs Confirmed State (Ch. 7)", desc: "EM_S_COMMAND is the target header state requested; PV_D only matches once every CM limit switch proves the exact alignment." },
+  { term: "Device Mask / State Table", full: "State Alignment Matrix (Ch. 7)", desc: "Defines the exact Open/Close and Start/Stop command required from every CM in each Named Set state of a State-Driven EM." },
+  { term: "FAIL_STATE", full: "Safe Fallback State (Ch. 7)", desc: "Pre-configured safe state (like HEADER_CLOSED) that a State-Driven EM immediately drives to if a safety interlock trips." },
+  { term: "FAIL_ACTIVE & DURATION", full: "Mismatch / Transition Timeout (Ch. 6–7)", desc: "DURATION gives valves X seconds to travel; if PV_D still doesn't match command when time expires, FAIL_ACTIVE alarms." },
   { term: "Scan", full: "Module Scan Cycle", desc: "One heartbeat (e.g., 500 ms or 1 s). Reads inputs, solves FBD blocks in #1 → #2 → #3 order, and updates outputs." },
-  { term: "SFC", full: "Sequential Function Chart", desc: "Step-by-step checklist (Pattern 1 only). Runs one active Step at a time and waits on a Transition crossbar (┼) to advance." },
+  { term: "SFC", full: "Sequential Function Chart", desc: "Step-by-step checklist (Pattern 1 in Command-Driven EMs). Runs one active Step at a time and waits on a Transition crossbar (┼)." },
   { term: "CND", full: "Condition Block", desc: "Yes/No question box. Evaluates an expression every Scan and sets OUT_D to True (1) when satisfied." },
   { term: "ACT", full: "Action Block", desc: "Write-it-once stamp. Writes a command/value when triggered and leaves it there until another ACT writes something else." },
-  { term: "CALC", full: "Calculation Block", desc: "Scratchpad calculator solved every Scan (e.g., DELIVERED_WT := CURRENT_WT - START_WT)." },
+  { term: "CALC", full: "Calculation Block", desc: "Scratchpad calculator solved every Scan to compute math or decode live state feedbacks." },
   { term: "BSEL", full: "Selector Block", desc: "Value switch. Picks one winning number (Recipe Weight vs. Operator Local Weight) based on SEL_D." },
   { term: "DC", full: "Device Control Block", desc: "On/Off equipment driver inside a valve or motor CM. Receives CAS_IN_D commands and verifies limit switches via PV_D." },
-  { term: "AI", full: "Analog Input Block", desc: "Sensor reader inside CM_TANK_WT converting raw scale input into engineering units (.CV) plus health status (.ST)." },
-  { term: "CAS", full: "Cascade Mode", desc: "Following the Boss Upstairs. When CM_FEED_XV is in CAS, it obeys Open/Close orders from EM_TANK_CHARGE." },
-  { term: "AUTO / MAN / OOS", full: "Operating Modes", desc: "AUTO = self-driven local target; MAN = human operator has the wheel; OOS = Out of Service (locked out, marks .ST as BAD)." },
-  { term: "MODE.ACTUAL vs .TARGET", full: "Actual vs Requested Mode", desc: "Write CAS to MODE.TARGET, but always check MODE.ACTUAL in permissives—a local interlock can hold MODE.ACTUAL out of CAS." },
+  { term: "AI", full: "Analog Input Block", desc: "Sensor reader inside a scale/pressure CM converting raw field signal into engineering units (.CV) plus health status (.ST)." },
+  { term: "CAS / AUTO / MAN / OOS", full: "Operating Modes", desc: "CAS = obeys upstream EM; AUTO = local faceplate target; MAN = human operator has wheel; OOS = locked out (.ST = BAD)." },
+  { term: "MODE.ACTUAL vs .TARGET", full: "Actual vs Requested Mode", desc: "Write CAS to MODE.TARGET, but always check MODE.ACTUAL—an operator leaving a valve in MAN blocks automated alignment!" },
   { term: ".CV & .ST", full: "Current Value & Status", desc: "Every wire carries both the live number/state (.CV) and its health tag (.ST = GOOD, UNCERTAIN, or BAD)." },
-  { term: "CAS_IN_D & PV_D", full: "Cascade Input & Process Variable", desc: "CAS_IN_D is the EM's command inbox on a CM's DC block; PV_D is the confirmed physical state coming back from limit switches." },
-  { term: "Permissive vs Interlock", full: "Start Gate vs Mid-Run Brake", desc: "Permissive stops a charge from starting in S0_IDLE without tripping. Interlock stops an active charge immediately and forces Hold." },
+  { term: "CAS_IN_D & PV_D", full: "Cascade Input & Process Variable", desc: "CAS_IN_D is the EM's command inbox on a CM's DC block; PV_D is the confirmed physical state from field limit switches." },
   { term: "Golden Tare Rule", full: "START_WT.CV Snapshot", desc: "Snapshot START_WT.CV ONLY on S0_IDLE → S10_CHARGE_OPEN. Never overwrite it on Restart from Hold, or you will overfill the tank." }
 ];
 
@@ -769,43 +912,29 @@ function el(tag, attrs = {}, text = null) {
 function drawFlag(parent, { id, x, y, w = 210, h = 34, side = "left", label, sub = "", liveText = "", status = "normal" }) {
   const g = el("g", { class: "clickable", "data-id": id });
   const tip = 12;
-  let pts;
-  if (side === "left") {
-    pts = `${x},${y} ${x + w - tip},${y} ${x + w},${y + h / 2} ${x + w - tip},${y + h} ${x},${y + h}`;
-  } else {
-    pts = `${x},${y} ${x + w - tip},${y} ${x + w},${y + h / 2} ${x + w - tip},${y + h} ${x},${y + h}`;
-  }
+  const pts = `${x},${y} ${x + w - tip},${y} ${x + w},${y + h / 2} ${x + w - tip},${y + h} ${x},${y + h}`;
   let fill = "#f1f5f9", stroke = "#64748b";
   if (state.online) {
     if (status === "bad") { fill = "#fee2e2"; stroke = "#dc2626"; }
     else if (status === "ok") { fill = "#dcfce7"; stroke = "#16a34a"; }
     else if (status === "warn") { fill = "#fef3c7"; stroke = "#d97706"; }
   }
-  const poly = el("polygon", {
-    points: pts,
-    fill,
-    stroke,
+  g.appendChild(el("polygon", {
+    points: pts, fill, stroke,
     "stroke-width": state.selectedId === id ? 3 : 1.5,
     class: state.selectedId === id ? "selected-outline" : ""
-  });
-  g.appendChild(poly);
-
+  }));
   g.appendChild(el("text", {
     x: x + 9, y: y + (sub ? 14 : 21),
     "font-size": 11, "font-weight": 700, fill: "#0f172a",
     "font-family": "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
   }, label));
-
   if (sub) {
-    g.appendChild(el("text", {
-      x: x + 9, y: y + 27,
-      "font-size": 9.5, fill: "#475569"
-    }, sub));
+    g.appendChild(el("text", { x: x + 9, y: y + 27, "font-size": 9.5, fill: "#475569" }, sub));
   }
-
   if (state.online && liveText) {
     const pillW = Math.max(58, liveText.length * 6.8 + 12);
-    const px = side === "left" ? x + w - pillW - 14 : x + w - pillW - 14;
+    const px = x + w - pillW - 14;
     const py = y - 13;
     const pillFill = status === "bad" ? "#dc2626" : status === "ok" ? "#15803d" : status === "warn" ? "#d97706" : "#0284c7";
     g.appendChild(el("rect", { x: px, y: py, width: pillW, height: 17, rx: 4, fill: pillFill }));
@@ -815,18 +944,14 @@ function drawFlag(parent, { id, x, y, w = 210, h = 34, side = "left", label, sub
       "font-family": "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
     }, liveText));
   }
-
   parent.appendChild(g);
 }
 
 function drawFbdBlock(parent, { id, x, y, w = 185, h = 110, cls, name, execNum, inputs = [], outputs = [], bodyLines = [], status = "normal", liveBadge = "" }) {
   const g = el("g", { class: "clickable", "data-id": id });
-
-  // Block class label above box (authentic Control Studio style)
   g.appendChild(el("text", {
     x: x + w / 2, y: y - 6,
-    "text-anchor": "middle", "font-size": 11, "font-weight": 800, fill: "#334155",
-    "letter-spacing": "0.6px"
+    "text-anchor": "middle", "font-size": 11, "font-weight": 800, fill: "#334155", "letter-spacing": "0.6px"
   }, cls));
 
   let stroke = "#475569", headerFill = "#dbeafe", bodyFill = "#ffffff";
@@ -836,28 +961,18 @@ function drawFbdBlock(parent, { id, x, y, w = 185, h = 110, cls, name, execNum, 
     else if (status === "warn") { stroke = "#d97706"; headerFill = "#fde68a"; bodyFill = "#fffbeb"; }
   }
 
-  // Main rect
   g.appendChild(el("rect", {
-    x, y, width: w, height: h, rx: 3,
-    fill: bodyFill, stroke,
+    x, y, width: w, height: h, rx: 3, fill: bodyFill, stroke,
     "stroke-width": state.selectedId === id ? 3 : 1.75,
     class: state.selectedId === id ? "selected-outline" : ""
   }));
-
-  // Header bar
-  g.appendChild(el("rect", {
-    x: x + 1, y: y + 1, width: w - 2, height: 24, rx: 2,
-    fill: headerFill
-  }));
+  g.appendChild(el("rect", { x: x + 1, y: y + 1, width: w - 2, height: 24, rx: 2, fill: headerFill }));
   g.appendChild(el("line", { x1: x, y1: y + 25, x2: x + w, y2: y + 25, stroke, "stroke-width": 1 }));
-
   g.appendChild(el("text", {
-    x: x + 10, y: y + 17,
-    "font-size": 12, "font-weight": 800, fill: "#1e3a8a",
+    x: x + 10, y: y + 17, "font-size": 11.5, "font-weight": 800, fill: "#1e3a8a",
     "font-family": "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
   }, name));
 
-  // Body lines
   bodyLines.forEach((line, idx) => {
     g.appendChild(el("text", {
       x: x + w / 2, y: y + 48 + idx * 15,
@@ -865,45 +980,37 @@ function drawFbdBlock(parent, { id, x, y, w = 185, h = 110, cls, name, execNum, 
     }, line));
   });
 
-  // Left pins
   inputs.forEach(pin => {
     g.appendChild(el("circle", { cx: x, cy: y + pin.dy, r: 3.5, fill: "#1e293b" }));
     g.appendChild(el("text", {
-      x: x + 7, y: y + pin.dy + 3.5,
-      "font-size": 9.5, "font-weight": 700, fill: "#334155",
+      x: x + 7, y: y + pin.dy + 3.5, "font-size": 9.5, "font-weight": 700, fill: "#334155",
       "font-family": "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
     }, pin.name));
   });
 
-  // Right pins
   outputs.forEach(pin => {
     g.appendChild(el("circle", { cx: x + w, cy: y + pin.dy, r: 3.5, fill: "#1e293b" }));
     g.appendChild(el("text", {
-      x: x + w - 7, y: y + pin.dy + 3.5,
-      "text-anchor": "end", "font-size": 9.5, "font-weight": 700, fill: "#334155",
+      x: x + w - 7, y: y + pin.dy + 3.5, "text-anchor": "end", "font-size": 9.5, "font-weight": 700, fill: "#334155",
       "font-family": "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
     }, pin.name));
   });
 
-  // Execution Order Badge (#1, #2, ...) bottom-right
   g.appendChild(el("rect", {
     x: x + w - 30, y: y + h - 20, width: 26, height: 16, rx: 3,
     fill: "#e2e8f0", stroke: "#94a3b8", "stroke-width": 1
   }));
   g.appendChild(el("text", {
-    x: x + w - 17, y: y + h - 8.5,
-    "text-anchor": "middle", "font-size": 10, "font-weight": 800, fill: "#0f172a",
+    x: x + w - 17, y: y + h - 8.5, "text-anchor": "middle", "font-size": 10, "font-weight": 800, fill: "#0f172a",
     "font-family": "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
   }, `#${execNum}`));
 
-  // On-Line live badge on top right
   if (state.online && liveBadge) {
     const bw = Math.max(54, liveBadge.length * 6.5 + 12);
     const bFill = status === "bad" ? "#dc2626" : status === "ok" ? "#15803d" : status === "warn" ? "#d97706" : "#0284c7";
     g.appendChild(el("rect", { x: x + w - bw - 4, y: y + 4, width: bw, height: 17, rx: 4, fill: bFill }));
     g.appendChild(el("text", {
-      x: x + w - bw / 2 - 4, y: y + 16,
-      "text-anchor": "middle", "font-size": 9.5, "font-weight": 700, fill: "#ffffff",
+      x: x + w - bw / 2 - 4, y: y + 16, "text-anchor": "middle", "font-size": 9.5, "font-weight": 700, fill: "#ffffff",
       "font-family": "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
     }, liveBadge));
   }
@@ -919,9 +1026,7 @@ function drawWire(parent, points, { kind = "solid", active = false, fault = fals
     if (fault) { stroke = "#dc2626"; marker = "url(#arrow-red)"; }
     else if (active) { stroke = "#16a34a"; marker = "url(#arrow-green)"; }
   }
-  const attrs = {
-    d, fill: "none", stroke, "stroke-width": 2.2, "marker-end": marker
-  };
+  const attrs = { d, fill: "none", stroke, "stroke-width": 2.2, "marker-end": marker };
   if (kind === "dashed") attrs["stroke-dasharray"] = "6,4";
   parent.appendChild(el("path", attrs));
 
@@ -929,8 +1034,7 @@ function drawWire(parent, points, { kind = "solid", active = false, fault = fals
     const lw = label.length * 6.4 + 12;
     parent.appendChild(el("rect", {
       x: labelPos[0] - lw / 2, y: labelPos[1] - 11, width: lw, height: 18, rx: 4,
-      fill: state.online ? "#fef9c3" : "#ffffff",
-      stroke: "#cbd5e1", "stroke-width": 1
+      fill: state.online ? "#fef9c3" : "#ffffff", stroke: "#cbd5e1", "stroke-width": 1
     }));
     parent.appendChild(el("text", {
       x: labelPos[0], y: labelPos[1] + 2,
@@ -946,16 +1050,14 @@ function drawSectionStrip(parent, x, y, w, h, title, color = "#334155") {
     fill: "rgba(255,255,255,0.65)", stroke: "#cbd5e1", "stroke-width": 1.2, "stroke-dasharray": "4,3"
   }));
   parent.appendChild(el("text", {
-    x: x + 14, y: y + 20,
-    "font-size": 11.5, "font-weight": 800, fill: color, "letter-spacing": "0.5px"
+    x: x + 14, y: y + 20, "font-size": 11.5, "font-weight": 800, fill: color, "letter-spacing": "0.5px"
   }, title));
 }
 
 // =========================================================================
-// 4. PATTERN RENDERERS (P1 SFC, P2 PERM/INT, P3 MODE/SP, P4 CM CMD/FB)
+// 4A. RENDERERS FOR MODULE 1: EM_TANK_CHARGE (COMMAND-DRIVEN)
 // =========================================================================
 function renderPattern1(vp, d) {
-  // Top Boundary: EPH -> EM Handshake Banner
   const ephGroup = el("g", { class: "clickable", "data-id": "EPH_HANDSHAKE" });
   ephGroup.appendChild(el("rect", {
     x: 50, y: 20, width: 760, height: 68, rx: 8,
@@ -969,10 +1071,8 @@ function renderPattern1(vp, d) {
     `ACQUIRED: ${state.useRecipe ? "EPH_SOLVENT_ADD" : "OPERATOR_LOCAL"}   |   A_COMMAND: ${state.stepIdx > 0 ? "CHARGE" : "IDLE (255)"}   |   RECIPE_WT: ${state.recipeWt.toFixed(1)} kg   |   EM_STATE ↑: ${state.emState}`));
   vp.appendChild(ephGroup);
 
-  // Downward arrow from EPH to SFC
   drawWire(vp, [[220, 88], [220, 118]], { kind: "dashed", active: state.emState === "RUNNING" });
 
-  // Vertical SFC Column (x=115..325, center=220)
   const stepSpecs = [
     { id: "S0_IDLE", idx: 0, y: 120, title: "S0_IDLE", sub: "Rest State (Initial Step)", initial: true },
     { id: "S10_CHARGE_OPEN", idx: 1, y: 245, title: "S10_CHARGE_OPEN", sub: "Open Valve & Snapshot Tare" },
@@ -981,19 +1081,15 @@ function renderPattern1(vp, d) {
   ];
 
   const transSpecs = [
-    { id: "T10_START_OK", y: 205, label: "T10_START_OK", expr: "START_CMD AND PERM_READY", ok: d.t10Ok, fromIdx: 0 },
-    { id: "T20_PRECLOSE", y: 330, label: "T20_PRECLOSE", expr: "REMAINING_WT <= PRECLOSE_LEAD", ok: d.t20Ok, fromIdx: 1 },
-    { id: "T30_SHUT_OK", y: 455, label: "T30_SHUT_OK", expr: "VALVE_SHUT_OK AND Settle_5s", ok: d.t30Ok, fromIdx: 2 }
+    { id: "T10_START_OK", y: 205, label: "T10_START_OK", expr: "START_CMD AND PERM_READY", ok: d.t10Ok },
+    { id: "T20_PRECLOSE", y: 330, label: "T20_PRECLOSE", expr: "REMAINING_WT <= PRECLOSE_LEAD", ok: d.t20Ok },
+    { id: "T30_SHUT_OK", y: 455, label: "T30_SHUT_OK", expr: "VALVE_SHUT_OK AND Settle_5s", ok: d.t30Ok }
   ];
 
-  // Vertical spine lines
   for (let i = 0; i < 3; i++) {
-    const sy = stepSpecs[i].y + 56;
-    const ey = stepSpecs[i + 1].y;
-    vp.appendChild(el("line", { x1: 220, y1: sy, x2: 220, y2: ey, stroke: "#334155", "stroke-width": 2.2 }));
+    vp.appendChild(el("line", { x1: 220, y1: stepSpecs[i].y + 56, x2: 220, y2: stepSpecs[i + 1].y, stroke: "#334155", "stroke-width": 2.2 }));
   }
 
-  // Draw SFC Steps
   stepSpecs.forEach(s => {
     const isActive = state.stepIdx === s.idx;
     const isHeldHere = isActive && state.emState === "HELD";
@@ -1008,26 +1104,14 @@ function renderPattern1(vp, d) {
 
     const g = el("g", { class: "clickable", "data-id": s.id });
     g.appendChild(el("rect", {
-      x: 110, y: s.y, width: 220, height: 56, rx: 4,
-      fill, stroke,
+      x: 110, y: s.y, width: 220, height: 56, rx: 4, fill, stroke,
       "stroke-width": state.selectedId === s.id ? 3 : (isActive && state.online ? 2.5 : 1.8)
     }));
-    // Double border for Initial Step S0_IDLE
     if (s.initial) {
-      g.appendChild(el("rect", {
-        x: 115, y: s.y + 5, width: 210, height: 46, rx: 2,
-        fill: "none", stroke, "stroke-width": 1.3
-      }));
+      g.appendChild(el("rect", { x: 115, y: s.y + 5, width: 210, height: 46, rx: 2, fill: "none", stroke, "stroke-width": 1.3 }));
     }
-    g.appendChild(el("text", {
-      x: 220, y: s.y + 25, "text-anchor": "middle",
-      "font-size": 13, "font-weight": 800, fill: "#0f172a",
-      "font-family": "ui-monospace, monospace"
-    }, s.title));
-    g.appendChild(el("text", {
-      x: 220, y: s.y + 42, "text-anchor": "middle",
-      "font-size": 10.5, fill: "#475569", "font-weight": 600
-    }, s.sub));
+    g.appendChild(el("text", { x: 220, y: s.y + 25, "text-anchor": "middle", "font-size": 13, "font-weight": 800, fill: "#0f172a", "font-family": "ui-monospace, monospace" }, s.title));
+    g.appendChild(el("text", { x: 220, y: s.y + 42, "text-anchor": "middle", "font-size": 10.5, fill: "#475569", "font-weight": 600 }, s.sub));
 
     if (state.online && isActive) {
       const tagText = isAbortedHere ? "ABORTED" : isHeldHere ? "HELD" : (s.idx === 0 ? "IDLE" : "ACTIVE");
@@ -1038,74 +1122,36 @@ function renderPattern1(vp, d) {
     vp.appendChild(g);
   });
 
-  // Draw SFC Transitions (Horizontal Crossbars)
   transSpecs.forEach(t => {
     const g = el("g", { class: "clickable", "data-id": t.id });
     const barColor = !state.online ? "#1e293b" : (t.ok ? "#16a34a" : "#dc2626");
-    // Invisible hit box
     g.appendChild(el("rect", { x: 180, y: t.y - 14, width: 250, height: 28, fill: "transparent" }));
-    // Crossbar
     g.appendChild(el("line", { x1: 196, y1: t.y, x2: 244, y2: t.y, stroke: barColor, "stroke-width": 4.5 }));
-    g.appendChild(el("text", {
-      x: 254, y: t.y - 2, "font-size": 11.5, "font-weight": 800, fill: barColor,
-      "font-family": "ui-monospace, monospace"
-    }, t.label + (state.online ? (t.ok ? " [TRUE]" : " [FALSE]") : "")));
-    g.appendChild(el("text", {
-      x: 254, y: t.y + 12, "font-size": 10, fill: "#475569",
-      "font-family": "ui-monospace, monospace"
-    }, t.expr));
+    g.appendChild(el("text", { x: 254, y: t.y - 2, "font-size": 11.5, "font-weight": 800, fill: barColor, "font-family": "ui-monospace, monospace" },
+      t.label + (state.online ? (t.ok ? " [TRUE]" : " [FALSE]") : "")));
+    g.appendChild(el("text", { x: 254, y: t.y + 12, "font-size": 10, fill: "#475569", "font-family": "ui-monospace, monospace" }, t.expr));
     vp.appendChild(g);
   });
 
-  // Right Side Panel inside Canvas: Embedded Step Actions & Golden Tare Rule Watch
   const subX = 460, subY = 120, subW = 350;
-  // Active Step Actions Box
   const activeStepId = STEPS[state.stepIdx];
   const actBox = el("g", { class: "clickable", "data-id": activeStepId });
-  actBox.appendChild(el("rect", {
-    x: subX, y: subY, width: subW, height: 175, rx: 7,
-    fill: "#ffffff", stroke: "#475569", "stroke-width": 1.6
-  }));
+  actBox.appendChild(el("rect", { x: subX, y: subY, width: subW, height: 175, rx: 7, fill: "#ffffff", stroke: "#475569", "stroke-width": 1.6 }));
   actBox.appendChild(el("rect", { x: subX + 1, y: subY + 1, width: subW - 2, height: 28, rx: 6, fill: "#dbeafe" }));
-  actBox.appendChild(el("text", {
-    x: subX + 12, y: subY + 19, "font-size": 11.5, "font-weight": 800, fill: "#1e3a8a"
-  }, `INSIDE ACTIVE STEP: ${activeStepId}`));
+  actBox.appendChild(el("text", { x: subX + 12, y: subY + 19, "font-size": 11.5, "font-weight": 800, fill: "#1e3a8a" }, `INSIDE ACTIVE STEP: ${activeStepId}`));
 
   const stepActionsMap = {
-    S0_IDLE: [
-      "[N] 'CM_FEED_XV/DC1/CAS_IN_D' := Close;",
-      "[N] 'CM_AGIT_MTR/DC1/CAS_IN_D' := Stop;",
-      "Waiting on T10_START_OK (PERM_READY = True)."
-    ],
-    S10_CHARGE_OPEN: [
-      "[P] Snapshot START_WT.CV := 'CM_TANK_WT/AI1/OUT.CV';",
-      "    (Pulse ONCE on Idle -> S10; NEVER on Restart!)",
-      "[N] 'CM_FEED_XV/DC1/CAS_IN_D' := Open;"
-    ],
-    S20_TRIM_CLOSE: [
-      "[N] 'CM_FEED_XV/DC1/CAS_IN_D' := Close;",
-      "Waiting on CM_FEED_XV/DC1/PV_D = Closed",
-      "+ 5 sec tank settle timer before S30_AGITATE."
-    ],
-    S30_AGITATE: [
-      "[N] 'CM_FEED_XV/DC1/CAS_IN_D' := Close;",
-      "[N] 'CM_AGIT_MTR/DC1/CAS_IN_D' := Start;",
-      "Report EM_STATE := COMPLETE to EPH."
-    ]
+    S0_IDLE: ["[N] 'CM_FEED_XV/DC1/CAS_IN_D' := Close;", "[N] 'CM_AGIT_MTR/DC1/CAS_IN_D' := Stop;", "Waiting on T10_START_OK (PERM_READY = True)."],
+    S10_CHARGE_OPEN: ["[P] Snapshot START_WT.CV := 'CM_TANK_WT/AI1/OUT.CV';", "    (Pulse ONCE on Idle -> S10; NEVER on Restart!)", "[N] 'CM_FEED_XV/DC1/CAS_IN_D' := Open;"],
+    S20_TRIM_CLOSE: ["[N] 'CM_FEED_XV/DC1/CAS_IN_D' := Close;", "Waiting on CM_FEED_XV/DC1/PV_D = Closed", "+ 5 sec tank settle timer before S30_AGITATE."],
+    S30_AGITATE: ["[N] 'CM_FEED_XV/DC1/CAS_IN_D' := Close;", "[N] 'CM_AGIT_MTR/DC1/CAS_IN_D' := Start;", "Report EM_STATE := COMPLETE to EPH."]
   };
   stepActionsMap[activeStepId].forEach((ln, i) => {
-    actBox.appendChild(el("text", {
-      x: subX + 14, y: subY + 52 + i * 22,
-      "font-size": 10.8, fill: "#0f172a",
-      "font-family": "ui-monospace, monospace"
-    }, ln));
+    actBox.appendChild(el("text", { x: subX + 14, y: subY + 52 + i * 22, "font-size": 10.8, fill: "#0f172a", "font-family": "ui-monospace, monospace" }, ln));
   });
-  actBox.appendChild(el("text", {
-    x: subX + 14, y: subY + 150, "font-size": 10.5, fill: "#475569", "font-style": "italic"
-  }, "Note: In DeltaV SFC, ACT writes live inside each step box."));
+  actBox.appendChild(el("text", { x: subX + 14, y: subY + 150, "font-size": 10.5, fill: "#475569", "font-style": "italic" }, "Note: In DeltaV SFC, ACT writes live inside each step box."));
   vp.appendChild(actBox);
 
-  // Golden Tare & Hold/Restart Box
   const tareBox = el("g", { class: "clickable", "data-id": "GOLDEN_TARE" });
   const tareBorder = state.emState === "HELD" ? "#d97706" : state.emState === "ABORTED" ? "#dc2626" : "#0284c7";
   tareBox.appendChild(el("rect", {
@@ -1114,13 +1160,8 @@ function renderPattern1(vp, d) {
     stroke: state.selectedId === "GOLDEN_TARE" ? "#0284c7" : tareBorder,
     "stroke-width": state.selectedId === "GOLDEN_TARE" ? 3 : 1.8
   }));
-  tareBox.appendChild(el("rect", {
-    x: subX + 1, y: 316, width: subW - 2, height: 28, rx: 6,
-    fill: state.emState === "HELD" ? "#fde68a" : "#e0f2fe"
-  }));
-  tareBox.appendChild(el("text", {
-    x: subX + 12, y: 334, "font-size": 11.5, "font-weight": 800, fill: "#0f172a"
-  }, "HOLD / RESTART & GOLDEN TARE WATCH"));
+  tareBox.appendChild(el("rect", { x: subX + 1, y: 316, width: subW - 2, height: 28, rx: 6, fill: state.emState === "HELD" ? "#fde68a" : "#e0f2fe" }));
+  tareBox.appendChild(el("text", { x: subX + 12, y: 334, "font-size": 11.5, "font-weight": 800, fill: "#0f172a" }, "HOLD / RESTART & GOLDEN TARE WATCH"));
 
   const rows = [
     ["START_WT.CV (Tare):", `${state.startWt.toFixed(1)} kg ${state.tareLocked ? "[LOCKED]" : "[READY]"}`],
@@ -1132,81 +1173,44 @@ function renderPattern1(vp, d) {
   ];
   rows.forEach(([k, v], i) => {
     tareBox.appendChild(el("text", { x: subX + 14, y: 368 + i * 24, "font-size": 11, fill: "#475569", "font-weight": 600 }, k));
-    tareBox.appendChild(el("text", {
-      x: subX + subW - 14, y: 368 + i * 24, "text-anchor": "end",
-      "font-size": 11.5, "font-weight": 800, fill: "#0f172a",
-      "font-family": "ui-monospace, monospace"
-    }, v));
+    tareBox.appendChild(el("text", { x: subX + subW - 14, y: 368 + i * 24, "text-anchor": "end", "font-size": 11.5, "font-weight": 800, fill: "#0f172a", "font-family": "ui-monospace, monospace" }, v));
   });
-
-  tareBox.appendChild(el("text", { x: subX + 14, y: 520, "font-size": 10.5, fill: "#1e3a8a", "font-weight": 700 },
-    "Try it: Advance to S10, move Weight slider, press HOLD,"));
-  tareBox.appendChild(el("text", { x: subX + 14, y: 536, "font-size": 10.5, fill: "#1e3a8a", "font-weight": 700 },
-    "then press RESTART — START_WT.CV will NOT re-tare!"));
+  tareBox.appendChild(el("text", { x: subX + 14, y: 520, "font-size": 10.5, fill: "#1e3a8a", "font-weight": 700 }, "Try it: Advance to S10, move Weight slider, press HOLD,"));
+  tareBox.appendChild(el("text", { x: subX + 14, y: 536, "font-size": 10.5, fill: "#1e3a8a", "font-weight": 700 }, "then press RESTART — START_WT.CV will NOT re-tare!"));
   vp.appendChild(tareBox);
 }
 
 function renderPattern2(vp, d) {
-  // Strip A: Pre-Start Permissives
   drawSectionStrip(vp, 30, 28, 860, 215, "STRIP A: PRE-START PERMISSIVES (RUNS EVERY SCAN — GATES T10_START_OK WITHOUT TRIPPING)", "#1e3a8a");
-
-  drawFlag(vp, {
-    id: "FLAG_VALVE_MODE", x: 50, y: 68, w: 225, side: "left",
-    label: "'CM_FEED_XV/DC1/MODE.ACTUAL'", sub: "Must equal CAS",
-    liveText: state.valveMode, status: d.permValveCas ? "ok" : "bad"
-  });
-  drawFlag(vp, {
-    id: "FLAG_TARGET_WT", x: 50, y: 122, w: 225, side: "left",
-    label: "'^/TARGET_WT.CV'", sub: "Must be > 0.0 kg",
-    liveText: `${d.targetWt.toFixed(1)} kg`, status: d.permTargetOk ? "ok" : "bad"
-  });
-  drawFlag(vp, {
-    id: "FLAG_SCALE_ST_P2A", x: 50, y: 176, w: 225, side: "left",
-    label: "'CM_TANK_WT/AI1/OUT.ST'", sub: "Health must be >= GOOD",
-    liveText: state.scaleSt, status: d.permScaleGood ? "ok" : "bad"
-  });
+  drawFlag(vp, { id: "FLAG_VALVE_MODE", x: 50, y: 68, w: 225, side: "left", label: "'CM_FEED_XV/DC1/MODE.ACTUAL'", sub: "Must equal CAS", liveText: state.valveMode, status: d.permValveCas ? "ok" : "bad" });
+  drawFlag(vp, { id: "FLAG_TARGET_WT", x: 50, y: 122, w: 225, side: "left", label: "'^/TARGET_WT.CV'", sub: "Must be > 0.0 kg", liveText: `${d.targetWt.toFixed(1)} kg`, status: d.permTargetOk ? "ok" : "bad" });
+  drawFlag(vp, { id: "FLAG_SCALE_ST_P2A", x: 50, y: 176, w: 225, side: "left", label: "'CM_TANK_WT/AI1/OUT.ST'", sub: "Health must be >= GOOD", liveText: state.scaleSt, status: d.permScaleGood ? "ok" : "bad" });
 
   drawFbdBlock(vp, {
     id: "CND1", x: 375, y: 80, w: 210, h: 126, cls: "CND", name: "CND1", execNum: 1,
     inputs: [{ name: "IN1", dy: 44 }, { name: "IN2", dy: 74 }, { name: "IN3", dy: 104 }],
     outputs: [{ name: "OUT_D", dy: 74 }],
     bodyLines: ["Pre-Start Gate", "CAS & WT>0 & GOOD"],
-    status: d.permReady ? "ok" : "warn",
-    liveBadge: d.permReady ? "TRUE (1)" : "FALSE (0)"
+    status: d.permReady ? "ok" : "warn", liveBadge: d.permReady ? "TRUE (1)" : "FALSE (0)"
   });
 
-  drawFlag(vp, {
-    id: "FLAG_PERM_READY", x: 660, y: 136, w: 210, side: "right",
-    label: "'^/PERM_READY'", sub: "Feeds SFC Transition T10",
-    liveText: d.permReady ? "READY (1)" : "BLOCKED (0)", status: d.permReady ? "ok" : "warn"
-  });
+  drawFlag(vp, { id: "FLAG_PERM_READY", x: 660, y: 136, w: 210, side: "right", label: "'^/PERM_READY'", sub: "Feeds SFC Transition T10", liveText: d.permReady ? "READY (1)" : "BLOCKED (0)", status: d.permReady ? "ok" : "warn" });
 
   drawWire(vp, [[275, 85], [325, 85], [325, 124], [375, 124]], { kind: "dashed", active: d.permValveCas, fault: !d.permValveCas });
   drawWire(vp, [[275, 139], [325, 139], [325, 154], [375, 154]], { kind: "solid", active: d.permTargetOk });
   drawWire(vp, [[275, 193], [325, 193], [325, 184], [375, 184]], { kind: "dashed", active: d.permScaleGood, fault: !d.permScaleGood });
   drawWire(vp, [[585, 154], [660, 154]], { kind: "dashed", active: d.permReady, fault: !d.permReady });
 
-  // Strip B: Active Interlock Trip
   drawSectionStrip(vp, 30, 275, 860, 235, "STRIP B: ACTIVE INTERLOCK TRIP (RUNS EVERY SCAN — FORCES VALVE CLOSED & EM HOLD)", "#991b1b");
-
-  drawFlag(vp, {
-    id: "FLAG_SCALE_ST_P2B", x: 50, y: 328, w: 225, side: "left",
-    label: "'CM_TANK_WT/AI1/OUT.ST'", sub: "Trips if status = BAD",
-    liveText: state.scaleSt, status: state.scaleSt === "BAD" ? "bad" : "ok"
-  });
-  drawFlag(vp, {
-    id: "FLAG_HI_HI", x: 50, y: 398, w: 225, side: "left",
-    label: "'^/HI_HI_LVL.CV'", sub: "Trips if High-High = 1",
-    liveText: state.hiHi ? "TRIP (1)" : "NORMAL (0)", status: state.hiHi ? "bad" : "ok"
-  });
+  drawFlag(vp, { id: "FLAG_SCALE_ST_P2B", x: 50, y: 328, w: 225, side: "left", label: "'CM_TANK_WT/AI1/OUT.ST'", sub: "Trips if status = BAD", liveText: state.scaleSt, status: state.scaleSt === "BAD" ? "bad" : "ok" });
+  drawFlag(vp, { id: "FLAG_HI_HI", x: 50, y: 398, w: 225, side: "left", label: "'^/HI_HI_LVL.CV'", sub: "Trips if High-High = 1", liveText: state.hiHi ? "TRIP (1)" : "NORMAL (0)", status: state.hiHi ? "bad" : "ok" });
 
   drawFbdBlock(vp, {
     id: "CND2", x: 335, y: 330, w: 190, h: 118, cls: "CND", name: "CND2", execNum: 2,
     inputs: [{ name: "IN1", dy: 45 }, { name: "IN2", dy: 88 }],
     outputs: [{ name: "OUT_D", dy: 66 }],
     bodyLines: ["Mid-Charge Trip", "ST=BAD OR HI_HI"],
-    status: d.tripCondition ? "bad" : "normal",
-    liveBadge: d.tripCondition ? "TRIPPED (1)" : "CLEAR (0)"
+    status: d.tripCondition ? "bad" : "normal", liveBadge: d.tripCondition ? "TRIPPED (1)" : "CLEAR (0)"
   });
 
   drawFbdBlock(vp, {
@@ -1214,20 +1218,11 @@ function renderPattern2(vp, d) {
     inputs: [{ name: "IN_D", dy: 66 }],
     outputs: [{ name: "CMD", dy: 48 }, { name: "STATE", dy: 88 }],
     bodyLines: ["Stamp Close &", "Force EM Hold"],
-    status: (d.tripCondition && state.emState === "HELD") ? "bad" : "normal",
-    liveBadge: d.tripCondition ? "FIRED" : "IDLE"
+    status: (d.tripCondition && state.emState === "HELD") ? "bad" : "normal", liveBadge: d.tripCondition ? "FIRED" : "IDLE"
   });
 
-  drawFlag(vp, {
-    id: "FLAG_TRIP_VALVE", x: 770, y: 356, w: 110, side: "right",
-    label: "CAS_IN_D", sub: ":= Close",
-    liveText: d.feedCmdText, status: d.tripCondition ? "bad" : "normal"
-  });
-  drawFlag(vp, {
-    id: "FLAG_TRIP_HOLD", x: 770, y: 406, w: 110, side: "right",
-    label: "EM_STATE", sub: ":= HELD",
-    liveText: state.emState, status: state.emState === "HELD" ? "warn" : "normal"
-  });
+  drawFlag(vp, { id: "FLAG_TRIP_VALVE", x: 770, y: 356, w: 110, side: "right", label: "CAS_IN_D", sub: ":= Close", liveText: d.feedCmdText, status: d.tripCondition ? "bad" : "normal" });
+  drawFlag(vp, { id: "FLAG_TRIP_HOLD", x: 770, y: 406, w: 110, side: "right", label: "EM_STATE", sub: ":= HELD", liveText: state.emState, status: state.emState === "HELD" ? "warn" : "normal" });
 
   drawWire(vp, [[275, 345], [305, 345], [305, 375], [335, 375]], { kind: "dashed", fault: state.scaleSt === "BAD" });
   drawWire(vp, [[275, 415], [305, 415], [305, 418], [335, 418]], { kind: "dashed", fault: state.hiHi });
@@ -1238,535 +1233,683 @@ function renderPattern2(vp, d) {
 
 function renderPattern3(vp, d) {
   drawSectionStrip(vp, 25, 25, 895, 295, "SECTION A: TARGET WEIGHT ARBITRATION & NET MASS MATH (SOLVED #1 → #2 → #3 EVERY SCAN)", "#1e3a8a");
-
-  drawFlag(vp, {
-    id: "FLAG_RECIPE_WT", x: 42, y: 70, w: 165, side: "left",
-    label: "'^/RECIPE_WT.CV'", sub: "From EPH Boss",
-    liveText: `${state.recipeWt.toFixed(1)} kg`, status: state.useRecipe ? "ok" : "normal"
-  });
-  drawFlag(vp, {
-    id: "FLAG_LOCAL_WT", x: 42, y: 122, w: 165, side: "left",
-    label: "'^/LOCAL_WT.CV'", sub: "Operator Entry",
-    liveText: `${state.localWt.toFixed(1)} kg`, status: !state.useRecipe ? "ok" : "normal"
-  });
-  drawFlag(vp, {
-    id: "FLAG_USE_RECIPE", x: 42, y: 174, w: 165, side: "left",
-    label: "'^/USE_RECIPE'", sub: "Selector Flag",
-    liveText: state.useRecipe ? "TRUE (1)" : "FALSE (0)", status: "normal"
-  });
+  drawFlag(vp, { id: "FLAG_RECIPE_WT", x: 42, y: 70, w: 165, side: "left", label: "'^/RECIPE_WT.CV'", sub: "From EPH Boss", liveText: `${state.recipeWt.toFixed(1)} kg`, status: state.useRecipe ? "ok" : "normal" });
+  drawFlag(vp, { id: "FLAG_LOCAL_WT", x: 42, y: 122, w: 165, side: "left", label: "'^/LOCAL_WT.CV'", sub: "Operator Entry", liveText: `${state.localWt.toFixed(1)} kg`, status: !state.useRecipe ? "ok" : "normal" });
+  drawFlag(vp, { id: "FLAG_USE_RECIPE", x: 42, y: 174, w: 165, side: "left", label: "'^/USE_RECIPE'", sub: "Selector Flag", liveText: state.useRecipe ? "TRUE (1)" : "FALSE (0)", status: "normal" });
 
   drawFbdBlock(vp, {
     id: "BSEL1", x: 255, y: 74, w: 155, h: 128, cls: "BSEL", name: "BSEL1", execNum: 1,
     inputs: [{ name: "IN1", dy: 38 }, { name: "IN2", dy: 70 }, { name: "SEL_D", dy: 104 }],
     outputs: [{ name: "OUT", dy: 65 }],
-    bodyLines: ["Pick Active", "Target Wt"],
-    status: "ok",
-    liveBadge: `${d.targetWt.toFixed(0)} kg`
+    bodyLines: ["Pick Active", "Target Wt"], status: "ok", liveBadge: `${d.targetWt.toFixed(0)} kg`
   });
 
-  drawFlag(vp, {
-    id: "FLAG_TANK_WT_CV", x: 240, y: 230, w: 185, side: "left",
-    label: "'CM_TANK_WT/AI1/OUT'", sub: "Live Gross Weight",
-    liveText: `${state.currentWt.toFixed(1)} kg`, status: state.scaleSt === "BAD" ? "bad" : "ok"
-  });
-  drawFlag(vp, {
-    id: "FLAG_START_WT", x: 240, y: 274, w: 185, side: "left",
-    label: "'^/START_WT.CV'", sub: "Tare Snapshot (Idle→S10)",
-    liveText: `${state.startWt.toFixed(1)} kg`, status: "normal"
-  });
+  drawFlag(vp, { id: "FLAG_TANK_WT_CV", x: 240, y: 230, w: 185, side: "left", label: "'CM_TANK_WT/AI1/OUT'", sub: "Live Gross Weight", liveText: `${state.currentWt.toFixed(1)} kg`, status: state.scaleSt === "BAD" ? "bad" : "ok" });
+  drawFlag(vp, { id: "FLAG_START_WT", x: 240, y: 274, w: 185, side: "left", label: "'^/START_WT.CV'", sub: "Tare Snapshot (Idle→S10)", liveText: `${state.startWt.toFixed(1)} kg`, status: "normal" });
 
   drawFbdBlock(vp, {
     id: "CALC1", x: 475, y: 112, w: 175, h: 145, cls: "CALC", name: "CALC1", execNum: 2,
     inputs: [{ name: "IN1 (Tgt)", dy: 38 }, { name: "IN2 (Cur)", dy: 82 }, { name: "IN3 (Tare)", dy: 118 }],
     outputs: [{ name: "OUT", dy: 68 }],
     bodyLines: ["Net = Cur - Tare", "Rem = Tgt - Net"],
-    status: state.scaleSt === "BAD" ? "bad" : "normal",
-    liveBadge: `${d.remainingWt.toFixed(1)} kg`
+    status: state.scaleSt === "BAD" ? "bad" : "normal", liveBadge: `${d.remainingWt.toFixed(1)} kg`
   });
 
   drawFbdBlock(vp, {
     id: "CND3", x: 705, y: 120, w: 155, h: 118, cls: "CND", name: "CND3", execNum: 3,
-    inputs: [{ name: "IN1", dy: 60 }],
-    outputs: [{ name: "OUT_D", dy: 60 }],
+    inputs: [{ name: "IN1", dy: 60 }], outputs: [{ name: "OUT_D", dy: 60 }],
     bodyLines: ["Rem <= Lead", `(${state.precloseLead} kg)`],
-    status: d.precloseReached ? "ok" : "normal",
-    liveBadge: d.precloseReached ? "CUTOFF!" : "FILLING"
+    status: d.precloseReached ? "ok" : "normal", liveBadge: d.precloseReached ? "CUTOFF!" : "FILLING"
   });
 
-  // Wires Section A
   drawWire(vp, [[207, 87], [230, 87], [230, 112], [255, 112]], { kind: "solid", active: state.useRecipe });
   drawWire(vp, [[207, 139], [230, 139], [230, 144], [255, 144]], { kind: "solid", active: !state.useRecipe });
   drawWire(vp, [[207, 191], [230, 191], [230, 178], [255, 178]], { kind: "dashed", active: state.useRecipe });
-
-  drawWire(vp, [[410, 139], [442, 139], [442, 150], [475, 150]], {
-    kind: "solid", active: true, label: state.online ? `${d.targetWt.toFixed(0)} kg` : "TARGET_WT", labelPos: [442, 126]
-  });
+  drawWire(vp, [[410, 139], [442, 139], [442, 150], [475, 150]], { kind: "solid", active: true, label: state.online ? `${d.targetWt.toFixed(0)} kg` : "TARGET_WT", labelPos: [442, 126] });
   drawWire(vp, [[425, 247], [448, 247], [448, 194], [475, 194]], { kind: "solid", fault: state.scaleSt === "BAD" });
   drawWire(vp, [[425, 291], [460, 291], [460, 230], [475, 230]], { kind: "solid" });
-
-  drawWire(vp, [[650, 180], [705, 180]], {
-    kind: "solid", active: d.precloseReached, label: state.online ? `${d.remainingWt.toFixed(1)}` : "REM_WT", labelPos: [678, 165]
-  });
+  drawWire(vp, [[650, 180], [705, 180]], { kind: "solid", active: d.precloseReached, label: state.online ? `${d.remainingWt.toFixed(1)}` : "REM_WT", labelPos: [678, 165] });
   drawWire(vp, [[860, 180], [908, 180]], { kind: "dashed", active: d.precloseReached });
   vp.appendChild(el("text", { x: 865, y: 165, "font-size": 10, "font-weight": 800, fill: "#1e3a8a" }, "→ T20"));
 
-  // Section B: Cascade Mode Push
   drawSectionStrip(vp, 25, 345, 895, 170, "SECTION B: CASCADE MODE ALIGNMENT (WHEN EM IS IN AUTO, PUSH MODE.TARGET := CAS TO CMs)", "#0f766e");
-
-  drawFlag(vp, {
-    id: "FLAG_EM_AUTO", x: 50, y: 412, w: 195, side: "left",
-    label: "'^/EM_MODE.ACTUAL'", sub: "Triggers when EM = AUTO",
-    liveText: "AUTO", status: "ok"
-  });
-
+  drawFlag(vp, { id: "FLAG_EM_AUTO", x: 50, y: 412, w: 195, side: "left", label: "'^/EM_MODE.ACTUAL'", sub: "Triggers when EM = AUTO", liveText: "AUTO", status: "ok" });
   drawFbdBlock(vp, {
     id: "ACT2", x: 315, y: 382, w: 220, h: 108, cls: "ACT", name: "ACT2", execNum: 4,
-    inputs: [{ name: "IN_D", dy: 47 }],
-    outputs: [{ name: "OUT1", dy: 38 }, { name: "OUT2", dy: 76 }],
-    bodyLines: ["Request CAS Mode", "on Downstream CMs"],
-    status: "ok",
-    liveBadge: "MODE := CAS"
+    inputs: [{ name: "IN_D", dy: 47 }], outputs: [{ name: "OUT1", dy: 38 }, { name: "OUT2", dy: 76 }],
+    bodyLines: ["Request CAS Mode", "on Downstream CMs"], status: "ok", liveBadge: "MODE := CAS"
   });
-
-  drawFlag(vp, {
-    id: "FLAG_FEED_MODE_TGT", x: 610, y: 392, w: 280, side: "right",
-    label: "'CM_FEED_XV/DC1/MODE.TARGET'", sub: "Requested: CAS | Actual: " + state.valveMode,
-    liveText: `ACT: ${state.valveMode}`, status: state.valveMode === "CAS" ? "ok" : "bad"
-  });
-  drawFlag(vp, {
-    id: "FLAG_AGIT_MODE_TGT", x: 610, y: 444, w: 280, side: "right",
-    label: "'CM_AGIT_MTR/DC1/MODE.TARGET'", sub: "Requested: CAS | Actual: CAS",
-    liveText: "ACT: CAS", status: "ok"
-  });
-
+  drawFlag(vp, { id: "FLAG_FEED_MODE_TGT", x: 610, y: 392, w: 280, side: "right", label: "'CM_FEED_XV/DC1/MODE.TARGET'", sub: "Requested: CAS | Actual: " + state.valveMode, liveText: `ACT: ${state.valveMode}`, status: state.valveMode === "CAS" ? "ok" : "bad" });
+  drawFlag(vp, { id: "FLAG_AGIT_MODE_TGT", x: 610, y: 444, w: 280, side: "right", label: "'CM_AGIT_MTR/DC1/MODE.TARGET'", sub: "Requested: CAS | Actual: CAS", liveText: "ACT: CAS", status: "ok" });
   drawWire(vp, [[245, 429], [315, 429]], { kind: "dashed", active: true });
   drawWire(vp, [[535, 420], [572, 420], [572, 409], [610, 409]], { kind: "dashed", active: state.valveMode === "CAS", fault: state.valveMode !== "CAS" });
   drawWire(vp, [[535, 458], [572, 458], [572, 461], [610, 461]], { kind: "dashed", active: true });
 }
 
 function renderPattern4(vp, d) {
-  // Strip A: Outbound Commands
   drawSectionStrip(vp, 30, 25, 860, 155, "STRIP A: OUTBOUND COMMANDS (EM → CONTROL MODULES VIA CAS_IN_D)", "#1e3a8a");
+  drawFlag(vp, { id: "FLAG_STEP_SRC_XV", x: 55, y: 65, w: 250, side: "left", label: "Active SFC Step / Interlock", sub: `Current Step: ${STEPS[state.stepIdx]} (${state.emState})`, liveText: d.feedCmdText, status: d.feedCmdOpen ? "ok" : "normal" });
+  drawFlag(vp, { id: "FLAG_STEP_SRC_MTR", x: 55, y: 120, w: 250, side: "left", label: "Step S30_AGITATE Action", sub: "Runs agitator after valve shut", liveText: d.agitCmdText, status: d.agitCmdRun ? "ok" : "normal" });
+  drawFlag(vp, { id: "FLAG_OUT_XV_CMD", x: 595, y: 65, w: 270, side: "right", label: "'CM_FEED_XV/DC1/CAS_IN_D'", sub: "Feed Valve Command Inbox", liveText: d.feedCmdText, status: d.feedCmdOpen ? "ok" : (state.valveMode !== "CAS" ? "warn" : "normal") });
+  drawFlag(vp, { id: "FLAG_OUT_MTR_CMD", x: 595, y: 120, w: 270, side: "right", label: "'CM_AGIT_MTR/DC1/CAS_IN_D'", sub: "Agitator Motor Command Inbox", liveText: d.agitCmdText, status: d.agitCmdRun ? "ok" : "normal" });
 
-  drawFlag(vp, {
-    id: "FLAG_STEP_SRC_XV", x: 55, y: 65, w: 250, side: "left",
-    label: "Active SFC Step / Interlock", sub: `Current Step: ${STEPS[state.stepIdx]} (${state.emState})`,
-    liveText: d.feedCmdText, status: d.feedCmdOpen ? "ok" : "normal"
-  });
-  drawFlag(vp, {
-    id: "FLAG_STEP_SRC_MTR", x: 55, y: 120, w: 250, side: "left",
-    label: "Step S30_AGITATE Action", sub: "Runs agitator after valve shut",
-    liveText: d.agitCmdText, status: d.agitCmdRun ? "ok" : "normal"
-  });
+  drawWire(vp, [[305, 82], [595, 82]], { kind: "dashed", active: d.feedCmdOpen, fault: d.valveMismatch, label: state.online ? `CMD := ${d.feedCmdText}` : "CAS_IN_D", labelPos: [450, 72] });
+  drawWire(vp, [[305, 137], [595, 137]], { kind: "dashed", active: d.agitCmdRun, label: state.online ? `CMD := ${d.agitCmdText}` : "CAS_IN_D", labelPos: [450, 127] });
 
-  drawFlag(vp, {
-    id: "FLAG_OUT_XV_CMD", x: 595, y: 65, w: 270, side: "right",
-    label: "'CM_FEED_XV/DC1/CAS_IN_D'", sub: "Feed Valve Command Inbox",
-    liveText: d.feedCmdText, status: d.feedCmdOpen ? "ok" : (state.valveMode !== "CAS" ? "warn" : "normal")
-  });
-  drawFlag(vp, {
-    id: "FLAG_OUT_MTR_CMD", x: 595, y: 120, w: 270, side: "right",
-    label: "'CM_AGIT_MTR/DC1/CAS_IN_D'", sub: "Agitator Motor Command Inbox",
-    liveText: d.agitCmdText, status: d.agitCmdRun ? "ok" : "normal"
-  });
-
-  drawWire(vp, [[305, 82], [595, 82]], {
-    kind: "dashed", active: d.feedCmdOpen, fault: d.valveMismatch,
-    label: state.online ? `CMD := ${d.feedCmdText}` : "CAS_IN_D", labelPos: [450, 72]
-  });
-  drawWire(vp, [[305, 137], [595, 137]], {
-    kind: "dashed", active: d.agitCmdRun,
-    label: state.online ? `CMD := ${d.agitCmdText}` : "CAS_IN_D", labelPos: [450, 127]
-  });
-
-  // Strip B: Inbound Feedback & Discrepancy Watch
   drawSectionStrip(vp, 30, 205, 860, 315, "STRIP B: INBOUND LIMIT-SWITCH FEEDBACK & TRAVEL MISMATCH WATCH (CM → EM VIA PV_D)", "#0f766e");
-
-  drawFlag(vp, {
-    id: "FLAG_IN_PV_D", x: 55, y: 262, w: 245, side: "left",
-    label: "'CM_FEED_XV/DC1/PV_D'", sub: "Confirmed Physical Limit Switch",
-    liveText: d.valvePvText, status: d.valveMismatch ? "bad" : (d.valveShutOk ? "ok" : "normal")
-  });
-  drawFlag(vp, {
-    id: "FLAG_IN_CMD_ECHO", x: 55, y: 405, w: 245, side: "left",
-    label: "'CM_FEED_XV/DC1/CAS_IN_D'", sub: "Command Sent to Valve",
-    liveText: d.feedCmdText, status: "normal"
-  });
+  drawFlag(vp, { id: "FLAG_IN_PV_D", x: 55, y: 262, w: 245, side: "left", label: "'CM_FEED_XV/DC1/PV_D'", sub: "Confirmed Physical Limit Switch", liveText: d.valvePvText, status: d.valveMismatch ? "bad" : (d.valveShutOk ? "ok" : "normal") });
+  drawFlag(vp, { id: "FLAG_IN_CMD_ECHO", x: 55, y: 405, w: 245, side: "left", label: "'CM_FEED_XV/DC1/CAS_IN_D'", sub: "Command Sent to Valve", liveText: d.feedCmdText, status: "normal" });
 
   drawFbdBlock(vp, {
     id: "CND4", x: 380, y: 240, w: 205, h: 108, cls: "CND", name: "CND4", execNum: 1,
-    inputs: [{ name: "IN1", dy: 48 }],
-    outputs: [{ name: "OUT_D", dy: 48 }],
+    inputs: [{ name: "IN1", dy: 48 }], outputs: [{ name: "OUT_D", dy: 48 }],
     bodyLines: ["Confirm Valve Shut", "PV_D = Closed"],
-    status: d.valveShutOk ? "ok" : "warn",
-    liveBadge: d.valveShutOk ? "SHUT OK (1)" : "NOT SHUT (0)"
+    status: d.valveShutOk ? "ok" : "warn", liveBadge: d.valveShutOk ? "SHUT OK (1)" : "NOT SHUT (0)"
   });
-
   drawFbdBlock(vp, {
     id: "CND5", x: 380, y: 382, w: 205, h: 118, cls: "CND", name: "CND5", execNum: 2,
-    inputs: [{ name: "CMD", dy: 44 }, { name: "PV_D", dy: 82 }],
-    outputs: [{ name: "OUT_D", dy: 62 }],
+    inputs: [{ name: "CMD", dy: 44 }, { name: "PV_D", dy: 82 }], outputs: [{ name: "OUT_D", dy: 62 }],
     bodyLines: ["Mismatch > 10s", "CAS_IN_D != PV_D"],
-    status: d.valveMismatch ? "bad" : "normal",
-    liveBadge: d.valveMismatch ? "ALARM (1)" : "NORMAL (0)"
+    status: d.valveMismatch ? "bad" : "normal", liveBadge: d.valveMismatch ? "ALARM (1)" : "NORMAL (0)"
   });
 
-  drawFlag(vp, {
-    id: "FLAG_VALVE_SHUT_OK", x: 645, y: 270, w: 220, side: "right",
-    label: "'^/VALVE_SHUT_OK'", sub: "Feeds SFC Transition T30",
-    liveText: d.valveShutOk ? "TRUE (1)" : "FALSE (0)", status: d.valveShutOk ? "ok" : "warn"
-  });
-  drawFlag(vp, {
-    id: "FLAG_MISMATCH_ALM", x: 645, y: 426, w: 220, side: "right",
-    label: "'^/VALVE_MISMATCH_ALM'", sub: "Stuck Valve Diagnostic",
-    liveText: d.valveMismatch ? "ACTIVE ALM!" : "CLEAR", status: d.valveMismatch ? "bad" : "ok"
-  });
+  drawFlag(vp, { id: "FLAG_VALVE_SHUT_OK", x: 645, y: 270, w: 220, side: "right", label: "'^/VALVE_SHUT_OK'", sub: "Feeds SFC Transition T30", liveText: d.valveShutOk ? "TRUE (1)" : "FALSE (0)", status: d.valveShutOk ? "ok" : "warn" });
+  drawFlag(vp, { id: "FLAG_MISMATCH_ALM", x: 645, y: 426, w: 220, side: "right", label: "'^/VALVE_MISMATCH_ALM'", sub: "Stuck Valve Diagnostic", liveText: d.valveMismatch ? "ACTIVE ALM!" : "CLEAR", status: d.valveMismatch ? "bad" : "ok" });
 
-  // Wires Strip B
   drawWire(vp, [[300, 279], [340, 279], [340, 288], [380, 288]], { kind: "dashed", active: d.valveShutOk, fault: d.valveMismatch });
-  // Branch PV_D down to CND5
   drawWire(vp, [[340, 279], [340, 464], [380, 464]], { kind: "dashed", fault: d.valveMismatch });
   drawWire(vp, [[300, 422], [322, 422], [322, 426], [380, 426]], { kind: "dashed", fault: d.valveMismatch });
-
   drawWire(vp, [[585, 288], [645, 288]], { kind: "dashed", active: d.valveShutOk, fault: !d.valveShutOk && state.stepIdx === 2 });
   drawWire(vp, [[585, 444], [645, 444]], { kind: "dashed", fault: d.valveMismatch });
 }
 
 // =========================================================================
-// 5. CONTEXTUAL INSPECTOR DATABASE
+// 4B. RENDERERS FOR MODULE 2: EM_XFER_HDR (STATE-DRIVEN — CHAPTER 7)
 // =========================================================================
-function getInspectorInfo(id, d) {
+function renderHeaderTab1(vp, h) {
+  // Top Handshake Banner
+  const top = el("g", { class: "clickable", "data-id": "HDR_HANDSHAKE" });
+  top.appendChild(el("rect", {
+    x: 35, y: 20, width: 870, height: 66, rx: 8,
+    fill: state.online ? (h.failActive ? "#fef2f2" : "#eff6ff") : "#f1f5f9",
+    stroke: state.selectedId === "HDR_HANDSHAKE" ? "#0284c7" : (h.failActive && state.online ? "#dc2626" : "#64748b"),
+    "stroke-width": state.selectedId === "HDR_HANDSHAKE" ? 3 : 1.6
+  }));
+  top.appendChild(el("text", { x: 54, y: 42, "font-size": 11.5, "font-weight": 800, fill: "#1e3a8a" },
+    "STATE-DRIVEN HEADER — EPH / OPERATOR REQUEST (EM_S_COMMAND) vs. CONFIRMED ACTUAL STATE (PV_D)"));
+  top.appendChild(el("text", { x: 54, y: 63, "font-size": 11.5, fill: "#0f172a", "font-family": "ui-monospace, monospace", "font-weight": 700 },
+    `EM_S_COMMAND ↓: ${state.hdrCmdState}   |   EFFECTIVE: ${h.effectiveTarget}   |   PV_D ↑: ${h.pvState}   |   FAIL_ACTIVE: ${h.failActive ? "TRUE (ALM)" : "FALSE"}`));
+  vp.appendChild(top);
+
+  // Left Panel: Named-Set State Boxes (No multi-step SFC — direct snap per state!)
+  drawSectionStrip(vp, 35, 105, 305, 440, "NAMED SET STATES (SNAP DIRECTLY)", "#1e3a8a");
+
+  const stBoxes = [
+    { key: "HEADER_CLOSED", id: "ST_HEADER_CLOSED", y: 145, sub: "Safe Rest / FAIL_STATE Fallback" },
+    { key: "ROUTE_TANK_A",  id: "ST_ROUTE_TANK_A",  y: 240, sub: "Open XV101 → Run Transfer Pump" },
+    { key: "ROUTE_TANK_B",  id: "ST_ROUTE_TANK_B",  y: 335, sub: "Open XV102 → Run Transfer Pump" },
+    { key: "CIP_FLUSH",     id: "ST_CIP_FLUSH",     y: 430, sub: "Open XV103 Drain → Run CIP Flush" }
+  ];
+
+  stBoxes.forEach(sb => {
+    const isTarget = h.effectiveTarget === sb.key;
+    const isConfirmed = h.pvState === sb.key;
+    let fill = "#ffffff", stroke = "#475569";
+    if (state.online) {
+      if (isTarget && isConfirmed) { fill = "#dcfce7"; stroke = "#16a34a"; }
+      else if (isTarget && !isConfirmed) { fill = "#fef3c7"; stroke = "#d97706"; }
+    }
+    const g = el("g", { class: "clickable", "data-id": sb.id, "data-cmdstate": sb.key });
+    g.appendChild(el("rect", {
+      x: 58, y: sb.y, width: 258, height: 68, rx: 5, fill, stroke,
+      "stroke-width": state.selectedId === sb.id ? 3 : (isTarget ? 2.4 : 1.6)
+    }));
+    if (sb.key === "HEADER_CLOSED") {
+      g.appendChild(el("rect", { x: 63, y: sb.y + 5, width: 248, height: 58, rx: 3, fill: "none", stroke, "stroke-width": 1.1 }));
+    }
+    g.appendChild(el("text", { x: 187, y: sb.y + 27, "text-anchor": "middle", "font-size": 12.5, "font-weight": 800, fill: "#0f172a", "font-family": "ui-monospace, monospace" }, sb.key));
+    g.appendChild(el("text", { x: 187, y: sb.y + 46, "text-anchor": "middle", "font-size": 10, fill: "#475569", "font-weight": 600 }, sb.sub));
+
+    if (state.online && isTarget) {
+      const badgeTxt = isConfirmed ? "CONFIRMED" : "ALIGNING / FAULT";
+      const badgeCol = isConfirmed ? "#15803d" : "#dc2626";
+      const bw = badgeTxt.length * 6.4 + 12;
+      g.appendChild(el("rect", { x: 310 - bw, y: sb.y - 10, width: bw, height: 17, rx: 4, fill: badgeCol }));
+      g.appendChild(el("text", { x: 310 - bw / 2, y: sb.y + 2, "text-anchor": "middle", "font-size": 9.5, "font-weight": 800, fill: "#fff" }, badgeTxt));
+    }
+    vp.appendChild(g);
+  });
+
+  // Right Panel: Control Studio Device Alignment Matrix (State Mask Table)
+  const mx = 360, my = 105, mw = 545, mh = 440;
+  const matGroup = el("g", { class: "clickable", "data-id": "HDR_DEVICE_MASK" });
+  matGroup.appendChild(el("rect", {
+    x: mx, y: my, width: mw, height: mh, rx: 8,
+    fill: "#ffffff", stroke: state.selectedId === "HDR_DEVICE_MASK" ? "#0284c7" : "#475569",
+    "stroke-width": state.selectedId === "HDR_DEVICE_MASK" ? 3 : 1.6
+  }));
+  matGroup.appendChild(el("rect", { x: mx + 1, y: my + 1, width: mw - 2, height: 32, rx: 7, fill: "#dbeafe" }));
+  matGroup.appendChild(el("text", { x: mx + 14, y: my + 21, "font-size": 11.5, "font-weight": 800, fill: "#1e3a8a" },
+    `DEVICE ALIGNMENT MASK FOR TARGET: ${h.effectiveTarget}`));
+
+  // Table Headers
+  const colX = [mx + 16, mx + 195, mx + 295, mx + 405, mx + 492];
+  const headers = ["Control Module (CM)", "Mode", "Cmd (CAS_IN_D)", "Actual (PV_D)", "Align"];
+  headers.forEach((hd, idx) => {
+    matGroup.appendChild(el("text", { x: colX[idx], y: my + 56, "font-size": 10.5, "font-weight": 800, fill: "#334155" }, hd));
+  });
+  matGroup.appendChild(el("line", { x1: mx + 12, y1: my + 65, x2: mx + mw - 12, y2: my + 65, stroke: "#cbd5e1", "stroke-width": 1.4 }));
+
+  const devRows = [
+    { cm: "CM_HDR_XV101 (Tank A)", mode: "CAS", cmd: h.xv101Cmd, pv: h.xv101Pv, ok: h.xv101Match },
+    { cm: "CM_HDR_XV102 (Tank B)", mode: state.xv102Mode, cmd: h.xv102Cmd, pv: h.xv102Pv, ok: h.xv102Match && (state.xv102Mode === "CAS" || h.xv102Cmd === "Close") },
+    { cm: "CM_HDR_XV103 (CIP Drain)", mode: "CAS", cmd: h.xv103Cmd, pv: h.xv103Pv, ok: h.xv103Match },
+    { cm: "CM_XFER_PMP (Pump)", mode: "CAS", cmd: `${h.pmpCmd} (Mask:${h.mask.pmp})`, pv: h.pmpPv, ok: h.pmpMatch }
+  ];
+
+  devRows.forEach((r, i) => {
+    const ry = my + 98 + i * 62;
+    matGroup.appendChild(el("rect", {
+      x: mx + 10, y: ry - 22, width: mw - 20, height: 48, rx: 5,
+      fill: state.online ? (r.ok ? "#f0fdf4" : "#fef2f2") : "#f8fafc",
+      stroke: state.online ? (r.ok ? "#86efac" : "#fca5a5") : "#e2e8f0"
+    }));
+    matGroup.appendChild(el("text", { x: colX[0], y: ry + 5, "font-size": 11, "font-weight": 800, fill: "#0f172a", "font-family": "ui-monospace, monospace" }, r.cm));
+    matGroup.appendChild(el("text", { x: colX[1], y: ry + 5, "font-size": 11, "font-weight": 700, fill: r.mode === "CAS" ? "#15803d" : "#dc2626", "font-family": "ui-monospace, monospace" }, r.mode));
+    matGroup.appendChild(el("text", { x: colX[2], y: ry + 5, "font-size": 10.8, "font-weight": 700, fill: "#1e3a8a", "font-family": "ui-monospace, monospace" }, r.cmd));
+    matGroup.appendChild(el("text", { x: colX[3], y: ry + 5, "font-size": 10.8, "font-weight": 700, fill: r.ok ? "#15803d" : "#dc2626", "font-family": "ui-monospace, monospace" }, r.pv));
+    matGroup.appendChild(el("text", { x: colX[4], y: ry + 5, "font-size": 10.5, "font-weight": 800, fill: r.ok ? "#15803d" : "#dc2626" }, r.ok ? "OK" : "FAULT"));
+  });
+
+  // Key takeaway callout inside matrix
+  matGroup.appendChild(el("rect", { x: mx + 14, y: my + 340, width: mw - 28, height: 84, rx: 6, fill: "#eff6ff", stroke: "#93c5fd" }));
+  matGroup.appendChild(el("text", { x: mx + 26, y: my + 362, "font-size": 11, "font-weight": 800, fill: "#1e3a8a" },
+    "HOW TO READ A STATE-DRIVEN EM IN 5 SECONDS:"));
+  matGroup.appendChild(el("text", { x: mx + 26, y: my + 382, "font-size": 10.5, fill: "#334155" },
+    "1. Compare EM_S_COMMAND (Desired) vs. PV_D (Confirmed). If unequal, look for the red row above."));
+  matGroup.appendChild(el("text", { x: mx + 26, y: my + 400, "font-size": 10.5, fill: "#334155" },
+    "2. Notice CM_XFER_PMP waits at Stop until ALL 3 header valves prove aligned (prevents cross-mixing!)."));
+  matGroup.appendChild(el("text", { x: mx + 26, y: my + 417, "font-size": 10.2, fill: "#0369a1", "font-weight": 700 },
+    "Tip: Click any state box on the left (or buttons above) and toggle XV102 Stuck/MAN to watch!"));
+  vp.appendChild(matGroup);
+}
+
+function renderHeaderTab2(vp, h) {
+  drawSectionStrip(vp, 25, 25, 890, 260, "STRIP A: ANTI-CROSS-MIX PATH ALIGNMENT GATE (PUMP CANNOT START UNTIL VALVES MATCH MASK)", "#1e3a8a");
+
+  drawFlag(vp, { id: "FLAG_XV101_PV", x: 45, y: 68, w: 225, side: "left", label: "'CM_HDR_XV101/DC1/PV_D'", sub: `Req: ${h.xv101Cmd}`, liveText: h.xv101Pv, status: h.xv101Match ? "ok" : "bad" });
+  drawFlag(vp, { id: "FLAG_XV102_PV", x: 45, y: 126, w: 225, side: "left", label: "'CM_HDR_XV102/DC1/PV_D'", sub: `Req: ${h.xv102Cmd} | Mode: ${state.xv102Mode}`, liveText: h.xv102Pv, status: (h.xv102Match && (state.xv102Mode === "CAS" || h.xv102Cmd === "Close")) ? "ok" : "bad" });
+  drawFlag(vp, { id: "FLAG_XV103_PV", x: 45, y: 184, w: 225, side: "left", label: "'CM_HDR_XV103/DC1/PV_D'", sub: `Req: ${h.xv103Cmd}`, liveText: h.xv103Pv, status: h.xv103Match ? "ok" : "bad" });
+
+  drawFbdBlock(vp, {
+    id: "CND_PATH_OK", x: 335, y: 82, w: 200, h: 132, cls: "CND", name: "CND_PATH_OK", execNum: 1,
+    inputs: [{ name: "XV101", dy: 40 }, { name: "XV102", dy: 74 }, { name: "XV103", dy: 108 }],
+    outputs: [{ name: "OUT_D", dy: 74 }],
+    bodyLines: ["All Valves Match", "Active Route Mask"],
+    status: h.valvesAligned ? "ok" : "bad", liveBadge: h.valvesAligned ? "ALIGNED (1)" : "MISMATCH (0)"
+  });
+
+  drawFbdBlock(vp, {
+    id: "ACT_PMP_GATE", x: 590, y: 96, w: 175, h: 106, cls: "ACT", name: "ACT_PMP_GATE", execNum: 2,
+    inputs: [{ name: "IN_D", dy: 60 }], outputs: [{ name: "CMD", dy: 60 }],
+    bodyLines: ["Gate Pump Start", "Until Path Proven"],
+    status: h.pmpCmd === "Start" ? "ok" : (h.pmpWantRun ? "warn" : "normal"), liveBadge: `PMP := ${h.pmpCmd}`
+  });
+
+  drawFlag(vp, { id: "FLAG_PMP_CMD", x: 795, y: 139, w: 105, side: "right", label: "XFER_PMP", sub: "CAS_IN_D", liveText: h.pmpCmd, status: h.pmpCmd === "Start" ? "ok" : (h.pmpWantRun ? "warn" : "normal") });
+
+  drawWire(vp, [[270, 85], [302, 85], [302, 122], [335, 122]], { kind: "dashed", active: h.xv101Match, fault: !h.xv101Match });
+  drawWire(vp, [[270, 143], [302, 143], [302, 156], [335, 156]], { kind: "dashed", active: h.xv102Match, fault: !h.xv102Match || (state.xv102Mode !== "CAS" && h.xv102Cmd === "Open") });
+  drawWire(vp, [[270, 201], [302, 201], [302, 190], [335, 190]], { kind: "dashed", active: h.xv103Match, fault: !h.xv103Match });
+  drawWire(vp, [[535, 156], [590, 156]], { kind: "dashed", active: h.valvesAligned, fault: !h.valvesAligned });
+  drawWire(vp, [[765, 156], [795, 156]], { kind: "dashed", active: h.pmpCmd === "Start" });
+
+  // Strip B: High Header Pressure FAIL_STATE Interlock
+  drawSectionStrip(vp, 25, 310, 890, 210, "STRIP B: LINE OVERPRESSURE INTERLOCK → DRIVES HEADER TO FAIL_STATE (HEADER_CLOSED)", "#991b1b");
+
+  drawFlag(vp, { id: "FLAG_HDR_PT", x: 45, y: 382, w: 225, side: "left", label: "'CM_HDR_PT/AI1/OUT.CV'", sub: "Solid Analog Wire (Max 6.0 bar)", liveText: `${state.hdrPress.toFixed(1)} bar`, status: h.highPressTrip ? "bad" : "ok" });
+
+  drawFbdBlock(vp, {
+    id: "CND_HDR_HI", x: 335, y: 355, w: 200, h: 112, cls: "CND", name: "CND_HDR_HI", execNum: 3,
+    inputs: [{ name: "IN1", dy: 45 }], outputs: [{ name: "OUT_D", dy: 56 }],
+    bodyLines: ["Deadhead Trip", "OUT.CV > 6.0 bar"],
+    status: h.highPressTrip ? "bad" : "normal", liveBadge: h.highPressTrip ? "TRIP! (1)" : "SAFE (0)"
+  });
+
+  drawFbdBlock(vp, {
+    id: "ACT_FAIL_STATE", x: 590, y: 355, w: 175, h: 112, cls: "ACT", name: "ACT_FAIL_STATE", execNum: 4,
+    inputs: [{ name: "IN_D", dy: 56 }], outputs: [{ name: "STATE", dy: 56 }],
+    bodyLines: ["Force Safe State", "HEADER_CLOSED"],
+    status: h.highPressTrip ? "bad" : "normal", liveBadge: h.highPressTrip ? "FORCED SHUT" : "STANDBY"
+  });
+
+  drawFlag(vp, { id: "FLAG_FAIL_OUT", x: 795, y: 394, w: 105, side: "right", label: "FAIL_STATE", sub: "All Closed", liveText: h.highPressTrip ? "ACTIVE" : "CLEAR", status: h.highPressTrip ? "bad" : "ok" });
+
+  drawWire(vp, [[270, 399], [335, 400]], { kind: "solid", fault: h.highPressTrip, label: state.online ? `${state.hdrPress.toFixed(1)} bar` : "OUT.CV", labelPos: [302, 382] });
+  drawWire(vp, [[535, 411], [590, 411]], { kind: "dashed", fault: h.highPressTrip });
+  drawWire(vp, [[765, 411], [795, 411]], { kind: "dashed", fault: h.highPressTrip });
+}
+
+function renderHeaderTab3(vp, h) {
+  drawSectionStrip(vp, 25, 35, 890, 470, "CONFIRMED STATE DECODER (PV_D) & TRANSITION TIMEOUT ALARM (FAIL_ACTIVE)", "#0f766e");
+
+  drawFlag(vp, { id: "FLAG_T3_XV101", x: 45, y: 95,  w: 225, side: "left", label: "'CM_HDR_XV101/DC1/PV_D'", sub: "Tank A Valve Proof", liveText: h.xv101Pv, status: h.xv101Match ? "ok" : "bad" });
+  drawFlag(vp, { id: "FLAG_T3_XV102", x: 45, y: 155, w: 225, side: "left", label: "'CM_HDR_XV102/DC1/PV_D'", sub: "Tank B Valve Proof", liveText: h.xv102Pv, status: h.xv102Match ? "ok" : "bad" });
+  drawFlag(vp, { id: "FLAG_T3_XV103", x: 45, y: 215, w: 225, side: "left", label: "'CM_HDR_XV103/DC1/PV_D'", sub: "CIP Drain Valve Proof", liveText: h.xv103Pv, status: h.xv103Match ? "ok" : "bad" });
+  drawFlag(vp, { id: "FLAG_T3_PMP",   x: 45, y: 275, w: 225, side: "left", label: "'CM_XFER_PMP/DC1/PV_D'",  sub: "Transfer Pump Run Proof", liveText: h.pmpPv, status: h.pmpMatch ? "ok" : "warn" });
+  drawFlag(vp, { id: "FLAG_T3_CMD",   x: 45, y: 395, w: 225, side: "left", label: "'^/EM_S_COMMAND'", sub: "Desired Header State", liveText: state.hdrCmdState, status: "normal" });
+
+  drawFbdBlock(vp, {
+    id: "CALC_PV_STATE", x: 330, y: 105, w: 215, h: 195, cls: "CALC", name: "CALC_PV_STATE", execNum: 1,
+    inputs: [{ name: "XV101", dy: 38 }, { name: "XV102", dy: 80 }, { name: "XV103", dy: 122 }, { name: "PMP", dy: 164 }],
+    outputs: [{ name: "PV_D", dy: 96 }],
+    bodyLines: ["Decode True Header", "State From Field", "Limit Switches"],
+    status: h.stateAligned ? "ok" : "warn", liveBadge: h.stateAligned ? "MATCHED" : "MISMATCH"
+  });
+
+  drawFbdBlock(vp, {
+    id: "CND_FAIL_ALM", x: 600, y: 290, w: 195, h: 138, cls: "CND", name: "CND_FAIL_ALM", execNum: 2,
+    inputs: [{ name: "PV_D", dy: 46 }, { name: "CMD", dy: 96 }],
+    outputs: [{ name: "OUT_D", dy: 70 }],
+    bodyLines: ["DURATION = 8s", "EM_S_COMMAND <> PV_D"],
+    status: h.failActive ? "bad" : "ok", liveBadge: h.failActive ? "FAIL_ACTIVE=1" : "CLEAR (0)"
+  });
+
+  drawFlag(vp, { id: "FLAG_OUT_PV_STATE", x: 645, y: 184, w: 245, side: "right", label: "'^/PV_D'", sub: "Confirmed Header State ↑ EPH", liveText: h.pvState.slice(0, 16), status: h.stateAligned ? "ok" : "warn" });
+  drawFlag(vp, { id: "FLAG_OUT_FAIL_ACT", x: 815, y: 343, w: 90, side: "right", label: "FAIL_ACT", sub: "Timeout Alm", liveText: h.failActive ? "ALM!" : "OK", status: h.failActive ? "bad" : "ok" });
+
+  drawWire(vp, [[270, 112], [300, 112], [300, 143], [330, 143]], { kind: "dashed", active: h.xv101Match });
+  drawWire(vp, [[270, 172], [300, 172], [300, 185], [330, 185]], { kind: "dashed", active: h.xv102Match, fault: !h.xv102Match });
+  drawWire(vp, [[270, 232], [300, 232], [300, 227], [330, 227]], { kind: "dashed", active: h.xv103Match });
+  drawWire(vp, [[270, 292], [300, 292], [300, 269], [330, 269]], { kind: "dashed", active: h.pmpMatch });
+
+  drawWire(vp, [[545, 201], [645, 201]], { kind: "dashed", active: h.stateAligned, fault: !h.stateAligned });
+  drawWire(vp, [[572, 201], [572, 336], [600, 336]], { kind: "dashed", fault: h.failActive });
+  drawWire(vp, [[270, 412], [572, 412], [572, 386], [600, 386]], { kind: "dashed" });
+  drawWire(vp, [[795, 360], [815, 360]], { kind: "dashed", fault: h.failActive });
+}
+
+// =========================================================================
+// 5. CONTEXTUAL INSPECTOR DATABASE (BOTH MODULES)
+// =========================================================================
+function getInspectorInfo(id, d, h) {
   const map = {
+    // --- MODULE 1: EM_TANK_CHARGE ---
     EPH_HANDSHAKE: {
       type: "TOP BOUNDARY (EPH ↔ EM)",
       title: "Equipment Phase Handshake",
-      role: "The Equipment Phase (EPH — Recipe Boss) acquires EM_TANK_CHARGE, sends the Charge command (A_COMMAND) plus Recipe target weight (RECIPE_WT), and watches EM_STATE come back up so the recipe knows when the addition is complete or held.",
-      paths: [
-        ["^/A_COMMAND", "Named Set command sent from EPH (Charge / Idle=255)"],
-        ["^/RECIPE_WT.CV", "Target mass passed down into Pattern 3 (BSEL1)"],
-        ["^/EM_STATE", "Live state reported back up to the EPH"]
-      ],
-      expr: `(* EPH writes downward *)\n'EM_TANK_CHARGE/A_COMMAND' := CHARGE;\n'EM_TANK_CHARGE/RECIPE_WT.CV' := 500.0;\n(* EPH monitors upward *)\nWAIT UNTIL 'EM_TANK_CHARGE/EM_STATE' = COMPLETE;`,
-      live: [
-        ["Owner", state.useRecipe ? "EPH_SOLVENT_ADD" : "Local Operator", "v-info"],
-        ["EM_STATE", state.emState, state.emState === "RUNNING" ? "v-good" : state.emState === "HELD" ? "v-warn" : "v-info"],
-        ["RECIPE_WT.CV", `${state.recipeWt.toFixed(1)} kg`, "v-info"]
-      ]
+      role: "The Equipment Phase (EPH — Recipe Boss) acquires EM_TANK_CHARGE, sends the Charge command (A_COMMAND) plus Recipe target weight (RECIPE_WT), and watches EM_STATE come back up.",
+      paths: [["^/A_COMMAND", "Named Set command sent from EPH (Charge / Idle=255)"], ["^/RECIPE_WT.CV", "Target mass passed down into Pattern 3 (BSEL1)"], ["^/EM_STATE", "Live state reported back up to the EPH"]],
+      expr: `'EM_TANK_CHARGE/A_COMMAND' := CHARGE;\n'EM_TANK_CHARGE/RECIPE_WT.CV' := 500.0;\nWAIT UNTIL 'EM_TANK_CHARGE/EM_STATE' = COMPLETE;`,
+      live: [["Owner", state.useRecipe ? "EPH_SOLVENT_ADD" : "Local Operator", "v-info"], ["EM_STATE", state.emState, state.emState === "RUNNING" ? "v-good" : "v-info"]]
     },
     S0_IDLE: {
       type: "PATTERN 1 — SFC INITIAL STEP",
       title: "S0_IDLE (Double-Bordered Step)",
       role: "Resting start state of EM_TANK_CHARGE. Keeps CM_FEED_XV closed and CM_AGIT_MTR stopped while waiting for a Start command and all Pattern 2 pre-start permissives (PERM_READY).",
-      paths: [
-        ["CM_FEED_XV/DC1/CAS_IN_D", "Feed valve command inbox — held at Close"],
-        ["CM_AGIT_MTR/DC1/CAS_IN_D", "Agitator command inbox — held at Stop"]
-      ],
-      expr: `(* Step S0_IDLE Embedded Actions *)\n'CM_FEED_XV/DC1/CAS_IN_D' := Close;\n'CM_AGIT_MTR/DC1/CAS_IN_D' := Stop;`,
-      live: [
-        ["Active?", state.stepIdx === 0 ? "YES" : "NO", state.stepIdx === 0 ? "v-good" : "v-info"],
-        ["PERM_READY", d.permReady ? "TRUE (Ready)" : "FALSE (Blocked)", d.permReady ? "v-good" : "v-warn"]
-      ]
+      paths: [["CM_FEED_XV/DC1/CAS_IN_D", "Feed valve command inbox — held at Close"], ["CM_AGIT_MTR/DC1/CAS_IN_D", "Agitator command inbox — held at Stop"]],
+      expr: `'CM_FEED_XV/DC1/CAS_IN_D' := Close;\n'CM_AGIT_MTR/DC1/CAS_IN_D' := Stop;`,
+      live: [["Active?", state.stepIdx === 0 ? "YES" : "NO", state.stepIdx === 0 ? "v-good" : "v-info"], ["PERM_READY", d.permReady ? "TRUE (Ready)" : "FALSE (Blocked)", d.permReady ? "v-good" : "v-warn"]]
     },
     T10_START_OK: {
       type: "PATTERN 1 — SFC TRANSITION",
       title: "T10_START_OK (Pre-Start Gate)",
-      role: "Horizontal crossbar gate between S0_IDLE and S10_CHARGE_OPEN. Will NOT let the charge start unless Pattern 2's CND1 (PERM_READY) is True (valve in CAS, scale GOOD, target > 0, no High-High).",
-      paths: [
-        ["^/START_CMD.CV", "Start request from EPH or operator"],
-        ["^/PERM_READY", "Output of Pattern 2 pre-start gate (CND1)"]
-      ],
+      role: "Horizontal crossbar gate between S0_IDLE and S10_CHARGE_OPEN. Requires Pattern 2 CND1 (PERM_READY) = True.",
+      paths: [["^/START_CMD.CV", "Start request"], ["^/PERM_READY", "Output of Pattern 2 CND1"]],
       expr: `('^/START_CMD.CV' = 1) AND ('^/PERM_READY' = 1);`,
-      live: [
-        ["T10 Result", d.t10Ok ? "TRUE (Can Start)" : "FALSE (Waiting)", d.t10Ok ? "v-good" : "v-warn"],
-        ["CM_FEED_XV Mode", state.valveMode, state.valveMode === "CAS" ? "v-good" : "v-bad"],
-        ["Scale .ST", state.scaleSt, state.scaleSt === "GOOD" ? "v-good" : "v-bad"]
-      ]
+      live: [["T10 Result", d.t10Ok ? "TRUE" : "FALSE", d.t10Ok ? "v-good" : "v-warn"], ["CM_FEED_XV Mode", state.valveMode, state.valveMode === "CAS" ? "v-good" : "v-bad"]]
     },
     S10_CHARGE_OPEN: {
       type: "PATTERN 1 — SFC STEP",
       title: "S10_CHARGE_OPEN",
-      role: "Opens CM_FEED_XV to feed solvent into the tank. On initial entry from S0_IDLE ONLY (Pulse action), snapshots CM_TANK_WT into START_WT.CV so Pattern 3 calculates net delivered mass accurately.",
-      paths: [
-        ["^/START_WT.CV", "Tare snapshot locked on Idle → S10 edge"],
-        ["CM_FEED_XV/DC1/CAS_IN_D", "Written := Open while step runs"]
-      ],
-      expr: `(* [P] Pulse Once on Idle -> S10 ONLY *)\n'^/START_WT.CV' := 'CM_TANK_WT/AI1/OUT.CV';\n(* [N] While Running *)\n'CM_FEED_XV/DC1/CAS_IN_D' := Open;`,
-      live: [
-        ["START_WT.CV", `${state.startWt.toFixed(1)} kg`, "v-info"],
-        ["DELIVERED_WT", `${d.deliveredWt.toFixed(1)} kg`, "v-good"],
-        ["REMAINING_WT", `${d.remainingWt.toFixed(1)} kg`, d.precloseReached ? "v-good" : "v-info"]
-      ]
+      role: "Opens CM_FEED_XV to feed solvent. On initial entry from S0_IDLE ONLY (Pulse action), snapshots CM_TANK_WT into START_WT.CV.",
+      paths: [["^/START_WT.CV", "Tare snapshot locked on Idle → S10 edge"], ["CM_FEED_XV/DC1/CAS_IN_D", "Written := Open while step runs"]],
+      expr: `(* [P] Pulse Once on Idle -> S10 ONLY *)\n'^/START_WT.CV' := 'CM_TANK_WT/AI1/OUT.CV';\n'CM_FEED_XV/DC1/CAS_IN_D' := Open;`,
+      live: [["START_WT.CV", `${state.startWt.toFixed(1)} kg`, "v-info"], ["DELIVERED_WT", `${d.deliveredWt.toFixed(1)} kg`, "v-good"], ["REMAINING_WT", `${d.remainingWt.toFixed(1)} kg`, "v-info"]]
     },
     T20_PRECLOSE: {
       type: "PATTERN 1 — SFC TRANSITION",
       title: "T20_PRECLOSE (In-Flight Cutoff Gate)",
-      role: "Advances from S10_CHARGE_OPEN to S20_TRIM_CLOSE slightly early (Target minus Preclose Lead) to account for valve closing stroke time and module Scan rate.",
-      paths: [
-        ["^/REMAINING_WT.CV", "Computed every Scan by Pattern 3 CALC1"],
-        ["^/PRECLOSE_LEAD.CV", "In-flight lead compensation (15.0 kg)"]
-      ],
+      role: "Advances from S10_CHARGE_OPEN to S20_TRIM_CLOSE slightly early (PRECLOSE_LEAD = 15 kg) to compensate for valve closing stroke time.",
+      paths: [["^/REMAINING_WT.CV", "Computed every Scan by Pattern 3 CALC1"], ["^/PRECLOSE_LEAD.CV", "In-flight lead compensation (15.0 kg)"]],
       expr: `'^/REMAINING_WT.CV' <= '^/PRECLOSE_LEAD.CV';`,
-      live: [
-        ["REMAINING_WT", `${d.remainingWt.toFixed(1)} kg`, "v-info"],
-        ["PRECLOSE_LEAD", `${state.precloseLead.toFixed(1)} kg`, "v-info"],
-        ["T20 Result", d.t20Ok ? "TRUE (Cutoff Reached)" : "FALSE (Still Filling)", d.t20Ok ? "v-good" : "v-warn"]
-      ]
+      live: [["REMAINING_WT", `${d.remainingWt.toFixed(1)} kg`, "v-info"], ["T20 Result", d.t20Ok ? "TRUE" : "FALSE", d.t20Ok ? "v-good" : "v-warn"]]
     },
     S20_TRIM_CLOSE: {
       type: "PATTERN 1 — SFC STEP",
       title: "S20_TRIM_CLOSE",
-      role: "Stamps Close onto CM_FEED_XV/DC1/CAS_IN_D and waits for confirmed limit-switch closure (PV_D = Closed) plus tank settle time before starting the agitator.",
-      paths: [
-        ["CM_FEED_XV/DC1/CAS_IN_D", "Written := Close"],
-        ["CM_FEED_XV/DC1/PV_D", "Monitored by Pattern 4 CND4 for confirmed shut"]
-      ],
+      role: "Stamps Close onto CM_FEED_XV/DC1/CAS_IN_D and waits for confirmed limit-switch closure (PV_D = Closed).",
+      paths: [["CM_FEED_XV/DC1/CAS_IN_D", "Written := Close"], ["CM_FEED_XV/DC1/PV_D", "Checked by Pattern 4 CND4"]],
       expr: `'CM_FEED_XV/DC1/CAS_IN_D' := Close;`,
-      live: [
-        ["Valve Command", d.feedCmdText, "v-info"],
-        ["Valve PV_D", d.valvePvText, d.valveShutOk ? "v-good" : "v-bad"]
-      ]
+      live: [["Valve Command", d.feedCmdText, "v-info"], ["Valve PV_D", d.valvePvText, d.valveShutOk ? "v-good" : "v-bad"]]
     },
     T30_SHUT_OK: {
       type: "PATTERN 1 — SFC TRANSITION",
       title: "T30_SHUT_OK (Confirmed Closed Gate)",
-      role: "Prevents the agitator from starting until Pattern 4 (CND4) proves CM_FEED_XV physically closed via its limit switch (PV_D = Closed). If the valve is stuck open, the EM stays safely paused here!",
-      paths: [
-        ["^/VALVE_SHUT_OK", "Output of Pattern 4 CND4 checking PV_D = Closed"]
-      ],
+      role: "Blocks agitator start until Pattern 4 (CND4) proves CM_FEED_XV physically closed via PV_D = Closed.",
+      paths: [["^/VALVE_SHUT_OK", "Output of Pattern 4 CND4"]],
       expr: `('^/VALVE_SHUT_OK' = 1) AND (STEP_TIME >= 5);`,
-      live: [
-        ["VALVE_SHUT_OK", d.valveShutOk ? "TRUE" : "FALSE (Stuck!)", d.valveShutOk ? "v-good" : "v-bad"],
-        ["T30 Result", d.t30Ok ? "TRUE" : "FALSE", d.t30Ok ? "v-good" : "v-bad"]
-      ]
+      live: [["VALVE_SHUT_OK", d.valveShutOk ? "TRUE" : "FALSE (Stuck!)", d.valveShutOk ? "v-good" : "v-bad"]]
     },
     S30_AGITATE: {
       type: "PATTERN 1 — SFC STEP",
-      title: "S30_AGITATE (Post-Charge)",
-      role: "Starts CM_AGIT_MTR once the feed valve is confirmed closed and signals charge completion back up to the EPH.",
-      paths: [
-        ["CM_AGIT_MTR/DC1/CAS_IN_D", "Written := Start"],
-        ["^/EM_STATE", "Reports COMPLETE to EPH"]
-      ],
+      title: "S30_AGITATE",
+      role: "Starts CM_AGIT_MTR once feed valve is confirmed closed and reports COMPLETE to the EPH.",
+      paths: [["CM_AGIT_MTR/DC1/CAS_IN_D", "Written := Start"], ["^/EM_STATE", "Reports COMPLETE"]],
       expr: `'CM_AGIT_MTR/DC1/CAS_IN_D' := Start;\n'^/EM_STATE' := COMPLETE;`,
-      live: [
-        ["Agitator Cmd", d.agitCmdText, d.agitCmdRun ? "v-good" : "v-info"],
-        ["Agitator PV_D", d.agitPvText, d.agitCmdRun ? "v-good" : "v-info"]
-      ]
+      live: [["Agitator PV_D", d.agitPvText, d.agitCmdRun ? "v-good" : "v-info"]]
     },
     GOLDEN_TARE: {
       type: "ENGINEERING RULE — TARE & HOLD/RESTART",
       title: "Hold / Restart & The Golden Tare Rule",
-      role: "HOLD safely pauses a charge by stamping Close on the valve while keeping START_WT.CV locked. RESTART resumes charging without re-taring—because overwriting START_WT.CV mid-charge would forget the solvent already delivered and overfill the tank!",
-      paths: [
-        ["^/START_WT.CV", "Captured ONCE on S0_IDLE → S10_CHARGE_OPEN"],
-        ["^/DELIVERED_WT.CV", "CM_TANK_WT/AI1/OUT.CV minus START_WT.CV"]
-      ],
-      expr: `(* Correct: Pulse on initial Idle -> S10 only *)\nIF (IDLE_TO_RUN_EDGE) THEN\n  '^/START_WT.CV' := 'CM_TANK_WT/AI1/OUT.CV';\nENDIF;`,
-      live: [
-        ["START_WT.CV", `${state.startWt.toFixed(1)} kg`, "v-info"],
-        ["Tare Locked?", state.tareLocked ? "YES (Safe on Restart)" : "NO (In Idle)", state.tareLocked ? "v-good" : "v-info"],
-        ["Delivered So Far", `${d.deliveredWt.toFixed(1)} kg`, "v-good"]
-      ]
+      role: "HOLD safely pauses a charge while keeping START_WT.CV locked. RESTART resumes without re-taring so the tank never overfills.",
+      paths: [["^/START_WT.CV", "Captured ONCE on S0_IDLE → S10_CHARGE_OPEN"], ["^/DELIVERED_WT.CV", "CM_TANK_WT/AI1/OUT.CV minus START_WT.CV"]],
+      expr: `IF (IDLE_TO_RUN_EDGE) THEN\n  '^/START_WT.CV' := 'CM_TANK_WT/AI1/OUT.CV';\nENDIF;`,
+      live: [["START_WT.CV", `${state.startWt.toFixed(1)} kg`, "v-info"], ["Tare Locked?", state.tareLocked ? "YES" : "NO", "v-good"]]
     },
     CND1: {
       type: "PATTERN 2 — FBD CONDITION BLOCK (#1)",
       title: "CND1 — Pre-Start Permissive Gate",
-      role: "Yes/No Question Box running every Scan. Checks that the valve is actually listening in CAS (MODE.ACTUAL = CAS), target weight > 0, and tank scale health (.ST) is GOOD. If false in Idle, it simply holds T10 closed without firing an alarm.",
-      paths: [
-        ["CM_FEED_XV/DC1/MODE.ACTUAL", "True current mode (NOT MODE.TARGET!)"],
-        ["CM_TANK_WT/AI1/OUT.ST", "Signal health tag riding alongside weight"]
-      ],
+      role: "Checks valve MODE.ACTUAL = CAS, target weight > 0, and scale .ST = GOOD before leaving Idle.",
+      paths: [["CM_FEED_XV/DC1/MODE.ACTUAL", "True current mode"], ["CM_TANK_WT/AI1/OUT.ST", "Signal health tag"]],
       expr: `('CM_FEED_XV/DC1/MODE.ACTUAL' = CAS)\nAND ('^/TARGET_WT.CV' > 0.0)\nAND ('CM_TANK_WT/AI1/OUT.ST' >= GOOD)\nAND ('^/HI_HI_LVL.CV' = 0);`,
-      live: [
-        ["Execution Order", "#1 (First in Scan)", "v-info"],
-        ["OUT_D (PERM_READY)", d.permReady ? "TRUE (1)" : "FALSE (0)", d.permReady ? "v-good" : "v-warn"]
-      ]
+      live: [["Execution Order", "#1", "v-info"], ["OUT_D", d.permReady ? "TRUE (1)" : "FALSE (0)", d.permReady ? "v-good" : "v-warn"]]
     },
     CND2: {
       type: "PATTERN 2 — FBD CONDITION BLOCK (#2)",
       title: "CND2 — Active Interlock Watch",
-      role: "Runs every single Scan without waiting for SFC steps. Watches for scale health turning BAD (.ST = BAD) or High-High tank level during an active charge.",
-      paths: [
-        ["CM_TANK_WT/AI1/OUT.ST", "Detects broken sensor / OOS scale immediately"],
-        ["^/HI_HI_LVL.CV", "High-High tank overfill switch"]
-      ],
-      expr: `('CM_TANK_WT/AI1/OUT.ST' = BAD)\nOR ('^/HI_HI_LVL.CV' = 1);`,
-      live: [
-        ["Execution Order", "#2 (Before ACT1)", "v-info"],
-        ["OUT_D (Trip)", d.tripCondition ? "TRUE — TRIP!" : "FALSE — Clear", d.tripCondition ? "v-bad" : "v-good"]
-      ]
+      role: "Watches every Scan for scale .ST = BAD or High-High tank level during an active charge.",
+      paths: [["CM_TANK_WT/AI1/OUT.ST", "Detects broken/OOS scale"], ["^/HI_HI_LVL.CV", "Overfill switch"]],
+      expr: `('CM_TANK_WT/AI1/OUT.ST' = BAD) OR ('^/HI_HI_LVL.CV' = 1);`,
+      live: [["Execution Order", "#2", "v-info"], ["OUT_D", d.tripCondition ? "TRIP!" : "CLEAR", d.tripCondition ? "v-bad" : "v-good"]]
     },
     ACT1: {
       type: "PATTERN 2 — FBD ACTION BLOCK (#3)",
       title: "ACT1 — Interlock Trip Stamp",
-      role: "Write-it-once Stamp triggered immediately by CND2 (#2). Forces CM_FEED_XV closed and pushes EM_STATE to HELD so the tank cannot charge blind on a bad scale.",
-      paths: [
-        ["CM_FEED_XV/DC1/CAS_IN_D", "Immediately stamped := Close"],
-        ["^/EM_STATE", "Forced := HELD (preserves START_WT.CV)"]
-      ],
+      role: "Immediately stamps Close on CM_FEED_XV and forces EM_STATE := HELD when CND2 trips.",
+      paths: [["CM_FEED_XV/DC1/CAS_IN_D", "Stamped := Close"], ["^/EM_STATE", "Forced := HELD"]],
       expr: `'CM_FEED_XV/DC1/CAS_IN_D' := Close;\n'^/EM_STATE' := HELD;`,
-      live: [
-        ["Execution Order", "#3 (Immediately after CND2)", "v-info"],
-        ["ACT1 Status", d.tripCondition ? "FIRED" : "Standby", d.tripCondition ? "v-bad" : "v-good"]
-      ]
+      live: [["Execution Order", "#3", "v-info"], ["ACT1", d.tripCondition ? "FIRED" : "Standby", d.tripCondition ? "v-bad" : "v-good"]]
     },
     BSEL1: {
       type: "PATTERN 3 — FBD SELECTOR BLOCK (#1)",
       title: "BSEL1 — Target Weight Switch",
-      role: "Value Switch solving FIRST (#1) every Scan. Chooses between EPH Recipe Weight (IN1 = 500 kg) and Operator Local Weight (IN2 = 250 kg) based on discrete wire USE_RECIPE (SEL_D).",
-      paths: [
-        ["^/RECIPE_WT.CV", "IN1 — Solid analog wire from EPH"],
-        ["^/LOCAL_WT.CV", "IN2 — Solid analog wire from operator faceplate"],
-        ["^/USE_RECIPE", "SEL_D — Dashed discrete selector wire"]
-      ],
+      role: "Picks EPH Recipe Weight (IN1) vs. Operator Local Weight (IN2) based on USE_RECIPE (SEL_D).",
+      paths: [["^/RECIPE_WT.CV", "IN1 (Solid wire)"], ["^/LOCAL_WT.CV", "IN2 (Solid wire)"], ["^/USE_RECIPE", "SEL_D (Dashed wire)"]],
       expr: `OUT := IF (SEL_D = 1) THEN IN1 ELSE IN2;`,
-      live: [
-        ["Execution Order", "#1 (Before CALC1)", "v-info"],
-        ["Active Source", state.useRecipe ? "Recipe (IN1)" : "Local (IN2)", "v-info"],
-        ["OUT (TARGET_WT)", `${d.targetWt.toFixed(1)} kg`, "v-good"]
-      ]
+      live: [["Execution Order", "#1", "v-info"], ["TARGET_WT", `${d.targetWt.toFixed(1)} kg`, "v-good"]]
     },
     CALC1: {
       type: "PATTERN 3 — FBD CALCULATION BLOCK (#2)",
       title: "CALC1 — Net Delivered & Remaining Mass",
-      role: "Scratchpad Calculator solving SECOND (#2) right after BSEL1 (#1) and BEFORE CND3 (#3). Subtracts START_WT tare from live vessel weight so we compare net solvent added against TARGET_WT.",
-      paths: [
-        ["CM_TANK_WT/AI1/OUT.CV", "IN2 — Total vessel weight (heel + added solvent)"],
-        ["^/START_WT.CV", "IN3 — Locked tare snapshot from Idle → S10"]
-      ],
-      expr: `DELIVERED := IN2 - IN3;\nOUT := IN1 - DELIVERED; (* REMAINING_WT *)`,
-      live: [
-        ["Execution Order", "#2 (After BSEL1, Before CND3)", "v-info"],
-        ["DELIVERED_WT", `${d.deliveredWt.toFixed(1)} kg`, "v-info"],
-        ["OUT (REMAINING)", `${d.remainingWt.toFixed(1)} kg`, "v-good"]
-      ]
+      role: "Solves #2 after BSEL1 (#1) and before CND3 (#3). Computes net solvent added and remaining mass.",
+      paths: [["CM_TANK_WT/AI1/OUT.CV", "IN2 Gross weight"], ["^/START_WT.CV", "IN3 Locked tare"]],
+      expr: `DELIVERED := IN2 - IN3;\nOUT := IN1 - DELIVERED;`,
+      live: [["Execution Order", "#2", "v-info"], ["REMAINING_WT", `${d.remainingWt.toFixed(1)} kg`, "v-good"]]
     },
     CND3: {
       type: "PATTERN 3 — FBD CONDITION BLOCK (#3)",
       title: "CND3 — Preclose Cutoff Comparator",
-      role: "Solves THIRD (#3) in the same Scan so zero dead-time is wasted. Fires True when REMAINING_WT drops at or below PRECLOSE_LEAD (15 kg), triggering SFC Transition T20_PRECLOSE.",
-      paths: [
-        ["^/REMAINING_WT.CV", "Solid output wire from CALC1 (#2)"],
-        ["^/PRECLOSE_LEAD.CV", "Valve stroke + Scan latency lead (15.0 kg)"]
-      ],
+      role: "Fires True when REMAINING_WT <= PRECLOSE_LEAD (15 kg), triggering T20_PRECLOSE.",
+      paths: [["^/REMAINING_WT.CV", "From CALC1 (#2)"], ["^/PRECLOSE_LEAD.CV", "15.0 kg lead"]],
       expr: `IN1 <= '^/PRECLOSE_LEAD.CV';`,
-      live: [
-        ["Execution Order", "#3 (Same Scan as CALC1)", "v-info"],
-        ["OUT_D (→ T20)", d.precloseReached ? "TRUE (Cutoff!)" : "FALSE (Filling)", d.precloseReached ? "v-good" : "v-info"]
-      ]
+      live: [["Execution Order", "#3", "v-info"], ["OUT_D", d.precloseReached ? "CUTOFF!" : "FILLING", d.precloseReached ? "v-good" : "v-info"]]
     },
     ACT2: {
       type: "PATTERN 3 — FBD ACTION BLOCK (#4)",
       title: "ACT2 — Cascade Mode Alignment",
-      role: "When the EM is in AUTO, ACT2 requests CAS mode on downstream CM Device Control blocks (MODE.TARGET := CAS) so those CMs listen to the EM's CAS_IN_D commands.",
-      paths: [
-        ["CM_FEED_XV/DC1/MODE.TARGET", "Requests CAS mode on Feed Valve"],
-        ["CM_AGIT_MTR/DC1/MODE.TARGET", "Requests CAS mode on Agitator Motor"]
-      ],
+      role: "Pushes MODE.TARGET := CAS down to CMs when EM is in AUTO.",
+      paths: [["CM_FEED_XV/DC1/MODE.TARGET", "Requests CAS"], ["CM_AGIT_MTR/DC1/MODE.TARGET", "Requests CAS"]],
       expr: `'CM_FEED_XV/DC1/MODE.TARGET' := CAS;\n'CM_AGIT_MTR/DC1/MODE.TARGET' := CAS;`,
-      live: [
-        ["Valve MODE.TARGET", "CAS", "v-info"],
-        ["Valve MODE.ACTUAL", state.valveMode, state.valveMode === "CAS" ? "v-good" : "v-bad"]
-      ]
+      live: [["Valve MODE.ACTUAL", state.valveMode, state.valveMode === "CAS" ? "v-good" : "v-bad"]]
     },
     CND4: {
       type: "PATTERN 4 — FBD CONDITION BLOCK (#1)",
       title: "CND4 — Confirmed Valve Closed Check",
-      role: "Checks CM_FEED_XV's physical limit-switch feedback (PV_D) instead of blindly trusting the command we sent. Feeds SFC Transition T30_SHUT_OK.",
-      paths: [
-        ["CM_FEED_XV/DC1/PV_D", "Confirmed physical valve state from field limit switches"],
-        ["^/VALVE_SHUT_OK", "True only when PV_D proves Closed"]
-      ],
+      role: "Verifies physical limit-switch feedback PV_D = Closed before allowing S30_AGITATE.",
+      paths: [["CM_FEED_XV/DC1/PV_D", "Physical limit-switch state"]],
       expr: `'CM_FEED_XV/DC1/PV_D' = Closed;`,
-      live: [
-        ["PV_D Feedback", d.valvePvText, d.valveShutOk ? "v-good" : "v-bad"],
-        ["VALVE_SHUT_OK", d.valveShutOk ? "TRUE (1)" : "FALSE (0)", d.valveShutOk ? "v-good" : "v-warn"]
-      ]
+      live: [["PV_D", d.valvePvText, d.valveShutOk ? "v-good" : "v-bad"]]
     },
     CND5: {
       type: "PATTERN 4 — FBD CONDITION BLOCK (#2)",
       title: "CND5 — Command vs. Feedback Mismatch Alarm",
-      role: "Pairs the outward command (CAS_IN_D) against inward physical proof (PV_D) with a 10-second duration timer. If the EM commanded Close while PV_D stays Open, flags VALVE_MISMATCH_ALM.",
+      role: "Compares CAS_IN_D against PV_D with a 10s DURATION delay to catch a stuck valve.",
+      paths: [["CM_FEED_XV/DC1/CAS_IN_D", "Command"], ["CM_FEED_XV/DC1/PV_D", "Limit-switch proof"]],
+      expr: `(* DURATION = 10s *)\n'CM_FEED_XV/DC1/CAS_IN_D' <> 'CM_FEED_XV/DC1/PV_D';`,
+      live: [["MISMATCH_ALM", d.valveMismatch ? "ACTIVE!" : "Clear", d.valveMismatch ? "v-bad" : "v-good"]]
+    },
+
+    // --- MODULE 2: EM_XFER_HDR (STATE-DRIVEN — CH. 7) ---
+    HDR_HANDSHAKE: {
+      type: "CHAPTER 7 — STATE-DRIVEN EM HEADER",
+      title: "EM_XFER_HDR (State-Driven Coordination)",
+      role: "Unlike Command-Driven EM_TANK_CHARGE (which runs a multi-step sequence over time), a State-Driven EM snaps directly to a target equipment alignment (EM_S_COMMAND) and verifies that PV_D matches.",
       paths: [
-        ["CM_FEED_XV/DC1/CAS_IN_D", "Outbound command sent by EM"],
-        ["CM_FEED_XV/DC1/PV_D", "Inbound confirmed limit-switch feedback"]
+        ["^/EM_S_COMMAND", "Desired Named-Set State requested by EPH or Operator"],
+        ["^/PV_D", "Actual State confirmed by all 4 CM limit switches"],
+        ["^/FAIL_ACTIVE", "True if PV_D fails to match EM_S_COMMAND within DURATION (8s)"]
       ],
-      expr: `(* Duration = 10s *)\n'CM_FEED_XV/DC1/CAS_IN_D' <> 'CM_FEED_XV/DC1/PV_D';`,
+      expr: `(* EPH requests header alignment before pumping *)\n'EM_XFER_HDR/EM_S_COMMAND' := ROUTE_TANK_A;\nWAIT UNTIL 'EM_XFER_HDR/PV_D' = ROUTE_TANK_A;`,
       live: [
-        ["CAS_IN_D (Cmd)", d.feedCmdText, "v-info"],
-        ["PV_D (Feedback)", d.valvePvText, d.valveMismatch ? "v-bad" : "v-good"],
-        ["MISMATCH_ALM", d.valveMismatch ? "ACTIVE!" : "Clear", d.valveMismatch ? "v-bad" : "v-good"]
+        ["EM_S_COMMAND", state.hdrCmdState, "v-info"],
+        ["Confirmed PV_D", h.pvState, h.stateAligned ? "v-good" : "v-bad"],
+        ["FAIL_ACTIVE", h.failActive ? "TRUE (Alarm!)" : "FALSE (Aligned)", h.failActive ? "v-bad" : "v-good"]
       ]
+    },
+    HDR_DEVICE_MASK: {
+      type: "CONTROL STUDIO — STATE ALIGNMENT MATRIX",
+      title: "Device Mask / State Table",
+      role: "The fastest way to read any State-Driven EM in Control Studio! Each row lists a child Control Module, the command sent in the active state, and whether its real limit switch (PV_D) matches.",
+      paths: [
+        ["CM_HDR_XV101/DC1", "Tank A Inlet Valve"],
+        ["CM_HDR_XV102/DC1", "Tank B Inlet Valve"],
+        ["CM_HDR_XV103/DC1", "CIP / Drain Valve"],
+        ["CM_XFER_PMP/DC1", "Solvent Transfer Pump"]
+      ],
+      expr: `(* Active Mask for ${h.effectiveTarget} *)\nXV101 := ${h.xv101Cmd};  XV102 := ${h.xv102Cmd};  XV103 := ${h.xv103Cmd};\nIF (PATH_ALIGNED) THEN XFER_PMP := ${h.mask.pmp};`,
+      live: [
+        ["Valves Aligned?", h.valvesAligned ? "YES" : "NO — Mismatch!", h.valvesAligned ? "v-good" : "v-bad"],
+        ["Pump Command", h.pmpCmd, h.pmpCmd === "Start" ? "v-good" : "v-info"]
+      ]
+    },
+    ST_HEADER_CLOSED: {
+      type: "STATE-DRIVEN NAMED SET (STATE 0)",
+      title: "HEADER_CLOSED (Safe Rest & FAIL_STATE)",
+      role: "Closes all three header valves (XV101, XV102, XV103) and stops CM_XFER_PMP. Also serves as FAIL_STATE if high line pressure trips.",
+      paths: [["^/EM_S_COMMAND", ":= HEADER_CLOSED"], ["^/FAIL_STATE", "Configured := HEADER_CLOSED"]],
+      expr: `'CM_HDR_XV101/DC1/CAS_IN_D' := Close;\n'CM_HDR_XV102/DC1/CAS_IN_D' := Close;\n'CM_HDR_XV103/DC1/CAS_IN_D' := Close;\n'CM_XFER_PMP/DC1/CAS_IN_D'  := Stop;`,
+      live: [["Target?", h.effectiveTarget === "HEADER_CLOSED" ? "YES" : "NO", "v-info"], ["Confirmed?", h.pvState === "HEADER_CLOSED" ? "YES" : "NO", "v-good"]]
+    },
+    ST_ROUTE_TANK_A: {
+      type: "STATE-DRIVEN NAMED SET (STATE 1)",
+      title: "ROUTE_TANK_A",
+      role: "Aligns manifold to Tank A: opens XV101, holds XV102 (Tank B) and XV103 (Drain) Closed, and starts CM_XFER_PMP only after CND_PATH_OK proves XV102/103 are shut (prevents cross-contaminating Tank B!).",
+      paths: [["CM_HDR_XV101/DC1/CAS_IN_D", ":= Open"], ["CM_HDR_XV102/DC1/PV_D", "Must prove Closed before pump starts!"]],
+      expr: `'CM_HDR_XV101/DC1/CAS_IN_D' := Open;\n'CM_HDR_XV102/DC1/CAS_IN_D' := Close;\n'CM_HDR_XV103/DC1/CAS_IN_D' := Close;\n(* Pump gated by CND_PATH_OK *)`,
+      live: [["XV101 PV_D", h.xv101Pv, h.xv101Match ? "v-good" : "v-bad"], ["XV102 PV_D", h.xv102Pv, h.xv102Match ? "v-good" : "v-bad"], ["Pump PV_D", h.pmpPv, "v-info"]]
+    },
+    ST_ROUTE_TANK_B: {
+      type: "STATE-DRIVEN NAMED SET (STATE 2)",
+      title: "ROUTE_TANK_B",
+      role: "Aligns manifold to Tank B: opens XV102, closes XV101 & XV103, and starts CM_XFER_PMP once valves prove aligned. Try setting XV102 Mode to MAN above—watch PV_D refuse to confirm!",
+      paths: [["CM_HDR_XV102/DC1/CAS_IN_D", ":= Open"], ["CM_HDR_XV102/DC1/MODE.ACTUAL", "Must be CAS to obey Open command"]],
+      expr: `'CM_HDR_XV101/DC1/CAS_IN_D' := Close;\n'CM_HDR_XV102/DC1/CAS_IN_D' := Open;\n'CM_HDR_XV103/DC1/CAS_IN_D' := Close;`,
+      live: [["XV102 Mode", state.xv102Mode, state.xv102Mode === "CAS" ? "v-good" : "v-bad"], ["XV102 PV_D", h.xv102Pv, h.xv102Match ? "v-good" : "v-bad"]]
+    },
+    ST_CIP_FLUSH: {
+      type: "STATE-DRIVEN NAMED SET (STATE 3)",
+      title: "CIP_FLUSH",
+      role: "Isolates both product tanks (XV101 & XV102 Closed), opens CIP Drain valve XV103, and runs CM_XFER_PMP once tank isolation is proven.",
+      paths: [["CM_HDR_XV103/DC1/CAS_IN_D", ":= Open"], ["CM_HDR_XV101 & XV102 PV_D", "Must both prove Closed!"]],
+      expr: `'CM_HDR_XV101/DC1/CAS_IN_D' := Close;\n'CM_HDR_XV102/DC1/CAS_IN_D' := Close;\n'CM_HDR_XV103/DC1/CAS_IN_D' := Open;`,
+      live: [["XV103 PV_D", h.xv103Pv, "v-good"], ["XV102 PV_D", h.xv102Pv, h.xv102Match ? "v-good" : "v-bad"]]
+    },
+    CND_PATH_OK: {
+      type: "HDR TAB 2 — FBD CONDITION BLOCK (#1)",
+      title: "CND_PATH_OK — Anti-Cross-Mix Valve Proof",
+      role: "Checks physical limit-switch PV_D on all 3 manifold valves before allowing CM_XFER_PMP to start. If XV102 is stuck open when routing to Tank A, CND_PATH_OK stays False and blocks the pump!",
+      paths: [["CM_HDR_XV101/DC1/PV_D", "Tank A limit switch"], ["CM_HDR_XV102/DC1/PV_D", "Tank B limit switch"], ["CM_HDR_XV103/DC1/PV_D", "CIP Drain limit switch"]],
+      expr: `('CM_HDR_XV101/DC1/PV_D' = REQ_101)\nAND ('CM_HDR_XV102/DC1/PV_D' = REQ_102)\nAND ('CM_HDR_XV103/DC1/PV_D' = REQ_103);`,
+      live: [["Execution Order", "#1", "v-info"], ["OUT_D", h.valvesAligned ? "TRUE (Safe)" : "FALSE (Blocked!)", h.valvesAligned ? "v-good" : "v-bad"]]
+    },
+    ACT_PMP_GATE: {
+      type: "HDR TAB 2 — FBD ACTION BLOCK (#2)",
+      title: "ACT_PMP_GATE — Permissive Pump Start",
+      role: "Writes Start to CM_XFER_PMP/DC1/CAS_IN_D ONLY when the target state calls for pumping AND CND_PATH_OK (#1) is True.",
+      paths: [["CM_XFER_PMP/DC1/CAS_IN_D", "Pump command inbox"]],
+      expr: `IF (STATE_NEEDS_PMP AND CND_PATH_OK.OUT_D) THEN\n  'CM_XFER_PMP/DC1/CAS_IN_D' := Start;\nELSE\n  'CM_XFER_PMP/DC1/CAS_IN_D' := Stop;\nENDIF;`,
+      live: [["Execution Order", "#2", "v-info"], ["Pump Command", h.pmpCmd, h.pmpCmd === "Start" ? "v-good" : "v-warn"]]
+    },
+    CND_HDR_HI: {
+      type: "HDR TAB 2 — FBD CONDITION BLOCK (#3)",
+      title: "CND_HDR_HI — Header Overpressure Interlock",
+      role: "Reads solid analog wire 'CM_HDR_PT/AI1/OUT.CV' every Scan. Trips if line pressure exceeds 6.0 bar (deadheaded header).",
+      paths: [["CM_HDR_PT/AI1/OUT.CV", "Header pressure in bar (solid wire)"]],
+      expr: `('CM_HDR_PT/AI1/OUT.CV' > 6.0)\nOR ('CM_HDR_PT/AI1/OUT.ST' = BAD);`,
+      live: [["Header Pressure", `${state.hdrPress.toFixed(1)} bar`, h.highPressTrip ? "v-bad" : "v-good"], ["Trip?", h.highPressTrip ? "YES (>6.0 bar)" : "NO", h.highPressTrip ? "v-bad" : "v-good"]]
+    },
+    ACT_FAIL_STATE: {
+      type: "HDR TAB 2 — FBD ACTION BLOCK (#4)",
+      title: "ACT_FAIL_STATE — Drive to Safe State",
+      role: "When CND_HDR_HI (#3) trips, immediately overrides the manifold to FAIL_STATE (HEADER_CLOSED), stopping the pump and closing all valves.",
+      paths: [["^/FAIL_STATE", "HEADER_CLOSED"]],
+      expr: `'CM_XFER_PMP/DC1/CAS_IN_D' := Stop;\n(* Snap all header valves := Close *)`,
+      live: [["FAIL_STATE Active?", h.highPressTrip ? "YES — FORCED SHUT" : "Standby", h.highPressTrip ? "v-bad" : "v-good"]]
+    },
+    CALC_PV_STATE: {
+      type: "HDR TAB 3 — FBD CALCULATION BLOCK (#1)",
+      title: "CALC_PV_STATE — Confirmed State Decoder",
+      role: "Reads all four CM limit-switch/run feedbacks (PV_D) every Scan and outputs the true confirmed state ('^/PV_D'). If valves are mid-stroke or mismatched, outputs IN_TRANSITION / MISMATCH.",
+      paths: [["^/PV_D", "Confirmed Actual State of EM_XFER_HDR"]],
+      expr: `IF (XV101=Open AND XV102=Closed AND XV103=Closed AND PMP=Running) THEN\n  '^/PV_D' := ROUTE_TANK_A;\n...`,
+      live: [["Execution Order", "#1", "v-info"], ["Confirmed PV_D", h.pvState, h.stateAligned ? "v-good" : "v-warn"]]
+    },
+    CND_FAIL_ALM: {
+      type: "HDR TAB 3 — FBD CONDITION BLOCK (#2)",
+      title: "CND_FAIL_ALM — Transition Timeout (DURATION = 8s)",
+      role: "Gives valves 8 seconds to stroke when EM_S_COMMAND changes. If PV_D still doesn't equal EM_S_COMMAND after 8s (e.g., XV102 left in MAN or stuck open), sets FAIL_ACTIVE = 1.",
+      paths: [["^/EM_S_COMMAND", "Desired State"], ["^/PV_D", "Confirmed State"], ["^/FAIL_ACTIVE", "Header State Mismatch Alarm"]],
+      expr: `(* DURATION = 8s *)\n'^/EM_S_COMMAND' <> '^/PV_D';`,
+      live: [["Execution Order", "#2", "v-info"], ["FAIL_ACTIVE", h.failActive ? "TRUE (1)" : "FALSE (0)", h.failActive ? "v-bad" : "v-good"]]
     }
   };
 
   if (map[id]) return map[id];
-
-  // Fallback for margin flags
   return {
     type: "CONTROL STUDIO REFERENCE FLAG",
     title: id.replace(/^FLAG_/, ""),
-    role: "Pointed margin reference flag connecting an external Control Module parameter or internal EM parameter onto this Function Block Diagram sheet.",
-    paths: [
-      ["Left Margin Flag", "Brings live measurements, modes, or limit-switch feedback INTO the sheet."],
-      ["Right Margin Flag", "Sends commands (CAS_IN_D) or mode requests (MODE.TARGET) OUT to CMs."]
-    ],
-    expr: `(* Click any nearby CND, ACT, CALC, or BSEL block to inspect its full Structured Text expression *)`,
-    live: [
-      ["EM_STATE", state.emState, "v-info"],
-      ["Active Step", STEPS[state.stepIdx], "v-info"]
-    ]
+    role: "Pointed margin reference flag wiring a Control Module parameter or internal EM parameter onto this sheet.",
+    paths: [["Left Flag", "Inbound live feedback / sensor (.CV, .ST, PV_D)"], ["Right Flag", "Outbound command or state"]],
+    expr: `(* Click any nearby function block or state box to view its DeltaV expression *)`,
+    live: [["Active Module", state.module === "charge" ? "EM_TANK_CHARGE" : "EM_XFER_HDR", "v-info"]]
   };
 }
 
 // =========================================================================
-// 6. MAIN RENDER & UI SYNC
+// 6. MAIN RENDER & TAB BUILDER
 // =========================================================================
+function rebuildTabs() {
+  const wrap = document.getElementById("patternTabs");
+  wrap.innerHTML = "";
+  MODULE_TABS[state.module].forEach(t => {
+    const btn = document.createElement("button");
+    btn.className = "tab-btn" + (state.tab === t.id ? " active" : "");
+    btn.innerHTML = `${t.label} <span class="tag-kind">${t.kind}</span>`;
+    btn.addEventListener("click", () => {
+      state.tab = t.id;
+      state.selectedId = t.defaultSel;
+      rebuildTabs();
+      render();
+      fitToView();
+    });
+    wrap.appendChild(btn);
+  });
+}
+
 function render() {
-  const d = computeDerived();
+  const d = computeChargeDerived();
+  const h = computeHeaderDerived();
 
-  // Update State Pill
-  const pill = document.getElementById("emStatePill");
-  pill.textContent = state.emState;
-  pill.className = `state-pill state-${state.emState}`;
+  // Header module indicator & sim bars
+  document.getElementById("moduleSelect").value = state.module;
+  document.getElementById("algPill").textContent = state.module === "charge"
+    ? "Algorithm: Command-Driven"
+    : "Algorithm: State-Driven";
+  document.getElementById("simBarCharge").classList.toggle("hidden", state.module !== "charge");
+  document.getElementById("simBarHeader").classList.toggle("hidden", state.module !== "header");
 
-  // Update Toggle Buttons
-  const btnScale = document.getElementById("btnScaleSt");
-  btnScale.textContent = `.ST: ${state.scaleSt}`;
-  btnScale.className = state.scaleSt === "BAD" ? "sim-btn active-toggle" : "sim-btn";
-
-  const btnHiHi = document.getElementById("btnHiHi");
-  btnHiHi.textContent = state.hiHi ? "HI_HI: TRIP!" : "HI_HI: Normal";
-  btnHiHi.className = state.hiHi ? "sim-btn active-toggle" : "sim-btn";
-
-  const btnStuck = document.getElementById("btnStuck");
-  btnStuck.textContent = state.valveStuck ? "Valve: STUCK OPEN" : "Valve: Normal";
-  btnStuck.className = state.valveStuck ? "sim-btn active-toggle" : "sim-btn";
-
-  document.getElementById("btnSource").textContent = state.useRecipe ? "SP: Recipe (500 kg)" : "SP: Local (250 kg)";
-  document.getElementById("selValveMode").value = state.valveMode;
-  document.getElementById("wtSlider").value = state.currentWt;
-
-  // Update Diagnostic Banner
-  const banner = document.getElementById("diagBanner");
-  banner.className = "diag-banner" + (state.noticeLevel !== "info" ? " " + state.noticeLevel : "");
-  document.getElementById("diagText").textContent = state.notice ||
-    `Step: ${STEPS[state.stepIdx]} | Pattern 1 steps through time; Patterns 2, 3, and 4 solve continuously every Scan. Click any block to inspect.`;
-  document.getElementById("diagMetrics").textContent =
-    `Tare: ${state.startWt.toFixed(0)} kg | Scale: ${state.currentWt.toFixed(0)} kg (${state.scaleSt}) | Net: ${d.deliveredWt.toFixed(0)} / ${d.targetWt.toFixed(0)} kg | Rem: ${d.remainingWt.toFixed(0)} kg`;
-
-  // Render SVG Viewport
   const vp = document.getElementById("viewport");
   vp.innerHTML = "";
-  if (state.tab === "p1") renderPattern1(vp, d);
-  else if (state.tab === "p2") renderPattern2(vp, d);
-  else if (state.tab === "p3") renderPattern3(vp, d);
-  else if (state.tab === "p4") renderPattern4(vp, d);
+
+  if (state.module === "charge") {
+    const pill = document.getElementById("emStatePill");
+    pill.textContent = state.emState;
+    pill.className = `state-pill state-${state.emState}`;
+
+    const btnScale = document.getElementById("btnScaleSt");
+    btnScale.textContent = `.ST: ${state.scaleSt}`;
+    btnScale.className = state.scaleSt === "BAD" ? "sim-btn active-toggle" : "sim-btn";
+
+    const btnHiHi = document.getElementById("btnHiHi");
+    btnHiHi.textContent = state.hiHi ? "HI_HI: TRIP!" : "HI_HI: Normal";
+    btnHiHi.className = state.hiHi ? "sim-btn active-toggle" : "sim-btn";
+
+    const btnStuck = document.getElementById("btnStuck");
+    btnStuck.textContent = state.valveStuck ? "Valve: STUCK OPEN" : "Valve: Normal";
+    btnStuck.className = state.valveStuck ? "sim-btn active-toggle" : "sim-btn";
+
+    document.getElementById("btnSource").textContent = state.useRecipe ? "SP: Recipe (500 kg)" : "SP: Local (250 kg)";
+    document.getElementById("selValveMode").value = state.valveMode;
+    document.getElementById("wtSlider").value = state.currentWt;
+
+    const banner = document.getElementById("diagBanner");
+    banner.className = "diag-banner" + (state.noticeLevel !== "info" ? " " + state.noticeLevel : "");
+    document.getElementById("diagText").textContent = state.notice ||
+      `EM_TANK_CHARGE | Step: ${STEPS[state.stepIdx]} — Pattern 1 steps through time; Patterns 2–4 solve every Scan.`;
+    document.getElementById("diagMetrics").textContent =
+      `Tare: ${state.startWt.toFixed(0)} kg | Scale: ${state.currentWt.toFixed(0)} kg (${state.scaleSt}) | Net: ${d.deliveredWt.toFixed(0)}/${d.targetWt.toFixed(0)} kg`;
+
+    if (state.tab === "p1") renderPattern1(vp, d);
+    else if (state.tab === "p2") renderPattern2(vp, d);
+    else if (state.tab === "p3") renderPattern3(vp, d);
+    else if (state.tab === "p4") renderPattern4(vp, d);
+  } else {
+    // Module 2: EM_XFER_HDR
+    const hPill = document.getElementById("hdrStatusPill");
+    hPill.textContent = h.bannerPill;
+    hPill.className = "state-pill " + (h.stateAligned ? "state-ALIGNED" : "state-FAILED");
+
+    document.querySelectorAll(".hdr-cmd-btn").forEach(b => {
+      b.classList.toggle("selected-cmd", b.dataset.hstate === state.hdrCmdState);
+    });
+    document.getElementById("selXv102Mode").value = state.xv102Mode;
+    const btn102 = document.getElementById("btnXv102Stuck");
+    btn102.textContent = state.xv102StuckOpen ? "XV102: STUCK OPEN!" : "XV102: Normal";
+    btn102.className = state.xv102StuckOpen ? "sim-btn active-toggle" : "sim-btn";
+    document.getElementById("hdrPressSlider").value = state.hdrPress;
+    document.getElementById("hdrPressLabel").textContent = `${state.hdrPress.toFixed(1)} bar`;
+
+    const banner = document.getElementById("diagBanner");
+    let lvl = h.stateAligned ? "ok" : "alert";
+    banner.className = "diag-banner " + lvl;
+    let defaultHdrMsg = h.highPressTrip
+      ? `OVERPRESSURE TRIP (${state.hdrPress.toFixed(1)} > 6.0 bar)! Header forced to FAIL_STATE (HEADER_CLOSED) and pump stopped.`
+      : h.stateAligned
+        ? `ALIGNED: EM_S_COMMAND = ${state.hdrCmdState} matches confirmed PV_D = ${h.pvState}.`
+        : `STATE MISMATCH (FAIL_ACTIVE=1): Requested ${state.hdrCmdState}, but PV_D = ${h.pvState}. Check red row in Device Mask!`;
+    document.getElementById("diagText").textContent = state.notice || defaultHdrMsg;
+    document.getElementById("diagMetrics").textContent =
+      `Cmd: ${state.hdrCmdState} | PV_D: ${h.pvState} | PT: ${state.hdrPress.toFixed(1)} bar`;
+
+    if (state.tab === "h1") renderHeaderTab1(vp, h);
+    else if (state.tab === "h2") renderHeaderTab2(vp, h);
+    else if (state.tab === "h3") renderHeaderTab3(vp, h);
+  }
 
   applyTransform();
 
-  // Render Inspector
-  const info = getInspectorInfo(state.selectedId, d);
+  const info = getInspectorInfo(state.selectedId, d, h);
   document.getElementById("inspType").textContent = info.type;
   document.getElementById("inspTitle").textContent = info.title;
   document.getElementById("inspRole").textContent = info.role;
@@ -1803,7 +1946,7 @@ function fitToView() {
   const wrap = document.getElementById("canvasWrap");
   const w = wrap.clientWidth || 900;
   const h = wrap.clientHeight || 600;
-  const contentW = 940, contentH = 570;
+  const contentW = 940, contentH = 575;
   const scale = Math.min((w - 30) / contentW, (h - 30) / contentH, 1.15);
   state.zoom = Math.max(0.55, +scale.toFixed(2));
   state.panX = Math.max(10, Math.round((w - contentW * state.zoom) / 2));
@@ -1814,16 +1957,19 @@ function fitToView() {
 // =========================================================================
 // 7. EVENT HANDLERS
 // =========================================================================
-document.querySelectorAll("#patternTabs .tab-btn").forEach(btn => {
-  btn.addEventListener("click", () => {
-    document.querySelectorAll("#patternTabs .tab-btn").forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
-    state.tab = btn.dataset.tab;
-    const defaultSel = { p1: STEPS[state.stepIdx], p2: "CND1", p3: "BSEL1", p4: "CND4" };
-    state.selectedId = defaultSel[state.tab];
-    render();
-    fitToView();
-  });
+document.getElementById("moduleSelect").addEventListener("change", (e) => {
+  state.module = e.target.value;
+  state.notice = "";
+  if (state.module === "charge") {
+    state.tab = "p1";
+    state.selectedId = STEPS[state.stepIdx];
+  } else {
+    state.tab = "h1";
+    state.selectedId = "HDR_DEVICE_MASK";
+  }
+  rebuildTabs();
+  render();
+  fitToView();
 });
 
 document.getElementById("btnOffline").addEventListener("click", () => {
@@ -1839,66 +1985,63 @@ document.getElementById("btnOnline").addEventListener("click", () => {
   render();
 });
 
-// Click selection inside SVG
 document.getElementById("schematic").addEventListener("click", (e) => {
   const target = e.target.closest("[data-id]");
   if (target) {
     state.selectedId = target.getAttribute("data-id");
+    const cmdState = target.getAttribute("data-cmdstate");
+    if (cmdState) {
+      state.hdrCmdState = cmdState;
+      state.notice = "";
+    }
     render();
   }
 });
 
-// Step & State Controls
+// --- Module 1 Controls ---
 document.getElementById("btnNext").addEventListener("click", () => {
-  const d = computeDerived();
+  const d = computeChargeDerived();
   if (state.emState === "ABORTED") {
-    state.notice = "EM is ABORTED. Click Reset to return safely to S0_IDLE before starting a new charge.";
-    state.noticeLevel = "alert";
-    render(); return;
+    state.notice = "EM is ABORTED. Click Reset to return safely to S0_IDLE.";
+    state.noticeLevel = "alert"; render(); return;
   }
   if (state.emState === "HELD") {
-    state.notice = "EM is HELD. Clear any fault and click Restart to resume without losing your START_WT.CV tare.";
-    state.noticeLevel = "warn";
-    render(); return;
+    state.notice = "EM is HELD. Clear any fault and click Restart to resume without losing START_WT.CV.";
+    state.noticeLevel = "warn"; render(); return;
   }
-
   if (state.stepIdx === 0) {
     if (!d.permReady) {
-      state.notice = "Blocked at T10_START_OK! Check Pattern 2 CND1: CM_FEED_XV must be in CAS, scale .ST = GOOD, and HI_HI = Normal.";
-      state.noticeLevel = "warn";
-      render(); return;
+      state.notice = "Blocked at T10_START_OK! Check Pattern 2 CND1: CM_FEED_XV must be CAS, scale .ST = GOOD, HI_HI = Normal.";
+      state.noticeLevel = "warn"; render(); return;
     }
-    // Golden Tare Rule: Snapshot START_WT ONCE on S0_IDLE -> S10_CHARGE_OPEN
     state.startWt = state.currentWt;
     state.tareLocked = true;
     state.stepIdx = 1;
     state.emState = "RUNNING";
     state.selectedId = "S10_CHARGE_OPEN";
-    state.notice = `Entered S10_CHARGE_OPEN! Snapshot START_WT.CV := ${state.startWt.toFixed(1)} kg (locked). Valve commanded Open. Move the Tank Weight slider or click 'Fill to Cutoff' to reach T20_PRECLOSE.`;
+    state.notice = `Entered S10_CHARGE_OPEN! START_WT.CV locked at ${state.startWt.toFixed(1)} kg. Valve commanded Open.`;
     state.noticeLevel = "ok";
   } else if (state.stepIdx === 1) {
     if (!d.precloseReached) {
-      state.notice = `Waiting at T20_PRECLOSE: REMAINING_WT (${d.remainingWt.toFixed(1)} kg) is still above PRECLOSE_LEAD (${state.precloseLead} kg). Drag the scale slider or click 'Fill to Cutoff'.`;
-      state.noticeLevel = "warn";
-      render(); return;
+      state.notice = `Waiting at T20_PRECLOSE: REMAINING_WT (${d.remainingWt.toFixed(1)} kg) > PRECLOSE_LEAD (${state.precloseLead} kg).`;
+      state.noticeLevel = "warn"; render(); return;
     }
     state.stepIdx = 2;
     state.selectedId = "S20_TRIM_CLOSE";
-    state.notice = "Entered S20_TRIM_CLOSE! Valve commanded Close. Checking Pattern 4 CND4 (CM_FEED_XV/DC1/PV_D = Closed) before starting agitator.";
+    state.notice = "Entered S20_TRIM_CLOSE! Valve commanded Close; checking PV_D = Closed.";
     state.noticeLevel = "ok";
   } else if (state.stepIdx === 2) {
     if (!d.valveShutOk) {
-      state.notice = "Stuck at T30_SHUT_OK! Check Pattern 4: EM commanded Close (CAS_IN_D), but PV_D says the valve is still Open (CND5 Mismatch Alarm!).";
-      state.noticeLevel = "alert";
-      render(); return;
+      state.notice = "Stuck at T30_SHUT_OK! Check Pattern 4: CAS_IN_D = Close, but PV_D = Open (CND5 Mismatch Alarm!).";
+      state.noticeLevel = "alert"; render(); return;
     }
     state.stepIdx = 3;
     state.emState = "COMPLETE";
     state.selectedId = "S30_AGITATE";
-    state.notice = "Entered S30_AGITATE! Feed valve confirmed closed, agitator started, and EM_STATE := COMPLETE reported to EPH.";
+    state.notice = "Entered S30_AGITATE! Valve confirmed shut, agitator running, EM_STATE := COMPLETE.";
     state.noticeLevel = "ok";
   } else {
-    state.notice = "Charge is already complete in S30_AGITATE. Click Reset to start a fresh cycle.";
+    state.notice = "Charge complete in S30_AGITATE. Click Reset for a new batch.";
     state.noticeLevel = "info";
   }
   render();
@@ -1919,109 +2062,108 @@ document.getElementById("btnPrev").addEventListener("click", () => {
 document.getElementById("btnHold").addEventListener("click", () => {
   if (state.stepIdx === 0 || state.emState === "ABORTED") return;
   state.emState = "HELD";
-  state.notice = `EM HELD in ${STEPS[state.stepIdx]}: Feed valve stamped Close immediately, and START_WT.CV stays safely locked at ${state.startWt.toFixed(1)} kg!`;
+  state.notice = `EM HELD in ${STEPS[state.stepIdx]}: Valve closed, START_WT.CV preserved at ${state.startWt.toFixed(1)} kg!`;
   state.noticeLevel = "warn";
   render();
 });
 
 document.getElementById("btnRestart").addEventListener("click", () => {
-  if (state.emState !== "HELD") {
-    state.notice = "Restart is used to resume from a HELD state.";
-    state.noticeLevel = "info";
-    render(); return;
-  }
-  const d = computeDerived();
+  if (state.emState !== "HELD") return;
+  const d = computeChargeDerived();
   if (!d.permReady) {
-    state.notice = "Cannot Restart yet: clear the fault / restore CAS mode and GOOD scale status first (Pattern 2 CND1).";
-    state.noticeLevel = "warn";
-    render(); return;
+    state.notice = "Cannot Restart yet: restore CAS mode and GOOD scale status first.";
+    state.noticeLevel = "warn"; render(); return;
   }
   state.emState = "RUNNING";
-  state.notice = `RESTARTED in ${STEPS[state.stepIdx]}! Golden Tare Rule preserved: START_WT.CV stayed at ${state.startWt.toFixed(1)} kg (did NOT re-tare!), so only the remaining ${d.remainingWt.toFixed(1)} kg will be added.`;
+  state.notice = `RESTARTED! START_WT.CV stayed at ${state.startWt.toFixed(1)} kg (did NOT re-tare!), leaving ${d.remainingWt.toFixed(1)} kg to fill.`;
   state.noticeLevel = "ok";
   render();
 });
 
 document.getElementById("btnAbort").addEventListener("click", () => {
   state.emState = "ABORTED";
-  state.notice = "EM ABORTED: Feed valve closed and agitator stopped immediately. Click Reset to return to S0_IDLE.";
+  state.notice = "EM ABORTED: All outputs forced safe. Click Reset to return to S0_IDLE.";
   state.noticeLevel = "alert";
   render();
 });
 
 document.getElementById("btnReset").addEventListener("click", () => {
-  state.stepIdx = 0;
-  state.emState = "IDLE";
-  state.tareLocked = false;
-  state.currentWt = 100.0;
-  state.startWt = 100.0;
-  state.scaleSt = "GOOD";
-  state.hiHi = false;
-  state.valveStuck = false;
-  state.valveMode = "CAS";
+  state.stepIdx = 0; state.emState = "IDLE"; state.tareLocked = false;
+  state.currentWt = 100.0; state.startWt = 100.0; state.scaleSt = "GOOD";
+  state.hiHi = false; state.valveStuck = false; state.valveMode = "CAS";
   state.selectedId = "S0_IDLE";
-  state.notice = "Reset to S0_IDLE with clean field status and 100 kg tank heel.";
+  state.notice = "Reset EM_TANK_CHARGE to S0_IDLE.";
   state.noticeLevel = "info";
   render();
 });
 
-// Field Toggles
 document.getElementById("selValveMode").addEventListener("change", (e) => {
-  state.valveMode = e.target.value;
-  state.notice = state.valveMode === "CAS"
-    ? "CM_FEED_XV/DC1/MODE.ACTUAL is now CAS — listening to EM_TANK_CHARGE."
-    : `CM_FEED_XV/DC1/MODE.ACTUAL switched to ${state.valveMode} — EM commands on CAS_IN_D are ignored! Check Pattern 2 CND1.`;
-  state.noticeLevel = state.valveMode === "CAS" ? "ok" : "warn";
-  render();
+  state.valveMode = e.target.value; state.notice = ""; render();
 });
-
 document.getElementById("btnScaleSt").addEventListener("click", () => {
-  state.scaleSt = state.scaleSt === "GOOD" ? "BAD" : "GOOD";
-  state.notice = state.scaleSt === "BAD"
-    ? "CM_TANK_WT/AI1/OUT.ST set to BAD! Watch Pattern 2 react immediately."
-    : "CM_TANK_WT/AI1/OUT.ST restored to GOOD.";
-  state.noticeLevel = state.scaleSt === "BAD" ? "alert" : "ok";
-  render();
+  state.scaleSt = state.scaleSt === "GOOD" ? "BAD" : "GOOD"; state.notice = ""; render();
 });
-
 document.getElementById("btnHiHi").addEventListener("click", () => {
-  state.hiHi = !state.hiHi;
-  state.notice = state.hiHi
-    ? "HI_HI_LVL tripped (1)! Active interlock forces feed valve closed and EM HELD."
-    : "HI_HI_LVL cleared (0).";
-  state.noticeLevel = state.hiHi ? "alert" : "ok";
-  render();
+  state.hiHi = !state.hiHi; state.notice = ""; render();
 });
-
 document.getElementById("btnStuck").addEventListener("click", () => {
-  state.valveStuck = !state.valveStuck;
-  state.notice = state.valveStuck
-    ? "Simulated Stuck Valve: PV_D remains Open even when CAS_IN_D commands Close. Check Pattern 4 CND4 & CND5!"
-    : "Valve mechanical response restored to Normal.";
-  state.noticeLevel = state.valveStuck ? "warn" : "ok";
-  render();
+  state.valveStuck = !state.valveStuck; state.notice = ""; render();
 });
-
 document.getElementById("btnSource").addEventListener("click", () => {
-  state.useRecipe = !state.useRecipe;
-  state.notice = state.useRecipe
-    ? "BSEL1 switched to Recipe Weight (500.0 kg from EPH)."
-    : "BSEL1 switched to Operator Local Weight (250.0 kg). Check Pattern 3 CALC1!";
-  state.noticeLevel = "info";
-  render();
+  state.useRecipe = !state.useRecipe; state.notice = ""; render();
 });
-
 document.getElementById("wtSlider").addEventListener("input", (e) => {
   state.currentWt = parseFloat(e.target.value);
   if (!state.tareLocked) state.startWt = state.currentWt;
   render();
 });
-
 document.getElementById("btnFillCutoff").addEventListener("click", () => {
   const target = state.useRecipe ? state.recipeWt : state.localWt;
   state.currentWt = Math.min(650, state.startWt + target - state.precloseLead);
-  state.notice = `Tank weight reached ${state.currentWt.toFixed(1)} kg (REMAINING_WT = ${state.precloseLead} kg). Pattern 3 CND3 fired T20_PRECLOSE = TRUE! Click Next Step.`;
+  state.notice = `Reached preclose cutoff (${state.currentWt.toFixed(1)} kg). Click Next Step!`;
   state.noticeLevel = "ok";
+  render();
+});
+
+// --- Module 2 Controls (EM_XFER_HDR — State-Driven) ---
+document.querySelectorAll(".hdr-cmd-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    state.hdrCmdState = btn.dataset.hstate;
+    state.selectedId = "ST_" + state.hdrCmdState;
+    state.notice = "";
+    render();
+  });
+});
+
+document.getElementById("selXv102Mode").addEventListener("change", (e) => {
+  state.xv102Mode = e.target.value;
+  state.notice = state.xv102Mode === "MAN"
+    ? "CM_HDR_XV102 placed in MAN! Try commanding Route_Tank_B — XV102 ignores CAS_IN_D := Open, pump stays Stopped, and FAIL_ACTIVE trips!"
+    : "CM_HDR_XV102 returned to CAS.";
+  render();
+});
+
+document.getElementById("btnXv102Stuck").addEventListener("click", () => {
+  state.xv102StuckOpen = !state.xv102StuckOpen;
+  state.notice = state.xv102StuckOpen
+    ? "Simulated XV102 (Tank B) STUCK OPEN! Try Route_Tank_A — CND_PATH_OK blocks CM_XFER_PMP so solvent cannot cross-contaminate Tank B!"
+    : "XV102 mechanical stroke restored to Normal.";
+  render();
+});
+
+document.getElementById("hdrPressSlider").addEventListener("input", (e) => {
+  state.hdrPress = parseFloat(e.target.value);
+  state.notice = "";
+  render();
+});
+
+document.getElementById("btnHdrReset").addEventListener("click", () => {
+  state.hdrCmdState = "HEADER_CLOSED";
+  state.xv102Mode = "CAS";
+  state.xv102StuckOpen = false;
+  state.hdrPress = 2.5;
+  state.selectedId = "HDR_DEVICE_MASK";
+  state.notice = "Reset EM_XFER_HDR to HEADER_CLOSED with all valves in CAS and 2.5 bar line pressure.";
   render();
 });
 
@@ -2082,6 +2224,7 @@ document.getElementById("vocabModal").addEventListener("click", (e) => {
 document.getElementById("vocabSearch").addEventListener("input", (e) => renderVocab(e.target.value));
 
 window.addEventListener("resize", fitToView);
+rebuildTabs();
 render();
 fitToView();
 </script>

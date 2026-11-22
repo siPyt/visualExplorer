@@ -1,15 +1,14 @@
-# DeltaV Control Studio Visual Explorer (`EM_TANK_CHARGE`)
+# DeltaV Control Studio — Visual Explorer
 
-Interactive offline study app and running handbook for learning **Emerson DeltaV Control Studio** using strictly native DeltaV terminology and plain-English mental models.
+Interactive offline Control Studio trainer and running handbook for mastering **Emerson DeltaV Control Studio** using strictly native DeltaV terminology and plain-English mental models.
 
 ## Files in This Repository
 
-- **`index.html`** — Standalone interactive **DeltaV Control Studio Visual Explorer** for `EM_TANK_CHARGE` (`CM_FEED_XV`, `CM_TANK_WT`, `CM_AGIT_MTR`). Open directly in Chrome or Edge (100% offline). Includes:
-  - All 4 Control Studio pattern tabs (Pattern 1 SFC + Patterns 2–4 FBD)
-  - **Off-Line / On-Line** monitoring toggle
-  - Interactive **Hold / Restart / Abort**, **Golden Tare Watch**, **EPH Handshake**, and field fault toggles
-  - Built-in searchable **Session Vocab** overlay
-- **`DeltaV_Study_Guide.pdf`** — Print-ready running study handbook & master plain-English vocabulary guide (with vector Control Studio diagrams and a self-check quiz).
+- **`index.html` ("Visual Explorer")** — Standalone interactive **DeltaV Control Studio Visual Explorer** (open directly in Chrome or Edge, 100% offline). Switch live modules in the top-left picker:
+  - **`EM_TANK_CHARGE` (Command-Driven EM):** All 4 Control Studio pattern tabs (Pattern 1 SFC + Patterns 2–4 FBD), Hold/Restart/Abort, Golden Tare Watch, EPH Handshake, and stuck-valve / bad-scale simulations.
+  - **`EM_XFER_HDR` (State-Driven EM — Ch. 7):** Solvent transfer manifold header (`HEADER_CLOSED`, `ROUTE_TANK_A`, `ROUTE_TANK_B`, `CIP_FLUSH`) with live Device Alignment Mask, anti-cross-mix pump gate, overpressure `FAIL_STATE` trip, and `FAIL_ACTIVE` timeout diagnostics.
+- **`WHERE_WE_ARE.txt`** — Running mastery tracker: where we came from, where we are right now, and our full Phase 1–5 Control Studio roadmap.
+- **`DeltaV_Study_Guide.pdf`** — Print-ready running study handbook & master plain-English vocabulary guide (`v1.1`, Chapters 1–7).
 - **`DeltaV_Study_Guide.html`** & **`build-pdf.ps1`** — Editable source and PowerShell script to regenerate `DeltaV_Study_Guide.pdf` as new chapters are added.
 - **`SESSION_VOCAB.md`** — Quick-reference Markdown cheat sheet of DeltaV tiers, function blocks, operating modes, wire endings, and path syntax.
 

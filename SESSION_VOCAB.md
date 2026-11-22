@@ -111,3 +111,18 @@ The Equipment Phase (`EPH`, Recipe Boss) coordinates with `EM_TANK_CHARGE` throu
 1. **Acquisition (Ownership):** The `EPH` acquires `EM_TANK_CHARGE` so no other phase or operator fights over the same tank header.
 2. **Command & Recipe Parameters (Downward):** The `EPH` writes the command Named Set (`A_COMMAND := Charge`) into Pattern 1 and passes `RECIPE_WT` into Pattern 3 (`BSEL1`).
 3. **State & Completion Feedback (Upward):** `EM_TANK_CHARGE` reports its live state (`IDLE`, `RUNNING`, `HELD`, `COMPLETE`, `ABORTED`) back up to the `EPH` so the recipe knows when to advance—or when to hold the whole batch.
+
+---
+
+## 9. State-Driven Equipment Modules — `EM_XFER_HDR` (Chapter 7)
+
+- **Command-Driven vs. State-Driven:**
+  - **Command-Driven (`EM_TANK_CHARGE`):** Multi-step sequence over time (`Open -> Cutoff -> Close -> Agitate`).
+  - **State-Driven (`EM_XFER_HDR`):** Multi-valve transfer header or manifold where each Named Set state (`HEADER_CLOSED`, `ROUTE_TANK_A`, `ROUTE_TANK_B`, `CIP_FLUSH`) snaps directly to a fixed **Device Alignment Mask**—no multi-step SFC needed.
+- **`EM_S_COMMAND` (Desired State) vs. `PV_D` (Confirmed State):**
+  - `EM_S_COMMAND` is the target route requested by the `EPH` or operator.
+  - `PV_D` only confirms that state once **every** child CM's physical limit switch (`DC1/PV_D`) matches the active state's mask.
+- **Anti-Cross-Mix Pump Gate (`CND_PATH_OK`):** Transfer pump (`CM_XFER_PMP`) is held at `Stop` until all isolation valves prove aligned (prevents pumping Tank A solvent into Tank B if `CM_HDR_XV102` is stuck open!).
+- **`FAIL_STATE`:** Pre-configured safe fallback state (`HEADER_CLOSED`) forced immediately if a line interlock trips (e.g., `'CM_HDR_PT/AI1/OUT.CV' > 6.0` bar).
+- **`DURATION` & `FAIL_ACTIVE`:** `DURATION` gives valves stroke time (e.g., 8–10 s) before `CND` fires `FAIL_ACTIVE` (State Transition / Mismatch Alarm).
+
