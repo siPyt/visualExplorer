@@ -1,6 +1,6 @@
 ================================================================================
 DELTAV CONTROL STUDIO MASTERY — PROGRESS & MISSION TRACKER
-Last Updated: 2026-11-22 (Phase 2 / Ch. 7 Complete)
+Last Updated: 2026-11-22 (Edition v2.0 Textbook + 7 Labs Complete)
 Repository:   https://github.com/siPyt/visualExplorer.git
 ================================================================================
 
@@ -13,81 +13,73 @@ engineer in the room.
 
 HOW THIS WORKSPACE OPERATES
 ---------------------------
-1. Visual Explorer (index.html):
-   The interactive visual Control Studio trainer. Switch modules in the top-left
+1. Visual Explorer (index.html — launch anytime by typing 'run' in terminal):
+   Interactive visual Control Studio trainer. Switch modules in the top-left
    picker (EM_TANK_CHARGE + EM_XFER_HDR) to inspect authentic DeltaV Control
    Studio stencils, wires, pins, On-Line live values, and fault simulations.
-2. Running Study Handbook (DeltaV_Study_Guide.pdf):
-   Print-ready study guide + plain-English DeltaV vocabulary + self-check quizzes.
-3. Session Tracker (WHERE_WE_ARE.txt — this file):
+2. Textbook & Lab Manual (DeltaV_Study_Guide.pdf — Edition v2.0, 18 pages):
+   Full in-depth native DeltaV lessons, pin-by-pin schematics, real-plant traps,
+   and 7 complete step-by-step Visual Explorer workshops (with "What You Are
+   Supposed to Learn From This Workshop" takeaways).
+3. Reference Library (pdf reference/):
+   Official Emerson DeltaV Sequence Tutorials & Control Studio Online PDS docs.
+4. Session Tracker (WHERE_WE_ARE.txt — this file):
    Single source of truth so even a brand-new chat instantly knows where we came
    from, where we are right now, and where we are going next.
 
 ================================================================================
-1. WHERE WE CAME FROM (MASTERED SO FAR)
+1. WHERE WE CAME FROM (MASTERED SO FAR — TEXTBOOK v2.0 + WORKSHOPS 1–7)
 ================================================================================
-[DONE] Ch. 1 — Equipment Hierarchy & Scan Heartbeat
-       - EPH (Recipe Boss) -> EM (Team Coordinator) -> CM (Single-Device Controller).
-       - Module Scan cycle and #1 -> #2 -> #3 FBD execution order.
+[DONE] Ch. 1 + Workshop 1 — Equipment Tiers (EPH -> EM -> CM) & Scan Latency
+       - Why EMs never wire straight to I/O cards; 500 ms / 1 s scan classes;
+         why #1 -> #2 -> #3 execution order (not screen position) prevents
+         1-scan dead-time overshoot; PRECLOSE_LEAD math.
 
-[DONE] Ch. 2 — 1 Outer EM Algorithm vs. 4 Inner Patterns
-       - 1 Outer Algorithm chosen at creation: Command-Driven, State-Driven, FBD, SFC.
-       - 4 Inner Patterns inside EM_TANK_CHARGE (Pattern 1 SFC + Patterns 2–4 FBD).
-       - Solid wires = Analog (.CV numbers); Dashed wires = Discrete / Mode / Status.
+[DONE] Ch. 2 + Workshop 2 — 1 Outer Algorithm vs. 4 Inner Patterns
+       - Clearing the SFC confusion: ONLY Pattern 1 steps through time; Patterns
+         2, 3, and 4 scan continuously 24/7 (even in Idle).
+       - Core 4 Algorithms (Command-Driven, State-Driven + single-step visual
+         trick, FBD, SFC) + the 7-item DeltaV Explorer menu heads-up.
+       - 5 Control Studio visual shapes + SFC action qualifiers ([P],[N],[S],[R],[D]).
 
-[DONE] Ch. 3 — Operating Modes & Signal Health
-       - OOS, MAN, AUTO, CAS; Write MODE.TARGET, always verify MODE.ACTUAL.
-       - Every wire carries .CV (value) + .ST (GOOD / UNCERTAIN / BAD).
+[DONE] Ch. 3 + Workshop 3 — Modes, Dual-Data Wires (.CV + .ST), ACT Stamps & Paths
+       - OOS, MAN, AUTO, CAS; Reality 1 (write MODE.TARGET, check MODE.ACTUAL);
+         Reality 2 (.ST health rides alongside .CV); Reality 3 (ACT latches writes).
+       - Structured Text quoting rules & 5-second path decoding.
 
-[DONE] Ch. 4 — 5-Second DeltaV Path Decoding
-       - 'Module/Block/Parameter.Detail' and '^/' local shortcut, Named Sets.
+[DONE] Ch. 4 + Workshop 4 — Pin-by-Pin EM_TANK_CHARGE (All 4 Sheets)
+       - Complete schematics for Sheets 1–4 + 2-State Valve vs. 3-State Bulk/Dribble
+         DC1 assembly fork in S20_TRIM_CLOSE.
 
-[DONE] Ch. 5 — Hold, Restart, Abort, Golden Tare Rule & EPH Handshake
-       - Golden Tare Rule: Snapshot START_WT.CV once on S0_IDLE -> S10_CHARGE_OPEN;
-         NEVER overwrite START_WT.CV on Restart from Hold (prevents overfill).
-       - EPH <-> EM 3-signal handshake: Acquire, Command + Setpoint down, EM_STATE up.
+[DONE] Ch. 5 + Workshop 5 — Hold, Restart, Abort & Golden Tare Proof-by-Numbers
+       - Why re-taring START_WT.CV on Restart causes a 200 kg overfill (800 kg vs.
+         600 kg gross) + mid-charge bad-scale (.ST=BAD) trip & recovery lab.
 
-[DONE] Ch. 6 — 30-Second On-Line Troubleshooting Method
-       - Read order: Pattern 1 Active Step -> Transition Crossbar (┼) -> FBD Pattern.
-       - FAIL_ACTIVE mismatch alarms & CND DURATION confirm timers.
+[DONE] Ch. 6 + Workshop 6 — Systematic 60-Second Control Room Triage Playbook
+       - 4-Checkpoint triage sequence + stuck-open feed valve lab (CAS_IN_D vs.
+         PV_D, DURATION=10s, VALVE_MISMATCH_ALM).
 
-[DONE] Ch. 7 — State-Driven Equipment Modules (EM_XFER_HDR)
-       - Command-Driven (multi-step task over time) vs. State-Driven (direct snap to
-         a Named-Set alignment mask for headers & transfer manifolds).
-       - EM_S_COMMAND (desired state) vs. PV_D (confirmed state from all CM switches).
-       - Anti-cross-mix pump gating (CND_PATH_OK holds CM_XFER_PMP stopped until all
-         isolation valves match mask), FAIL_STATE fallback on overpressure, and
-         FAIL_ACTIVE transition timeout alarm.
-       - Added live EM_XFER_HDR module (3 tabs + fault simulator) to Visual Explorer!
+[DONE] Ch. 7 + Workshop 7 — State-Driven Equipment Modules (EM_XFER_HDR)
+       - Multi-valve manifold Device Alignment Mask, EM_S_COMMAND vs. PV_D,
+         anti-cross-mix pump gate (CND_PATH_OK), overpressure FAIL_STATE, and
+         FAIL_ACTIVE timeout labs.
 
 ================================================================================
 2. WHERE WE ARE RIGHT NOW
 ================================================================================
-- Completed Phase 1 (Ch. 1–6: EM_TANK_CHARGE) AND Phase 2 (Ch. 7: EM_XFER_HDR).
-- Visual Explorer (index.html) now includes BOTH live DeltaV modules in its top
-  selector: EM_TANK_CHARGE (Command-Driven) and EM_XFER_HDR (State-Driven).
-- DeltaV_Study_Guide.pdf updated to v1.1 (Chapters 1–7 + updated Master Vocab).
+- Completed Edition v2.0 of DeltaV_Study_Guide.pdf (18 full textbook pages +
+  Workshops 1–7) and Visual Explorer v2 (EM_TANK_CHARGE + EM_XFER_HDR).
 - NEXT IMMEDIATE STEP:
-  -> Phase 3 / Chapter 8: Analog Control Modules & PID Regulatory Loops
+  -> Phase 3 / Chapter 8 + Workshop 8: Analog Control Modules & PID Loops
      (AI -> PID -> AO, solid CAS_IN vs. dashed CAS_IN_D, SP/PV/OUT, and the
      pro secret: BKCAL_IN / BKCAL_OUT back-calculation wires!).
 
 ================================================================================
 3. WHAT WE HOPE TO ACCOMPLISH (FULL CONTROL STUDIO MASTERY ROADMAP)
 ================================================================================
-[DONE] Phase 1: Command-Driven EMs, Modes, Paths & Discrete CMs (Ch. 1–6)
-[DONE] Phase 2: State-Driven Equipment Modules — EM_XFER_HDR (Ch. 7)
-
-[NEXT] Phase 3: Analog Control, PID, Cascade & Back-Calculation (Ch. 8–9)
-       - Ch. 8: Inside an Analog CM (CM_FEED_FC: AI1 -> PID1 -> AO1) + BKCAL wires
-         (bumpless transfer, anti-reset windup, downstream MAN/OOS protection).
-       - Ch. 9: Master-Slave Cascade loops, Split-Range (SPLTR), Override (ISEL).
-
-[PLAN] Phase 4: Advanced Interlocks, Tracking & Composite Blocks (Ch. 10)
-       - Forced Tracking (TRK_IN_D / TRK_VAL), First-Out & latched trips, Composite
-         Function Blocks ("Drill Inside"), and Module Class vs. Instance templates.
-
-[PLAN] Phase 5: Batch Equipment Phases (EPH) & "Cold-Read" Mastery (Ch. 11–12)
-       - Inside an EPH (Run / Hold / Restart / Abort / Stop charts), arbitration,
-         and Cold-Read Diagnostics inside Visual Explorer.
+[DONE] Phase 1: Command-Driven EMs, Modes, Paths & Discrete CMs (Ch. 1–6 + Labs 1–6)
+[DONE] Phase 2: State-Driven Equipment Modules — EM_XFER_HDR (Ch. 7 + Lab 7)
+[NEXT] Phase 3: Analog Control, PID, Cascade & Back-Calculation (Ch. 8–9 + Labs)
+[PLAN] Phase 4: Advanced Interlocks, Tracking & Composite Blocks (Ch. 10 + Labs)
+[PLAN] Phase 5: Batch Equipment Phases (EPH) & Cold-Read Mastery (Ch. 11–12 + Labs)
 ================================================================================
