@@ -585,7 +585,7 @@
   <div class="sim-group">
     <span class="sim-label">Status</span>
     <span id="hdrStatusPill" class="state-pill state-ALIGNED">ALIGNED</span>
-    <span class="sim-label" style="margin-left:4px;">EM_S_COMMAND:</span>
+    <span class="sim-label" style="margin-left:4px;">SP_D (Target):</span>
     <button class="sim-btn selected-cmd hdr-cmd-btn" data-hstate="HEADER_CLOSED">Header_Closed</button>
     <button class="sim-btn hdr-cmd-btn" data-hstate="ROUTE_TANK_A">Route_Tank_A</button>
     <button class="sim-btn hdr-cmd-btn" data-hstate="ROUTE_TANK_B">Route_Tank_B</button>
@@ -701,12 +701,14 @@ const MODULE_TABS = {
     { id: "p1", label: "1. Step Flow", kind: "SFC", defaultSel: "S0_IDLE" },
     { id: "p2", label: "2. Permissives & Interlocks", kind: "FBD", defaultSel: "CND1" },
     { id: "p3", label: "3. Mode & Setpoint Routing", kind: "FBD", defaultSel: "BSEL1" },
-    { id: "p4", label: "4. CM Command & Feedback", kind: "FBD", defaultSel: "CND4" }
+    { id: "p4", label: "4. CM Command & Feedback", kind: "FBD", defaultSel: "CND4" },
+    { id: "p5", label: "5. Full Control Studio", kind: "COMBO", defaultSel: "S0_IDLE" }
   ],
   header: [
-    { id: "h1", label: "1. State Diagram & Device Mask", kind: "STATE", defaultSel: "ST_HEADER_CLOSED" },
-    { id: "h2", label: "2. Path Alignment & Pump Gate", kind: "FBD", defaultSel: "CND_PATH_OK" },
-    { id: "h3", label: "3. State Confirmation & Timeout", kind: "FBD", defaultSel: "CALC_PV_STATE" }
+    { id: "h1", label: "1. Per-State SFC", kind: "STATE SFC", defaultSel: "ST_HEADER_CLOSED" },
+    { id: "h2", label: "2. Path Gate & Interlock", kind: "FBD", defaultSel: "CND_PATH_OK" },
+    { id: "h3", label: "3. PV_D & Mode Alignment", kind: "FBD", defaultSel: "CALC_PV_STATE" },
+    { id: "h4", label: "4. Full Control Studio", kind: "COMBO", defaultSel: "ST_HEADER_CLOSED" }
   ]
 };
 
@@ -1327,114 +1329,471 @@ function renderPattern4(vp, d) {
 }
 
 // =========================================================================
+// 4A-5. TAB 5 COMBO: UNIFIED CONTROL STUDIO WORKSTATION VIEW (ALL 4 PATTERNS)
+// =========================================================================
+function renderPattern5Combo(vp, d) {
+  const showLens = Boolean(state.showComboLens);
+
+  // Outer Control Studio Workstation Frame
+  vp.appendChild(el("rect", {
+    x: 12, y: 10, width: 1396, height: 805, rx: 6,
+    fill: "#dfe6ee", stroke: "#334155", "stroke-width": 2
+  }));
+
+  // Top Control Studio Title Bar
+  vp.appendChild(el("rect", { x: 12, y: 10, width: 1396, height: 32, rx: 5, fill: "#1e293b" }));
+  vp.appendChild(el("text", {
+    x: 26, y: 30, "font-size": 12, "font-weight": 800, fill: "#f8fafc",
+    "font-family": "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
+  }, `[AREA_A / EM_TANK_CHARGE [${state.online ? "On-Line Mode — " + state.emState : "Off-Line Configuration"}] — Control Studio]`));
+
+  // Clickable 4-Pattern Training Lens Toggle Pill inside Title Bar
+  const lensBtn = el("g", { class: "clickable", "data-id": "TOGGLE_COMBO_LENS" });
+  lensBtn.appendChild(el("rect", {
+    x: 1155, y: 15, width: 240, height: 22, rx: 4,
+    fill: showLens ? "#0284c7" : "#334155", stroke: "#7dd3fc", "stroke-width": 1.2
+  }));
+  lensBtn.appendChild(el("text", {
+    x: 1275, y: 30, "text-anchor": "middle", "font-size": 10.5, "font-weight": 800, fill: "#ffffff"
+  }, showLens ? "🔍 4-Pattern Lens: ON (Click for Raw)" : "🔍 4-Pattern Lens: OFF (Raw Studio)"));
+  vp.appendChild(lensBtn);
+
+  // -----------------------------------------------------------------------
+  // PANE 1 (FAR LEFT): CONTROL STUDIO HIERARCHY EXPLORER TREE
+  // -----------------------------------------------------------------------
+  vp.appendChild(el("rect", { x: 20, y: 50, width: 178, height: 756, rx: 3, fill: "#ffffff", stroke: "#64748b", "stroke-width": 1.4 }));
+  vp.appendChild(el("rect", { x: 21, y: 51, width: 176, height: 24, fill: "#e2e8f0" }));
+  vp.appendChild(el("text", { x: 28, y: 67, "font-size": 10.5, "font-weight": 800, fill: "#0f172a" }, "Explorer — EM_TANK_CHARGE"));
+
+  const treeItems = [
+    { id: "EPH_HANDSHAKE", txt: "▣ EM_TANK_CHARGE", y: 94, bold: true, col: "#0f172a" },
+    { id: "CND1",  txt: "  ├─ #1 CND1 (Perm)", y: 118, col: "#334155" },
+    { id: "CND2",  txt: "  ├─ #2 CND2 (Trip)", y: 138, col: "#334155" },
+    { id: "ACT1",  txt: "  ├─ #3 ACT1 (Hold)", y: 158, col: "#334155" },
+    { id: "BSEL1", txt: "  ├─ #4 BSEL1 (Sel)", y: 178, col: "#334155" },
+    { id: "CALC1", txt: "  ├─ #5 CALC1 (Tare)", y: 198, col: "#334155" },
+    { id: "CND3",  txt: "  ├─ #6 CND3 (Cutoff)", y: 218, col: "#334155" },
+    { id: "ACT2",  txt: "  ├─ #7 ACT2 (Mode)", y: 238, col: "#334155" },
+    { id: "CND4",  txt: "  ├─ #8 CND4 (ShutOK)", y: 258, col: "#334155" },
+    { id: "CND5",  txt: "  ├─ #9 CND5 (Travel)", y: 278, col: "#334155" },
+    { id: "S0_IDLE", txt: "  └─ ⚡ CHARGE (SFC)", y: 306, bold: true, col: "#1e3a8a" },
+    { id: "S0_IDLE", txt: "      ├─ S0_IDLE", y: 328, col: state.stepIdx === 0 && state.online ? "#15803d" : "#475569" },
+    { id: "T10_START_OK", txt: "      ├─ ┼ T10_START_OK", y: 348, col: "#475569" },
+    { id: "S10_CHARGE_OPEN", txt: "      ├─ S10_CHARGE_OPEN", y: 368, col: state.stepIdx === 1 && state.online ? "#15803d" : "#475569" },
+    { id: "T20_PRECLOSE", txt: "      ├─ ┼ T20_PRECLOSE", y: 388, col: "#475569" },
+    { id: "S20_TRIM_CLOSE", txt: "      ├─ S20_TRIM_CLOSE", y: 408, col: state.stepIdx === 2 && state.online ? "#15803d" : "#475569" },
+    { id: "T30_SHUT_OK", txt: "      ├─ ┼ T30_SHUT_OK", y: 428, col: "#475569" },
+    { id: "S30_AGITATE", txt: "      └─ S30_AGITATE", y: 448, col: state.stepIdx === 3 && state.online ? "#15803d" : "#475569" }
+  ];
+  treeItems.forEach(ti => {
+    const tg = el("g", { class: "clickable", "data-id": ti.id });
+    tg.appendChild(el("text", {
+      x: 26, y: ti.y, "font-size": 10, "font-weight": ti.bold ? 800 : 600, fill: ti.col,
+      "font-family": "ui-monospace, monospace"
+    }, ti.txt));
+    vp.appendChild(tg);
+  });
+
+  // Mini Parameter Watch Table at bottom-left (just like Control Studio On-Line!)
+  vp.appendChild(el("line", { x1: 20, y1: 472, x2: 198, y2: 472, stroke: "#94a3b8" }));
+  vp.appendChild(el("rect", { x: 21, y: 473, width: 176, height: 22, fill: "#e2e8f0" }));
+  vp.appendChild(el("text", { x: 28, y: 488, "font-size": 10, "font-weight": 800, fill: "#0f172a" }, "Parameter | On-Line Value"));
+  const watchRows = [
+    ["A_COMMAND", state.stepIdx > 0 ? "CHARGE" : "IDLE(255)"],
+    ["EM_STATE", state.emState],
+    ["START_WT", `${state.startWt.toFixed(0)} kg`],
+    ["DELIVERED", `${d.deliveredWt.toFixed(0)} kg`],
+    ["REMAINING", `${d.remainingWt.toFixed(0)} kg`],
+    ["PERM_READY", d.permReady ? "True" : "False"],
+    ["SHUT_OK", d.valveShutOk ? "True" : "False"],
+    ["XV_MODE", state.valveMode],
+    ["WT_STATUS", state.scaleSt]
+  ];
+  watchRows.forEach(([k, v], i) => {
+    const wy = 514 + i * 24;
+    vp.appendChild(el("text", { x: 26, y: wy, "font-size": 9.6, fill: "#334155", "font-family": "ui-monospace, monospace" }, k));
+    vp.appendChild(el("text", { x: 191, y: wy, "text-anchor": "end", "font-size": 9.6, "font-weight": 800, fill: "#0f172a", "font-family": "ui-monospace, monospace" }, v));
+  });
+
+  // -----------------------------------------------------------------------
+  // MDI WINDOW 1 (LEFT-CENTER): COMMAND SFC WINDOW [CHARGE]
+  // -----------------------------------------------------------------------
+  vp.appendChild(el("rect", { x: 206, y: 50, width: 328, height: 756, rx: 3, fill: "url(#grid)", stroke: "#3b6ea5", "stroke-width": 1.8 }));
+  vp.appendChild(el("rect", { x: 207, y: 51, width: 326, height: 25, fill: "#2d5a88" }));
+  vp.appendChild(el("text", { x: 216, y: 68, "font-size": 11, "font-weight": 800, fill: "#ffffff", "font-family": "ui-monospace, monospace" },
+    "CHARGE [SFC Sub-Window — A_COMMAND]"));
+
+  const cSteps = [
+    { id: "S0_IDLE", idx: 0, y: 92, title: "S0_IDLE", sub: "Rest / Close", initial: true },
+    { id: "S10_CHARGE_OPEN", idx: 1, y: 196, title: "S10_CHARGE_OPEN", sub: "Tare & Open XV" },
+    { id: "S20_TRIM_CLOSE", idx: 2, y: 300, title: "S20_TRIM_CLOSE", sub: "Close & Settle" },
+    { id: "S30_AGITATE", idx: 3, y: 404, title: "S30_AGITATE", sub: "Start Agitator" }
+  ];
+  const cTrans = [
+    { id: "T10_START_OK", y: 168, label: "T10_START_OK", expr: "PERM_READY=1", ok: d.t10Ok },
+    { id: "T20_PRECLOSE", y: 272, label: "T20_PRECLOSE", expr: "REM<=15 kg", ok: d.t20Ok },
+    { id: "T30_SHUT_OK",  y: 376, label: "T30_SHUT_OK",  expr: "SHUT_OK=1", ok: d.t30Ok }
+  ];
+
+  for (let i = 0; i < 3; i++) {
+    vp.appendChild(el("line", { x1: 318, y1: cSteps[i].y + 46, x2: 318, y2: cSteps[i + 1].y, stroke: "#334155", "stroke-width": 2 }));
+  }
+
+  cSteps.forEach(s => {
+    const isAct = state.stepIdx === s.idx;
+    let fill = "#ffffff", stroke = "#334155";
+    if (state.online && isAct) {
+      if (state.emState === "ABORTED") { fill = "#fee2e2"; stroke = "#dc2626"; }
+      else if (state.emState === "HELD") { fill = "#fef3c7"; stroke = "#d97706"; }
+      else { fill = "#dcfce7"; stroke = "#16a34a"; }
+    }
+    const g = el("g", { class: "clickable", "data-id": s.id });
+    g.appendChild(el("rect", {
+      x: 230, y: s.y, width: 176, height: 46, rx: 3, fill, stroke,
+      "stroke-width": state.selectedId === s.id ? 3 : (isAct && state.online ? 2.5 : 1.6)
+    }));
+    if (s.initial) {
+      g.appendChild(el("rect", { x: 234, y: s.y + 4, width: 168, height: 38, rx: 2, fill: "none", stroke, "stroke-width": 1.1 }));
+    }
+    g.appendChild(el("text", { x: 318, y: s.y + 20, "text-anchor": "middle", "font-size": 11.5, "font-weight": 800, fill: "#0f172a", "font-family": "ui-monospace, monospace" }, s.title));
+    g.appendChild(el("text", { x: 318, y: s.y + 35, "text-anchor": "middle", "font-size": 9.5, fill: "#475569", "font-weight": 600 }, s.sub));
+    vp.appendChild(g);
+  });
+
+  cTrans.forEach(t => {
+    const g = el("g", { class: "clickable", "data-id": t.id });
+    const col = !state.online ? "#1e293b" : (t.ok ? "#16a34a" : "#dc2626");
+    g.appendChild(el("rect", { x: 285, y: t.y - 12, width: 225, height: 24, fill: "transparent" }));
+    g.appendChild(el("line", { x1: 298, y1: t.y, x2: 338, y2: t.y, stroke: col, "stroke-width": 4 }));
+    g.appendChild(el("text", { x: 346, y: t.y - 1, "font-size": 10.2, "font-weight": 800, fill: col, "font-family": "ui-monospace, monospace" }, t.label));
+    g.appendChild(el("text", { x: 346, y: t.y + 11, "font-size": 9, fill: "#475569", "font-family": "ui-monospace, monospace" }, t.expr));
+    vp.appendChild(g);
+  });
+
+  // Bottom Step Action Grid inside SFC Window (Authentic Control Studio Pane!)
+  vp.appendChild(el("rect", { x: 214, y: 474, width: 312, height: 322, rx: 3, fill: "#ffffff", stroke: "#94a3b8", "stroke-width": 1.3 }));
+  vp.appendChild(el("rect", { x: 215, y: 475, width: 310, height: 23, fill: "#dbeafe" }));
+  vp.appendChild(el("text", { x: 222, y: 490, "font-size": 10, "font-weight": 800, fill: "#1e3a8a" },
+    `Step Actions Pane — ${STEPS[state.stepIdx]}`));
+  vp.appendChild(el("text", { x: 222, y: 511, "font-size": 9.2, "font-weight": 800, fill: "#475569", "font-family": "ui-monospace, monospace" },
+    "Qual | Action Expression"));
+  vp.appendChild(el("line", { x1: 218, y1: 517, x2: 522, y2: 517, stroke: "#cbd5e1" }));
+
+  const comboActLines = {
+    S0_IDLE: [["N", "'CM_FEED_XV/DC1/CAS_IN_D' := Close"], ["N", "'CM_AGIT_MTR/DC1/CAS_IN_D' := Stop"]],
+    S10_CHARGE_OPEN: [["P", "'^/START_WT.CV' := AI1/OUT.CV"], ["N", "'CM_FEED_XV/DC1/CAS_IN_D' := Open"]],
+    S20_TRIM_CLOSE: [["N", "'CM_FEED_XV/DC1/CAS_IN_D' := Close"], ["D", "Confirm PV_D=Closed & Settle 5s"]],
+    S30_AGITATE: [["N", "'CM_AGIT_MTR/DC1/CAS_IN_D' := Start"], ["P", "'^/EM_STATE' := COMPLETE"]]
+  }[STEPS[state.stepIdx]];
+
+  comboActLines.forEach(([q, ex], idx) => {
+    const ay = 538 + idx * 24;
+    vp.appendChild(el("rect", { x: 222, y: ay - 12, width: 22, height: 16, rx: 3, fill: "#e0f2fe" }));
+    vp.appendChild(el("text", { x: 233, y: ay, "text-anchor": "middle", "font-size": 9.5, "font-weight": 800, fill: "#0369a1", "font-family": "ui-monospace, monospace" }, q));
+    vp.appendChild(el("text", { x: 250, y: ay, "font-size": 9.3, fill: "#0f172a", "font-family": "ui-monospace, monospace" }, ex));
+  });
+
+  // Cross-Window Reference Summary inside SFC bottom pane
+  vp.appendChild(el("rect", { x: 222, y: 590, width: 296, height: 196, rx: 5, fill: "#f8fafc", stroke: "#cbd5e1" }));
+  vp.appendChild(el("text", { x: 232, y: 610, "font-size": 10, "font-weight": 800, fill: "#0f172a" },
+    "HOW SFC & MAIN FBD TALK EVERY SCAN:"));
+  const links = [
+    ["FBD #1 CND1 → T10:", d.permReady ? "PERM_READY = 1" : "PERM_READY = 0"],
+    ["FBD #6 CND3 → T20:", d.precloseReached ? "CUTOFF = 1" : `REM ${d.remainingWt.toFixed(0)} kg`],
+    ["FBD #8 CND4 → T30:", d.valveShutOk ? "SHUT_OK = 1" : "SHUT_OK = 0"],
+    ["FBD #2/#3 Trip:", d.tripCondition ? "HOLD FORCED!" : "Clear"],
+    ["SFC Active Cmd:", `XV=${d.feedCmdText}, MTR=${d.agitCmdText}`]
+  ];
+  links.forEach(([lk, lv], i) => {
+    vp.appendChild(el("text", { x: 232, y: 634 + i * 26, "font-size": 9.6, "font-weight": 700, fill: "#475569" }, lk));
+    vp.appendChild(el("text", { x: 508, y: 634 + i * 26, "text-anchor": "end", "font-size": 9.6, "font-weight": 800, fill: "#1e3a8a", "font-family": "ui-monospace, monospace" }, lv));
+  });
+
+  // -----------------------------------------------------------------------
+  // MDI WINDOW 2 (RIGHT): MAIN FBD SHEET (BLOCKS #1 → #9 ALL ON ONE SHEET!)
+  // -----------------------------------------------------------------------
+  vp.appendChild(el("rect", { x: 542, y: 50, width: 858, height: 756, rx: 3, fill: "url(#grid)", stroke: "#3b6ea5", "stroke-width": 1.8 }));
+  vp.appendChild(el("rect", { x: 543, y: 51, width: 856, height: 25, fill: "#2d5a88" }));
+  vp.appendChild(el("text", { x: 554, y: 68, "font-size": 11, "font-weight": 800, fill: "#ffffff", "font-family": "ui-monospace, monospace" },
+    "Main Diagram [FBD Wire Sheet — Solved Continuously #1 → #9 Every Scan]"));
+
+  // --- ZONE A (Top of FBD Sheet: #1 CND1, #2 CND2, #3 ACT1) ---
+  drawFlag(vp, { id: "FLAG_VALVE_MODE", x: 556, y: 92, w: 185, h: 30, side: "left", label: "CM_FEED_XV/MODE.ACT", sub: "", liveText: state.valveMode, status: d.permValveCas ? "ok" : "bad" });
+  drawFlag(vp, { id: "FLAG_SCALE_ST_P2A", x: 556, y: 134, w: 185, h: 30, side: "left", label: "CM_TANK_WT/OUT.ST", sub: "", liveText: state.scaleSt, status: d.permScaleGood ? "ok" : "bad" });
+  drawFlag(vp, { id: "FLAG_HI_HI", x: 556, y: 214, w: 185, h: 30, side: "left", label: "^/HI_HI_LVL.CV", sub: "", liveText: state.hiHi ? "TRIP(1)" : "0", status: state.hiHi ? "bad" : "ok" });
+
+  drawFbdBlock(vp, {
+    id: "CND1", x: 780, y: 88, w: 165, h: 92, cls: "CND", name: "CND1", execNum: 1,
+    inputs: [{ name: "MODE", dy: 38 }, { name: "ST", dy: 68 }], outputs: [{ name: "OUT_D", dy: 52 }],
+    bodyLines: ["Start Permissive"], status: d.permReady ? "ok" : "warn", liveBadge: d.permReady ? "1" : "0"
+  });
+  drawFlag(vp, { id: "FLAG_PERM_READY", x: 990, y: 124, w: 175, h: 30, side: "right", label: "^/PERM_READY", sub: "", liveText: d.permReady ? "→ T10 (1)" : "→ T10 (0)", status: d.permReady ? "ok" : "warn" });
+
+  drawFbdBlock(vp, {
+    id: "CND2", x: 780, y: 198, w: 165, h: 88, cls: "CND", name: "CND2", execNum: 2,
+    inputs: [{ name: "ST", dy: 38 }, { name: "HI_HI", dy: 66 }], outputs: [{ name: "OUT_D", dy: 52 }],
+    bodyLines: ["Active Trip"], status: d.tripCondition ? "bad" : "normal", liveBadge: d.tripCondition ? "TRIP" : "0"
+  });
+  drawFbdBlock(vp, {
+    id: "ACT1", x: 985, y: 198, w: 160, h: 88, cls: "ACT", name: "ACT1", execNum: 3,
+    inputs: [{ name: "IN_D", dy: 52 }], outputs: [{ name: "HOLD", dy: 52 }],
+    bodyLines: ["Close & Hold"], status: d.tripCondition ? "bad" : "normal", liveBadge: d.tripCondition ? "FIRED" : "IDLE"
+  });
+  drawFlag(vp, { id: "FLAG_TRIP_HOLD", x: 1180, y: 234, w: 202, h: 30, side: "right", label: "CAS_IN_D:=Close / HELD", sub: "", liveText: state.emState, status: d.tripCondition ? "bad" : "normal" });
+
+  drawWire(vp, [[741, 107], [760, 107], [760, 126], [780, 126]], { kind: "dashed", active: d.permValveCas, fault: !d.permValveCas });
+  drawWire(vp, [[741, 149], [760, 149], [760, 156], [780, 156]], { kind: "dashed", active: d.permScaleGood, fault: !d.permScaleGood });
+  // Branch OUT.ST down to CND2 (#2) — real unified FBD shared wire!
+  drawWire(vp, [[760, 149], [760, 236], [780, 236]], { kind: "dashed", fault: state.scaleSt === "BAD" });
+  drawWire(vp, [[741, 229], [755, 229], [755, 264], [780, 264]], { kind: "dashed", fault: state.hiHi });
+  drawWire(vp, [[945, 140], [990, 140]], { kind: "dashed", active: d.permReady, fault: !d.permReady });
+  drawWire(vp, [[945, 250], [985, 250]], { kind: "dashed", fault: d.tripCondition });
+  drawWire(vp, [[1145, 250], [1180, 250]], { kind: "dashed", fault: d.tripCondition });
+
+  // --- ZONE B (Middle of FBD Sheet: #4 BSEL1 → #5 CALC1 → #6 CND3 + #7 ACT2) ---
+  drawFlag(vp, { id: "FLAG_RECIPE_WT", x: 556, y: 314, w: 168, h: 28, side: "left", label: "^/RECIPE_WT (500)", sub: "", liveText: "", status: state.useRecipe ? "ok" : "normal" });
+  drawFlag(vp, { id: "FLAG_LOCAL_WT",  x: 556, y: 350, w: 168, h: 28, side: "left", label: "^/LOCAL_WT (250)", sub: "", liveText: "", status: !state.useRecipe ? "ok" : "normal" });
+  drawFlag(vp, { id: "FLAG_USE_RECIPE",x: 556, y: 386, w: 168, h: 28, side: "left", label: "^/USE_RECIPE", sub: "", liveText: state.useRecipe ? "1" : "0", status: "normal" });
+  drawFlag(vp, { id: "FLAG_TANK_WT_CV",x: 556, y: 438, w: 168, h: 28, side: "left", label: "CM_TANK_WT/OUT", sub: "", liveText: `${state.currentWt.toFixed(0)}kg`, status: state.scaleSt === "BAD" ? "bad" : "ok" });
+  drawFlag(vp, { id: "FLAG_START_WT",  x: 556, y: 474, w: 168, h: 28, side: "left", label: "^/START_WT.CV", sub: "", liveText: `${state.startWt.toFixed(0)}kg`, status: "normal" });
+
+  drawFbdBlock(vp, {
+    id: "BSEL1", x: 755, y: 312, w: 142, h: 108, cls: "BSEL", name: "BSEL1", execNum: 4,
+    inputs: [{ name: "IN1", dy: 34 }, { name: "IN2", dy: 62 }, { name: "SEL_D", dy: 90 }],
+    outputs: [{ name: "OUT", dy: 56 }],
+    bodyLines: ["Target Wt"], status: "ok", liveBadge: `${d.targetWt.toFixed(0)}kg`
+  });
+
+  drawFbdBlock(vp, {
+    id: "CALC1", x: 928, y: 342, w: 155, h: 128, cls: "CALC", name: "CALC1", execNum: 5,
+    inputs: [{ name: "TGT", dy: 34 }, { name: "CUR", dy: 72 }, { name: "TARE", dy: 104 }],
+    outputs: [{ name: "REM", dy: 64 }],
+    bodyLines: ["Net & Rem"], status: state.scaleSt === "BAD" ? "bad" : "normal", liveBadge: `${d.remainingWt.toFixed(0)}kg`
+  });
+
+  drawFbdBlock(vp, {
+    id: "CND3", x: 1112, y: 356, w: 138, h: 98, cls: "CND", name: "CND3", execNum: 6,
+    inputs: [{ name: "REM", dy: 50 }], outputs: [{ name: "OUT_D", dy: 50 }],
+    bodyLines: ["<= 15 kg"], status: d.precloseReached ? "ok" : "normal", liveBadge: d.precloseReached ? "1" : "0"
+  });
+
+  drawFlag(vp, { id: "T20_PRECLOSE", x: 1272, y: 391, w: 114, h: 30, side: "right", label: "→ T20_PRE", sub: "", liveText: d.precloseReached ? "TRUE" : "WAIT", status: d.precloseReached ? "ok" : "normal" });
+
+  drawWire(vp, [[724, 328], [740, 328], [740, 346], [755, 346]], { kind: "solid", active: state.useRecipe });
+  drawWire(vp, [[724, 364], [740, 364], [740, 374], [755, 374]], { kind: "solid", active: !state.useRecipe });
+  drawWire(vp, [[724, 400], [740, 400], [740, 402], [755, 402]], { kind: "dashed", active: state.useRecipe });
+  drawWire(vp, [[897, 368], [912, 368], [912, 376], [928, 376]], { kind: "solid", active: true });
+  drawWire(vp, [[724, 452], [908, 452], [908, 414], [928, 414]], { kind: "solid", fault: state.scaleSt === "BAD" });
+  drawWire(vp, [[724, 488], [916, 488], [916, 446], [928, 446]], { kind: "solid" });
+  drawWire(vp, [[1083, 406], [1112, 406]], { kind: "solid", active: d.precloseReached });
+  drawWire(vp, [[1250, 406], [1272, 406]], { kind: "dashed", active: d.precloseReached });
+
+  // #7 ACT2 Cascade Mode Push
+  drawFlag(vp, { id: "FLAG_EM_AUTO", x: 556, y: 538, w: 168, h: 28, side: "left", label: "^/EM_MODE=AUTO", sub: "", liveText: "AUTO", status: "ok" });
+  drawFbdBlock(vp, {
+    id: "ACT2", x: 780, y: 514, w: 165, h: 78, cls: "ACT", name: "ACT2", execNum: 7,
+    inputs: [{ name: "IN_D", dy: 42 }], outputs: [{ name: "CAS", dy: 42 }],
+    bodyLines: ["Push CAS Mode"], status: "ok", liveBadge: "CAS"
+  });
+  drawFlag(vp, { id: "FLAG_FEED_MODE_TGT", x: 990, y: 541, w: 265, h: 30, side: "right", label: "XV & MTR / MODE.TARGET := CAS", sub: "", liveText: `ACT:${state.valveMode}`, status: state.valveMode === "CAS" ? "ok" : "bad" });
+  drawWire(vp, [[724, 552], [780, 556]], { kind: "dashed", active: true });
+  drawWire(vp, [[945, 556], [990, 556]], { kind: "dashed", active: state.valveMode === "CAS", fault: state.valveMode !== "CAS" });
+
+  // --- ZONE C (Bottom of FBD Sheet: Outbound CAS_IN_D + Inbound PV_D #8 CND4 & #9 CND5) ---
+  drawFlag(vp, { id: "FLAG_IN_PV_D", x: 556, y: 632, w: 185, h: 30, side: "left", label: "CM_FEED_XV/DC1/PV_D", sub: "", liveText: d.valvePvText, status: d.valveMismatch ? "bad" : (d.valveShutOk ? "ok" : "normal") });
+  drawFlag(vp, { id: "FLAG_IN_CMD_ECHO", x: 556, y: 726, w: 185, h: 30, side: "left", label: "CM_FEED_XV/CAS_IN_D", sub: "", liveText: d.feedCmdText, status: d.feedCmdOpen ? "ok" : "normal" });
+
+  drawFbdBlock(vp, {
+    id: "CND4", x: 780, y: 614, w: 165, h: 82, cls: "CND", name: "CND4", execNum: 8,
+    inputs: [{ name: "PV_D", dy: 44 }], outputs: [{ name: "OUT_D", dy: 44 }],
+    bodyLines: ["PV_D = Closed"], status: d.valveShutOk ? "ok" : "warn", liveBadge: d.valveShutOk ? "1" : "0"
+  });
+  drawFlag(vp, { id: "FLAG_VALVE_SHUT_OK", x: 990, y: 643, w: 182, h: 30, side: "right", label: "^/VALVE_SHUT_OK", sub: "", liveText: d.valveShutOk ? "→ T30 (1)" : "→ T30 (0)", status: d.valveShutOk ? "ok" : "warn" });
+  drawFlag(vp, { id: "FLAG_OUT_MTR_CMD", x: 1192, y: 643, w: 192, h: 30, side: "right", label: "CM_AGIT_MTR/CAS_IN_D", sub: "", liveText: d.agitCmdText, status: d.agitCmdRun ? "ok" : "normal" });
+
+  drawFbdBlock(vp, {
+    id: "CND5", x: 780, y: 710, w: 165, h: 84, cls: "CND", name: "CND5", execNum: 9,
+    inputs: [{ name: "PV_D", dy: 36 }, { name: "CMD", dy: 62 }], outputs: [{ name: "ALM", dy: 48 }],
+    bodyLines: ["Cmd<>PV (10s)"], status: d.valveMismatch ? "bad" : "normal", liveBadge: d.valveMismatch ? "ALM!" : "0"
+  });
+  drawFlag(vp, { id: "FLAG_MISMATCH_ALM", x: 990, y: 743, w: 205, h: 30, side: "right", label: "^/VALVE_MISMATCH_ALM", sub: "", liveText: d.valveMismatch ? "ACTIVE!" : "CLEAR", status: d.valveMismatch ? "bad" : "ok" });
+  drawFlag(vp, { id: "FLAG_OUT_XV_CMD", x: 1208, y: 743, w: 176, h: 30, side: "right", label: "CM_FEED_XV/CAS_IN_D", sub: "", liveText: d.feedCmdText, status: d.feedCmdOpen ? "ok" : "normal" });
+
+  drawWire(vp, [[741, 647], [760, 647], [760, 658], [780, 658]], { kind: "dashed", active: d.valveShutOk, fault: d.valveMismatch });
+  drawWire(vp, [[760, 647], [760, 746], [780, 746]], { kind: "dashed", fault: d.valveMismatch });
+  drawWire(vp, [[741, 741], [752, 741], [752, 772], [780, 772]], { kind: "dashed", fault: d.valveMismatch });
+  drawWire(vp, [[945, 658], [990, 658]], { kind: "dashed", active: d.valveShutOk, fault: !d.valveShutOk && state.stepIdx === 2 });
+  drawWire(vp, [[945, 758], [990, 758]], { kind: "dashed", fault: d.valveMismatch });
+
+  // -----------------------------------------------------------------------
+  // OPTIONAL TRAINING OVERLAY ("4-PATTERN LENS") ON TOP OF RAW CONTROL STUDIO
+  // -----------------------------------------------------------------------
+  if (showLens) {
+    const zones = [
+      { x: 208, y: 78, w: 324, h: 724, col: "#0284c7", bg: "rgba(2,132,199,0.06)", lbl: "PATTERN 1: STEP FLOW (SFC)" },
+      { x: 550, y: 80, w: 842, h: 214, col: "#dc2626", bg: "rgba(220,38,38,0.05)", lbl: "PATTERN 2: PERMISSIVES & INTERLOCKS (#1–#3)" },
+      { x: 550, y: 302, w: 842, h: 296, col: "#7c3aed", bg: "rgba(124,58,237,0.05)", lbl: "PATTERN 3: MODE & SETPOINT ROUTING (#4–#7)" },
+      { x: 550, y: 606, w: 842, h: 194, col: "#0f766e", bg: "rgba(15,118,110,0.05)", lbl: "PATTERN 4: CM COMMAND & FEEDBACK (#8–#9)" }
+    ];
+    zones.forEach(z => {
+      vp.appendChild(el("rect", {
+        x: z.x, y: z.y, width: z.w, height: z.h, rx: 6,
+        fill: z.bg, stroke: z.col, "stroke-width": 2.4, "stroke-dasharray": "8,5", "pointer-events": "none"
+      }));
+      const bw = z.lbl.length * 6.7 + 16;
+      vp.appendChild(el("rect", { x: z.x + z.w - bw - 8, y: z.y + 6, width: bw, height: 20, rx: 4, fill: z.col, "pointer-events": "none" }));
+      vp.appendChild(el("text", { x: z.x + z.w - bw / 2 - 8, y: z.y + 20, "text-anchor": "middle", "font-size": 10, "font-weight": 800, fill: "#fff", "pointer-events": "none" }, z.lbl));
+    });
+  }
+}
+
+// =========================================================================
 // 4B. RENDERERS FOR MODULE 2: EM_XFER_HDR (STATE-DRIVEN — CHAPTER 7)
 // =========================================================================
 function renderHeaderTab1(vp, h) {
-  // Top Handshake Banner
+  // Top Handshake Strip: EPH CAS_IN_D -> SP_D vs. Confirmed PV_D
   const top = el("g", { class: "clickable", "data-id": "HDR_HANDSHAKE" });
   top.appendChild(el("rect", {
-    x: 35, y: 20, width: 870, height: 66, rx: 8,
+    x: 28, y: 18, width: 884, height: 64, rx: 7,
     fill: state.online ? (h.failActive ? "#fef2f2" : "#eff6ff") : "#f1f5f9",
     stroke: state.selectedId === "HDR_HANDSHAKE" ? "#0284c7" : (h.failActive && state.online ? "#dc2626" : "#64748b"),
     "stroke-width": state.selectedId === "HDR_HANDSHAKE" ? 3 : 1.6
   }));
-  top.appendChild(el("text", { x: 54, y: 42, "font-size": 11.5, "font-weight": 800, fill: "#1e3a8a" },
-    "STATE-DRIVEN HEADER — EPH / OPERATOR REQUEST (EM_S_COMMAND) vs. CONFIRMED ACTUAL STATE (PV_D)"));
-  top.appendChild(el("text", { x: 54, y: 63, "font-size": 11.5, fill: "#0f172a", "font-family": "ui-monospace, monospace", "font-weight": 700 },
-    `EM_S_COMMAND ↓: ${state.hdrCmdState}   |   EFFECTIVE: ${h.effectiveTarget}   |   PV_D ↑: ${h.pvState}   |   FAIL_ACTIVE: ${h.failActive ? "TRUE (ALM)" : "FALSE"}`));
+  top.appendChild(el("text", { x: 46, y: 39, "font-size": 11.2, "font-weight": 800, fill: "#1e3a8a" },
+    "STATE-DRIVEN EM HANDSHAKE — EPH WRITES CAS_IN_D → SP_D (TARGET STATE) | FIELD PROVES PV_D (CONFIRMED STATE)"));
+  top.appendChild(el("text", { x: 46, y: 60, "font-size": 11.2, fill: "#0f172a", "font-family": "ui-monospace, monospace", "font-weight": 700 },
+    `SP_D (Target) ↓: ${state.hdrCmdState}   |   ACTIVE CHART: ${h.effectiveTarget}   |   PV_D ↑: ${h.pvState}   |   FAIL_ACTIVE: ${h.failActive ? "1 (ALM)" : "0"}`));
   vp.appendChild(top);
 
-  // Left Panel: Named-Set State Boxes (No multi-step SFC — direct snap per state!)
-  drawSectionStrip(vp, 35, 105, 305, 440, "NAMED SET STATES (SNAP DIRECTLY)", "#1e3a8a");
+  // Left Pane: Control Studio Hierarchy Tree (STATES Folder — Click any state to open its single-step SFC!)
+  vp.appendChild(el("rect", { x: 28, y: 98, width: 232, height: 452, rx: 4, fill: "#ffffff", stroke: "#64748b", "stroke-width": 1.5 }));
+  vp.appendChild(el("rect", { x: 29, y: 99, width: 230, height: 26, fill: "#e2e8f0" }));
+  vp.appendChild(el("text", { x: 38, y: 116, "font-size": 10.5, "font-weight": 800, fill: "#0f172a" }, "Explorer — EM_XFER_HDR / STATES"));
 
-  const stBoxes = [
-    { key: "HEADER_CLOSED", id: "ST_HEADER_CLOSED", y: 145, sub: "Safe Rest / FAIL_STATE Fallback" },
-    { key: "ROUTE_TANK_A",  id: "ST_ROUTE_TANK_A",  y: 240, sub: "Open XV101 → Run Transfer Pump" },
-    { key: "ROUTE_TANK_B",  id: "ST_ROUTE_TANK_B",  y: 335, sub: "Open XV102 → Run Transfer Pump" },
-    { key: "CIP_FLUSH",     id: "ST_CIP_FLUSH",     y: 430, sub: "Open XV103 Drain → Run CIP Flush" }
+  vp.appendChild(el("text", { x: 38, y: 144, "font-size": 10.5, "font-weight": 800, fill: "#1e3a8a", "font-family": "ui-monospace, monospace" }, "📂 STATES ($xfer_states)"));
+
+  const stItems = [
+    { key: "HEADER_CLOSED", id: "ST_HEADER_CLOSED", idx: 0, y: 166 },
+    { key: "ROUTE_TANK_A",  id: "ST_ROUTE_TANK_A",  idx: 1, y: 218 },
+    { key: "ROUTE_TANK_B",  id: "ST_ROUTE_TANK_B",  idx: 2, y: 270 },
+    { key: "CIP_FLUSH",     id: "ST_CIP_FLUSH",     idx: 3, y: 322 }
   ];
 
-  stBoxes.forEach(sb => {
-    const isTarget = h.effectiveTarget === sb.key;
-    const isConfirmed = h.pvState === sb.key;
-    let fill = "#ffffff", stroke = "#475569";
-    if (state.online) {
-      if (isTarget && isConfirmed) { fill = "#dcfce7"; stroke = "#16a34a"; }
-      else if (isTarget && !isConfirmed) { fill = "#fef3c7"; stroke = "#d97706"; }
+  stItems.forEach(st => {
+    const isAct = h.effectiveTarget === st.key;
+    const isOk = h.pvState === st.key;
+    let fill = "#f8fafc", stroke = "#cbd5e1";
+    if (isAct) {
+      fill = !state.online ? "#dbeafe" : (isOk ? "#dcfce7" : "#fef3c7");
+      stroke = !state.online ? "#2563eb" : (isOk ? "#16a34a" : "#d97706");
     }
-    const g = el("g", { class: "clickable", "data-id": sb.id, "data-cmdstate": sb.key });
-    g.appendChild(el("rect", {
-      x: 58, y: sb.y, width: 258, height: 68, rx: 5, fill, stroke,
-      "stroke-width": state.selectedId === sb.id ? 3 : (isTarget ? 2.4 : 1.6)
-    }));
-    if (sb.key === "HEADER_CLOSED") {
-      g.appendChild(el("rect", { x: 63, y: sb.y + 5, width: 248, height: 58, rx: 3, fill: "none", stroke, "stroke-width": 1.1 }));
-    }
-    g.appendChild(el("text", { x: 187, y: sb.y + 27, "text-anchor": "middle", "font-size": 12.5, "font-weight": 800, fill: "#0f172a", "font-family": "ui-monospace, monospace" }, sb.key));
-    g.appendChild(el("text", { x: 187, y: sb.y + 46, "text-anchor": "middle", "font-size": 10, fill: "#475569", "font-weight": 600 }, sb.sub));
-
-    if (state.online && isTarget) {
-      const badgeTxt = isConfirmed ? "CONFIRMED" : "ALIGNING / FAULT";
-      const badgeCol = isConfirmed ? "#15803d" : "#dc2626";
-      const bw = badgeTxt.length * 6.4 + 12;
-      g.appendChild(el("rect", { x: 310 - bw, y: sb.y - 10, width: bw, height: 17, rx: 4, fill: badgeCol }));
-      g.appendChild(el("text", { x: 310 - bw / 2, y: sb.y + 2, "text-anchor": "middle", "font-size": 9.5, "font-weight": 800, fill: "#fff" }, badgeTxt));
-    }
+    const g = el("g", { class: "clickable", "data-id": st.id, "data-cmdstate": st.key });
+    g.appendChild(el("rect", { x: 40, y: st.y, width: 208, height: 42, rx: 4, fill, stroke, "stroke-width": isAct ? 2.2 : 1.2 }));
+    g.appendChild(el("text", { x: 50, y: st.y + 18, "font-size": 10.5, "font-weight": 800, fill: "#0f172a", "font-family": "ui-monospace, monospace" },
+      `[${st.idx}] ${st.key}`));
+    g.appendChild(el("text", { x: 50, y: st.y + 33, "font-size": 9.3, fill: "#475569" },
+      isAct ? (state.online ? (isOk ? "● Active & Confirmed" : "▲ Active — Unconfirmed!") : "● Viewing Sub-Chart") : "Click to command SP_D"));
     vp.appendChild(g);
   });
 
-  // Right Panel: Control Studio Device Alignment Matrix (State Mask Table)
-  const mx = 360, my = 105, mw = 545, mh = 440;
-  const matGroup = el("g", { class: "clickable", "data-id": "HDR_DEVICE_MASK" });
-  matGroup.appendChild(el("rect", {
-    x: mx, y: my, width: mw, height: mh, rx: 8,
-    fill: "#ffffff", stroke: state.selectedId === "HDR_DEVICE_MASK" ? "#0284c7" : "#475569",
-    "stroke-width": state.selectedId === "HDR_DEVICE_MASK" ? 3 : 1.6
-  }));
-  matGroup.appendChild(el("rect", { x: mx + 1, y: my + 1, width: mw - 2, height: 32, rx: 7, fill: "#dbeafe" }));
-  matGroup.appendChild(el("text", { x: mx + 14, y: my + 21, "font-size": 11.5, "font-weight": 800, fill: "#1e3a8a" },
-    `DEVICE ALIGNMENT MASK FOR TARGET: ${h.effectiveTarget}`));
-
-  // Table Headers
-  const colX = [mx + 16, mx + 195, mx + 295, mx + 405, mx + 492];
-  const headers = ["Control Module (CM)", "Mode", "Cmd (CAS_IN_D)", "Actual (PV_D)", "Align"];
-  headers.forEach((hd, idx) => {
-    matGroup.appendChild(el("text", { x: colX[idx], y: my + 56, "font-size": 10.5, "font-weight": 800, fill: "#334155" }, hd));
+  // Visual Trick Callout inside Explorer Pane
+  vp.appendChild(el("rect", { x: 38, y: 382, width: 212, height: 156, rx: 5, fill: "#eff6ff", stroke: "#93c5fd" }));
+  vp.appendChild(el("text", { x: 48, y: 401, "font-size": 10, "font-weight": 800, fill: "#1e3a8a" }, "DELTAV'S STATE-DRIVEN TRICK:"));
+  const trickLines = [
+    "Control Studio opens an SFC",
+    "window for each state above—",
+    "but look at the center pane:",
+    "it has ONLY ONE STEP (S1)",
+    "followed immediately by a",
+    "Termination bar (═╧═)!",
+    "It snaps all devices at once."
+  ];
+  trickLines.forEach((ln, i) => {
+    vp.appendChild(el("text", { x: 48, y: 420 + i * 16, "font-size": 9.5, fill: "#334155", "font-weight": i === 3 ? 800 : 500 }, ln));
   });
-  matGroup.appendChild(el("line", { x1: mx + 12, y1: my + 65, x2: mx + mw - 12, y2: my + 65, stroke: "#cbd5e1", "stroke-width": 1.4 }));
 
-  const devRows = [
-    { cm: "CM_HDR_XV101 (Tank A)", mode: "CAS", cmd: h.xv101Cmd, pv: h.xv101Pv, ok: h.xv101Match },
-    { cm: "CM_HDR_XV102 (Tank B)", mode: state.xv102Mode, cmd: h.xv102Cmd, pv: h.xv102Pv, ok: h.xv102Match && (state.xv102Mode === "CAS" || h.xv102Cmd === "Close") },
-    { cm: "CM_HDR_XV103 (CIP Drain)", mode: "CAS", cmd: h.xv103Cmd, pv: h.xv103Pv, ok: h.xv103Match },
-    { cm: "CM_XFER_PMP (Pump)", mode: "CAS", cmd: `${h.pmpCmd} (Mask:${h.mask.pmp})`, pv: h.pmpPv, ok: h.pmpMatch }
+  // Center Pane: Authentic Control Studio Single-Step State SFC Sub-Window!
+  vp.appendChild(el("rect", { x: 274, y: 98, width: 286, height: 452, rx: 4, fill: "url(#grid)", stroke: "#3b6ea5", "stroke-width": 1.8 }));
+  vp.appendChild(el("rect", { x: 275, y: 99, width: 284, height: 26, fill: "#2d5a88" }));
+  vp.appendChild(el("text", { x: 286, y: 116, "font-size": 10.5, "font-weight": 800, fill: "#ffffff", "font-family": "ui-monospace, monospace" },
+    `${h.effectiveTarget} [State SFC]`));
+
+  // Single Initial Step Box S1 (Double-bordered!)
+  const stepOk = h.stateAligned;
+  const sFill = !state.online ? "#ffffff" : (stepOk ? "#dcfce7" : "#fef3c7");
+  const sStroke = !state.online ? "#334155" : (stepOk ? "#16a34a" : "#d97706");
+  const sGroup = el("g", { class: "clickable", "data-id": "ST_" + h.effectiveTarget });
+  sGroup.appendChild(el("rect", { x: 312, y: 164, width: 210, height: 64, rx: 4, fill: sFill, stroke: sStroke, "stroke-width": 2.4 }));
+  sGroup.appendChild(el("rect", { x: 317, y: 169, width: 200, height: 54, rx: 2, fill: "none", stroke: sStroke, "stroke-width": 1.2 }));
+  sGroup.appendChild(el("text", { x: 417, y: 192, "text-anchor": "middle", "font-size": 12, "font-weight": 800, fill: "#0f172a", "font-family": "ui-monospace, monospace" },
+    "S1_DRIVE_STATE"));
+  sGroup.appendChild(el("text", { x: 417, y: 211, "text-anchor": "middle", "font-size": 9.8, fill: "#475569", "font-weight": 600 },
+    `Single-Step Snap: ${h.effectiveTarget}`));
+  vp.appendChild(sGroup);
+
+  // Spine down to Transition T1_CONFIRMED
+  vp.appendChild(el("line", { x1: 417, y1: 228, x2: 417, y2: 348, stroke: "#334155", "stroke-width": 2.2 }));
+  const tCol = !state.online ? "#1e293b" : (stepOk ? "#16a34a" : "#dc2626");
+  vp.appendChild(el("line", { x1: 393, y1: 288, x2: 441, y2: 288, stroke: tCol, "stroke-width": 4.5 }));
+  vp.appendChild(el("text", { x: 448, y: 285, "font-size": 10.5, "font-weight": 800, fill: tCol, "font-family": "ui-monospace, monospace" },
+    "T1_CONFIRMED"));
+  vp.appendChild(el("text", { x: 448, y: 300, "font-size": 9.3, fill: "#475569", "font-family": "ui-monospace, monospace" },
+    `PV_D = ${h.effectiveTarget}`));
+
+  // Authentic DeltaV SFC Termination Bar (═╧═) — NO Step 2, Step 3!
+  vp.appendChild(el("line", { x1: 385, y1: 348, x2: 449, y2: 348, stroke: "#0f172a", "stroke-width": 3.5 }));
+  vp.appendChild(el("line", { x1: 397, y1: 355, x2: 437, y2: 355, stroke: "#0f172a", "stroke-width": 2.2 }));
+  vp.appendChild(el("text", { x: 417, y: 376, "text-anchor": "middle", "font-size": 10, "font-weight": 800, fill: "#475569", "font-family": "ui-monospace, monospace" },
+    "TERMINATION (End of State Chart)"));
+  vp.appendChild(el("text", { x: 417, y: 394, "text-anchor": "middle", "font-size": 9.5, fill: "#64748b", "font-style": "italic" },
+    "Zero multi-step sequencing — holds state!"));
+
+  // Right Pane: Control Studio Step S1 Action Pane + Live Readback Proof
+  const rx = 574, ry = 98, rw = 338, rh = 452;
+  const actPane = el("g", { class: "clickable", "data-id": "HDR_DEVICE_MASK" });
+  actPane.appendChild(el("rect", { x: rx, y: ry, width: rw, height: rh, rx: 4, fill: "#ffffff", stroke: "#64748b", "stroke-width": 1.5 }));
+  actPane.appendChild(el("rect", { x: rx + 1, y: ry + 1, width: rw - 2, height: 26, fill: "#dbeafe" }));
+  actPane.appendChild(el("text", { x: rx + 10, y: ry + 18, "font-size": 10.5, "font-weight": 800, fill: "#1e3a8a" },
+    `S1 Actions Pane & Readback — ${h.effectiveTarget}`));
+
+  actPane.appendChild(el("text", { x: rx + 10, y: ry + 45, "font-size": 9.5, "font-weight": 800, fill: "#475569", "font-family": "ui-monospace, monospace" },
+    "Q | Action Expression           | Field PV_D"));
+  actPane.appendChild(el("line", { x1: rx + 8, y1: ry + 52, x2: rx + rw - 8, y2: ry + 52, stroke: "#cbd5e1" }));
+
+  const aRows = [
+    { q: "P", expr: `XV101/CAS_IN_D := ${h.xv101Cmd}`, pv: h.xv101Pv, ok: h.xv101Match },
+    { q: "P", expr: `XV102/CAS_IN_D := ${h.xv102Cmd}`, pv: h.xv102Pv, ok: h.xv102Match && (state.xv102Mode === "CAS" || h.xv102Cmd === "Close") },
+    { q: "P", expr: `XV103/CAS_IN_D := ${h.xv103Cmd}`, pv: h.xv103Pv, ok: h.xv103Match },
+    { q: "N", expr: `PMP := ${h.pmpCmd} (PathGated)`, pv: h.pmpPv, ok: h.pmpMatch }
   ];
 
-  devRows.forEach((r, i) => {
-    const ry = my + 98 + i * 62;
-    matGroup.appendChild(el("rect", {
-      x: mx + 10, y: ry - 22, width: mw - 20, height: 48, rx: 5,
+  aRows.forEach((r, i) => {
+    const y = ry + 80 + i * 58;
+    actPane.appendChild(el("rect", {
+      x: rx + 8, y: y - 20, width: rw - 16, height: 44, rx: 4,
       fill: state.online ? (r.ok ? "#f0fdf4" : "#fef2f2") : "#f8fafc",
       stroke: state.online ? (r.ok ? "#86efac" : "#fca5a5") : "#e2e8f0"
     }));
-    matGroup.appendChild(el("text", { x: colX[0], y: ry + 5, "font-size": 11, "font-weight": 800, fill: "#0f172a", "font-family": "ui-monospace, monospace" }, r.cm));
-    matGroup.appendChild(el("text", { x: colX[1], y: ry + 5, "font-size": 11, "font-weight": 700, fill: r.mode === "CAS" ? "#15803d" : "#dc2626", "font-family": "ui-monospace, monospace" }, r.mode));
-    matGroup.appendChild(el("text", { x: colX[2], y: ry + 5, "font-size": 10.8, "font-weight": 700, fill: "#1e3a8a", "font-family": "ui-monospace, monospace" }, r.cmd));
-    matGroup.appendChild(el("text", { x: colX[3], y: ry + 5, "font-size": 10.8, "font-weight": 700, fill: r.ok ? "#15803d" : "#dc2626", "font-family": "ui-monospace, monospace" }, r.pv));
-    matGroup.appendChild(el("text", { x: colX[4], y: ry + 5, "font-size": 10.5, "font-weight": 800, fill: r.ok ? "#15803d" : "#dc2626" }, r.ok ? "OK" : "FAULT"));
+    actPane.appendChild(el("rect", { x: rx + 14, y: y - 10, width: 18, height: 18, rx: 3, fill: "#e0f2fe" }));
+    actPane.appendChild(el("text", { x: rx + 23, y: y + 3, "text-anchor": "middle", "font-size": 9.5, "font-weight": 800, fill: "#0369a1", "font-family": "ui-monospace, monospace" }, r.q));
+    actPane.appendChild(el("text", { x: rx + 38, y: y + 3, "font-size": 9.6, "font-weight": 700, fill: "#0f172a", "font-family": "ui-monospace, monospace" }, r.expr));
+    actPane.appendChild(el("text", { x: rx + rw - 14, y: y + 3, "text-anchor": "end", "font-size": 9.6, "font-weight": 800, fill: r.ok ? "#15803d" : "#dc2626", "font-family": "ui-monospace, monospace" }, r.pv));
   });
 
-  // Key takeaway callout inside matrix
-  matGroup.appendChild(el("rect", { x: mx + 14, y: my + 340, width: mw - 28, height: 84, rx: 6, fill: "#eff6ff", stroke: "#93c5fd" }));
-  matGroup.appendChild(el("text", { x: mx + 26, y: my + 362, "font-size": 11, "font-weight": 800, fill: "#1e3a8a" },
-    "HOW TO READ A STATE-DRIVEN EM IN 5 SECONDS:"));
-  matGroup.appendChild(el("text", { x: mx + 26, y: my + 382, "font-size": 10.5, fill: "#334155" },
-    "1. Compare EM_S_COMMAND (Desired) vs. PV_D (Confirmed). If unequal, look for the red row above."));
-  matGroup.appendChild(el("text", { x: mx + 26, y: my + 400, "font-size": 10.5, fill: "#334155" },
-    "2. Notice CM_XFER_PMP waits at Stop until ALL 3 header valves prove aligned (prevents cross-mixing!)."));
-  matGroup.appendChild(el("text", { x: mx + 26, y: my + 417, "font-size": 10.2, fill: "#0369a1", "font-weight": 700 },
-    "Tip: Click any state box on the left (or buttons above) and toggle XV102 Stuck/MAN to watch!"));
-  vp.appendChild(matGroup);
+  actPane.appendChild(el("rect", { x: rx + 10, y: ry + 318, width: rw - 20, height: 120, rx: 5, fill: "#f8fafc", stroke: "#cbd5e1" }));
+  actPane.appendChild(el("text", { x: rx + 18, y: ry + 338, "font-size": 10, "font-weight": 800, fill: "#0f172a" },
+    "WHY PUMP USES [N] GATED BY FBD:"));
+  actPane.appendChild(el("text", { x: rx + 18, y: ry + 357, "font-size": 9.5, fill: "#334155" },
+    "Valves pulse [P] immediately when SP_D changes,"));
+  actPane.appendChild(el("text", { x: rx + 18, y: ry + 373, "font-size": 9.5, fill: "#334155" },
+    "while Tab 2's CND_PATH_OK (#1) holds CM_XFER_PMP"));
+  actPane.appendChild(el("text", { x: rx + 18, y: ry + 389, "font-size": 9.5, fill: "#334155" },
+    "at Stop until XV101/102/103 limit switches prove"));
+  actPane.appendChild(el("text", { x: rx + 18, y: ry + 405, "font-size": 9.5, fill: "#334155" },
+    "aligned — preventing Tank A/B cross-mixing!"));
+  actPane.appendChild(el("text", { x: rx + 18, y: ry + 426, "font-size": 9.5, "font-weight": 700, fill: "#0284c7" },
+    "Click Tab 4 [COMBO] to see SFC + FBD together!"));
+  vp.appendChild(actPane);
 }
 
 function renderHeaderTab2(vp, h) {
@@ -1500,7 +1859,7 @@ function renderHeaderTab3(vp, h) {
   drawFlag(vp, { id: "FLAG_T3_XV102", x: 45, y: 155, w: 225, side: "left", label: "'CM_HDR_XV102/DC1/PV_D'", sub: "Tank B Valve Proof", liveText: h.xv102Pv, status: h.xv102Match ? "ok" : "bad" });
   drawFlag(vp, { id: "FLAG_T3_XV103", x: 45, y: 215, w: 225, side: "left", label: "'CM_HDR_XV103/DC1/PV_D'", sub: "CIP Drain Valve Proof", liveText: h.xv103Pv, status: h.xv103Match ? "ok" : "bad" });
   drawFlag(vp, { id: "FLAG_T3_PMP",   x: 45, y: 275, w: 225, side: "left", label: "'CM_XFER_PMP/DC1/PV_D'",  sub: "Transfer Pump Run Proof", liveText: h.pmpPv, status: h.pmpMatch ? "ok" : "warn" });
-  drawFlag(vp, { id: "FLAG_T3_CMD",   x: 45, y: 395, w: 225, side: "left", label: "'^/EM_S_COMMAND'", sub: "Desired Header State", liveText: state.hdrCmdState, status: "normal" });
+  drawFlag(vp, { id: "FLAG_T3_CMD",   x: 45, y: 395, w: 225, side: "left", label: "'^/SP_D'", sub: "Target State (from CAS_IN_D)", liveText: state.hdrCmdState, status: "normal" });
 
   drawFbdBlock(vp, {
     id: "CALC_PV_STATE", x: 330, y: 105, w: 215, h: 195, cls: "CALC", name: "CALC_PV_STATE", execNum: 1,
@@ -1512,9 +1871,9 @@ function renderHeaderTab3(vp, h) {
 
   drawFbdBlock(vp, {
     id: "CND_FAIL_ALM", x: 600, y: 290, w: 195, h: 138, cls: "CND", name: "CND_FAIL_ALM", execNum: 2,
-    inputs: [{ name: "PV_D", dy: 46 }, { name: "CMD", dy: 96 }],
+    inputs: [{ name: "PV_D", dy: 46 }, { name: "SP_D", dy: 96 }],
     outputs: [{ name: "OUT_D", dy: 70 }],
-    bodyLines: ["DURATION = 8s", "EM_S_COMMAND <> PV_D"],
+    bodyLines: ["DURATION = 8s", "SP_D <> PV_D"],
     status: h.failActive ? "bad" : "ok", liveBadge: h.failActive ? "FAIL_ACTIVE=1" : "CLEAR (0)"
   });
 
@@ -1530,6 +1889,229 @@ function renderHeaderTab3(vp, h) {
   drawWire(vp, [[572, 201], [572, 336], [600, 336]], { kind: "dashed", fault: h.failActive });
   drawWire(vp, [[270, 412], [572, 412], [572, 386], [600, 386]], { kind: "dashed" });
   drawWire(vp, [[795, 360], [815, 360]], { kind: "dashed", fault: h.failActive });
+}
+
+// =========================================================================
+// 4B-4. TAB 4 COMBO: FULL CONTROL STUDIO VIEW FOR STATE-DRIVEN EM_XFER_HDR
+// =========================================================================
+function renderHeaderTab4Combo(vp, h) {
+  const showLens = Boolean(state.showComboLens);
+
+  vp.appendChild(el("rect", { x: 12, y: 10, width: 1396, height: 805, rx: 6, fill: "#dfe6ee", stroke: "#334155", "stroke-width": 2 }));
+  vp.appendChild(el("rect", { x: 12, y: 10, width: 1396, height: 32, rx: 5, fill: "#1e293b" }));
+  vp.appendChild(el("text", {
+    x: 26, y: 30, "font-size": 12, "font-weight": 800, fill: "#f8fafc", "font-family": "ui-monospace, monospace"
+  }, `[AREA_A / EM_XFER_HDR [State-Driven — ${state.online ? "SP_D=" + state.hdrCmdState : "Off-Line"}] — Control Studio]`));
+
+  const lensBtn = el("g", { class: "clickable", "data-id": "TOGGLE_COMBO_LENS" });
+  lensBtn.appendChild(el("rect", { x: 1155, y: 15, width: 240, height: 22, rx: 4, fill: showLens ? "#0284c7" : "#334155", stroke: "#7dd3fc", "stroke-width": 1.2 }));
+  lensBtn.appendChild(el("text", { x: 1275, y: 30, "text-anchor": "middle", "font-size": 10.5, "font-weight": 800, fill: "#ffffff" },
+    showLens ? "🔍 4-Pattern Lens: ON (Click for Raw)" : "🔍 4-Pattern Lens: OFF (Raw Studio)"));
+  vp.appendChild(lensBtn);
+
+  // Far-Left Explorer Hierarchy Tree
+  vp.appendChild(el("rect", { x: 20, y: 50, width: 190, height: 756, rx: 3, fill: "#ffffff", stroke: "#64748b", "stroke-width": 1.4 }));
+  vp.appendChild(el("rect", { x: 21, y: 51, width: 188, height: 24, fill: "#e2e8f0" }));
+  vp.appendChild(el("text", { x: 28, y: 67, "font-size": 10.5, "font-weight": 800, fill: "#0f172a" }, "Explorer — EM_XFER_HDR"));
+
+  const hTree = [
+    { id: "HDR_HANDSHAKE", txt: "▣ EM_XFER_HDR", y: 94, bold: true, col: "#0f172a" },
+    { id: "CND_PATH_OK",   txt: "  ├─ #1 CND_PATH_OK", y: 118, col: "#334155" },
+    { id: "ACT_PMP_GATE",  txt: "  ├─ #2 ACT_PMP_GATE", y: 140, col: "#334155" },
+    { id: "CND_HDR_HI",    txt: "  ├─ #3 CND_HDR_HI", y: 162, col: "#334155" },
+    { id: "ACT_FAIL_STATE",txt: "  ├─ #4 ACT_FAIL_ST", y: 184, col: "#334155" },
+    { id: "ACT2",          txt: "  ├─ #5 ACT_MODE_CAS", y: 206, col: "#334155" },
+    { id: "CALC_PV_STATE", txt: "  ├─ #6 CALC_PV_STATE", y: 228, col: "#334155" },
+    { id: "CND_FAIL_ALM",  txt: "  ├─ #7 CND_FAIL_ALM", y: 250, col: "#334155" },
+    { id: "HDR_DEVICE_MASK",txt:"  └─ 📂 STATES (SP_D)", y: 280, bold: true, col: "#1e3a8a" },
+    { id: "ST_HEADER_CLOSED", cmd: "HEADER_CLOSED", txt: "      ├─ [0] HEADER_CLOSED", y: 304, col: h.effectiveTarget === "HEADER_CLOSED" ? "#15803d" : "#475569" },
+    { id: "ST_ROUTE_TANK_A",  cmd: "ROUTE_TANK_A",  txt: "      ├─ [1] ROUTE_TANK_A",  y: 326, col: h.effectiveTarget === "ROUTE_TANK_A" ? "#15803d" : "#475569" },
+    { id: "ST_ROUTE_TANK_B",  cmd: "ROUTE_TANK_B",  txt: "      ├─ [2] ROUTE_TANK_B",  y: 348, col: h.effectiveTarget === "ROUTE_TANK_B" ? "#15803d" : "#475569" },
+    { id: "ST_CIP_FLUSH",     cmd: "CIP_FLUSH",     txt: "      └─ [3] CIP_FLUSH",     y: 370, col: h.effectiveTarget === "CIP_FLUSH" ? "#15803d" : "#475569" }
+  ];
+  hTree.forEach(ti => {
+    const attrs = { class: "clickable", "data-id": ti.id };
+    if (ti.cmd) attrs["data-cmdstate"] = ti.cmd;
+    const tg = el("g", attrs);
+    tg.appendChild(el("text", { x: 26, y: ti.y, "font-size": 9.8, "font-weight": ti.bold ? 800 : 600, fill: ti.col, "font-family": "ui-monospace, monospace" }, ti.txt));
+    vp.appendChild(tg);
+  });
+
+  // Watch Table bottom-left
+  vp.appendChild(el("line", { x1: 20, y1: 400, x2: 210, y2: 400, stroke: "#94a3b8" }));
+  vp.appendChild(el("rect", { x: 21, y: 401, width: 188, height: 22, fill: "#e2e8f0" }));
+  vp.appendChild(el("text", { x: 28, y: 416, "font-size": 10, "font-weight": 800, fill: "#0f172a" }, "Parameter | On-Line Value"));
+  const hw = [
+    ["SP_D", state.hdrCmdState.slice(0, 12)],
+    ["PV_D", h.pvState.slice(0, 12)],
+    ["FAIL_ACT", h.failActive ? "True (1)" : "False (0)"],
+    ["XV101_PV", h.xv101Pv],
+    ["XV102_PV", h.xv102Pv],
+    ["XV102_MODE", state.xv102Mode],
+    ["XV103_PV", h.xv103Pv],
+    ["XFER_PMP", h.pmpPv],
+    ["HDR_PT", `${state.hdrPress.toFixed(1)} bar`]
+  ];
+  hw.forEach(([k, v], i) => {
+    const wy = 442 + i * 26;
+    vp.appendChild(el("text", { x: 26, y: wy, "font-size": 9.5, fill: "#334155", "font-family": "ui-monospace, monospace" }, k));
+    vp.appendChild(el("text", { x: 203, y: wy, "text-anchor": "end", "font-size": 9.5, "font-weight": 800, fill: "#0f172a", "font-family": "ui-monospace, monospace" }, v));
+  });
+
+  // Center-Left MDI Window: Active State's Single-Step SFC Sub-Window
+  vp.appendChild(el("rect", { x: 218, y: 50, width: 316, height: 756, rx: 3, fill: "url(#grid)", stroke: "#3b6ea5", "stroke-width": 1.8 }));
+  vp.appendChild(el("rect", { x: 219, y: 51, width: 314, height: 25, fill: "#2d5a88" }));
+  vp.appendChild(el("text", { x: 228, y: 68, "font-size": 10.6, "font-weight": 800, fill: "#ffffff", "font-family": "ui-monospace, monospace" },
+    `${h.effectiveTarget} [Single-Step State SFC]`));
+
+  const sCol = !state.online ? "#334155" : (h.stateAligned ? "#16a34a" : "#d97706");
+  const sBg  = !state.online ? "#ffffff" : (h.stateAligned ? "#dcfce7" : "#fef3c7");
+  const sg = el("g", { class: "clickable", "data-id": "ST_" + h.effectiveTarget });
+  sg.appendChild(el("rect", { x: 274, y: 120, width: 204, height: 58, rx: 4, fill: sBg, stroke: sCol, "stroke-width": 2.3 }));
+  sg.appendChild(el("rect", { x: 279, y: 125, width: 194, height: 48, rx: 2, fill: "none", stroke: sCol, "stroke-width": 1.1 }));
+  sg.appendChild(el("text", { x: 376, y: 146, "text-anchor": "middle", "font-size": 11.5, "font-weight": 800, fill: "#0f172a", "font-family": "ui-monospace, monospace" }, "S1_DRIVE_STATE"));
+  sg.appendChild(el("text", { x: 376, y: 163, "text-anchor": "middle", "font-size": 9.5, fill: "#475569", "font-weight": 600 }, h.effectiveTarget));
+  vp.appendChild(sg);
+
+  vp.appendChild(el("line", { x1: 376, y1: 178, x2: 376, y2: 282, stroke: "#334155", "stroke-width": 2.2 }));
+  const tc = !state.online ? "#1e293b" : (h.stateAligned ? "#16a34a" : "#dc2626");
+  vp.appendChild(el("line", { x1: 352, y1: 230, x2: 400, y2: 230, stroke: tc, "stroke-width": 4.2 }));
+  vp.appendChild(el("text", { x: 408, y: 228, "font-size": 10, "font-weight": 800, fill: tc, "font-family": "ui-monospace, monospace" }, "T1_CONFIRMED"));
+  vp.appendChild(el("text", { x: 408, y: 241, "font-size": 8.8, fill: "#475569", "font-family": "ui-monospace, monospace" }, "PV_D = SP_D"));
+
+  // Termination Bar ═╧═
+  vp.appendChild(el("line", { x1: 346, y1: 282, x2: 406, y2: 282, stroke: "#0f172a", "stroke-width": 3.5 }));
+  vp.appendChild(el("line", { x1: 358, y1: 289, x2: 394, y2: 289, stroke: "#0f172a", "stroke-width": 2 }));
+  vp.appendChild(el("text", { x: 376, y: 308, "text-anchor": "middle", "font-size": 9.5, "font-weight": 800, fill: "#475569", "font-family": "ui-monospace, monospace" }, "═╧═ TERMINATION"));
+
+  // Step S1 Actions Pane bottom of State SFC Window
+  vp.appendChild(el("rect", { x: 226, y: 340, width: 300, height: 454, rx: 3, fill: "#ffffff", stroke: "#94a3b8", "stroke-width": 1.3 }));
+  vp.appendChild(el("rect", { x: 227, y: 341, width: 298, height: 23, fill: "#dbeafe" }));
+  vp.appendChild(el("text", { x: 234, y: 356, "font-size": 10, "font-weight": 800, fill: "#1e3a8a" }, `Step S1 Actions — ${h.effectiveTarget}`));
+  const sActs = [
+    ["P", `'CM_HDR_XV101/CAS_IN_D' := ${h.xv101Cmd}`],
+    ["P", `'CM_HDR_XV102/CAS_IN_D' := ${h.xv102Cmd}`],
+    ["P", `'CM_HDR_XV103/CAS_IN_D' := ${h.xv103Cmd}`],
+    ["N", `PMP Desired := ${h.mask.pmp} (FBD Gated)`]
+  ];
+  sActs.forEach(([q, ex], idx) => {
+    const ay = 388 + idx * 28;
+    vp.appendChild(el("rect", { x: 234, y: ay - 12, width: 20, height: 16, rx: 3, fill: "#e0f2fe" }));
+    vp.appendChild(el("text", { x: 244, y: ay, "text-anchor": "middle", "font-size": 9.2, "font-weight": 800, fill: "#0369a1", "font-family": "ui-monospace, monospace" }, q));
+    vp.appendChild(el("text", { x: 260, y: ay, "font-size": 9.2, fill: "#0f172a", "font-family": "ui-monospace, monospace" }, ex));
+  });
+
+  vp.appendChild(el("rect", { x: 234, y: 515, width: 284, height: 262, rx: 5, fill: "#f8fafc", stroke: "#cbd5e1" }));
+  vp.appendChild(el("text", { x: 244, y: 536, "font-size": 10, "font-weight": 800, fill: "#0f172a" }, "NOTICE WHAT'S DIFFERENT HERE:"));
+  const diffNotes = [
+    "1. No multi-step sequence! Each state",
+    "   in STATES has just ONE step (S1).",
+    "2. No analog setpoint math (BSEL/CALC)",
+    "   needed—Pattern 3 is just #5 ACT_CAS",
+    "   aligning downstream valve modes.",
+    "3. All safety & feedback work lives on",
+    "   the Main FBD sheet (#1–#7) at right!"
+  ];
+  diffNotes.forEach((ln, i) => {
+    vp.appendChild(el("text", { x: 244, y: 558 + i * 20, "font-size": 9.5, fill: "#334155" }, ln));
+  });
+
+  // Right MDI Window: Main Continuous FBD Sheet (#1 → #7)
+  vp.appendChild(el("rect", { x: 542, y: 50, width: 858, height: 756, rx: 3, fill: "url(#grid)", stroke: "#3b6ea5", "stroke-width": 1.8 }));
+  vp.appendChild(el("rect", { x: 543, y: 51, width: 856, height: 25, fill: "#2d5a88" }));
+  vp.appendChild(el("text", { x: 554, y: 68, "font-size": 11, "font-weight": 800, fill: "#ffffff", "font-family": "ui-monospace, monospace" },
+    "Main Diagram [FBD Wire Sheet — Solved Continuously #1 → #7 Every Scan]"));
+
+  // #1 CND_PATH_OK -> #2 ACT_PMP_GATE + #3 CND_HDR_HI -> #4 ACT_FAIL_STATE
+  drawFlag(vp, { id: "FLAG_XV101_PV", x: 556, y: 92,  w: 185, h: 28, side: "left", label: "CM_HDR_XV101/PV_D", sub: "", liveText: h.xv101Pv, status: h.xv101Match ? "ok" : "bad" });
+  drawFlag(vp, { id: "FLAG_XV102_PV", x: 556, y: 128, w: 185, h: 28, side: "left", label: "CM_HDR_XV102/PV_D", sub: "", liveText: h.xv102Pv, status: h.xv102Match ? "ok" : "bad" });
+  drawFlag(vp, { id: "FLAG_XV103_PV", x: 556, y: 164, w: 185, h: 28, side: "left", label: "CM_HDR_XV103/PV_D", sub: "", liveText: h.xv103Pv, status: h.xv103Match ? "ok" : "bad" });
+
+  drawFbdBlock(vp, {
+    id: "CND_PATH_OK", x: 780, y: 90, w: 170, h: 102, cls: "CND", name: "CND_PATH_OK", execNum: 1,
+    inputs: [{ name: "101", dy: 34 }, { name: "102", dy: 58 }, { name: "103", dy: 82 }], outputs: [{ name: "OK", dy: 58 }],
+    bodyLines: ["Anti-Cross-Mix"], status: h.valvesAligned ? "ok" : "bad", liveBadge: h.valvesAligned ? "1" : "0"
+  });
+  drawFbdBlock(vp, {
+    id: "ACT_PMP_GATE", x: 985, y: 96, w: 165, h: 90, cls: "ACT", name: "ACT_PMP_GATE", execNum: 2,
+    inputs: [{ name: "IN_D", dy: 52 }], outputs: [{ name: "CMD", dy: 52 }],
+    bodyLines: ["Pump Start Gate"], status: h.pmpCmd === "Start" ? "ok" : "normal", liveBadge: h.pmpCmd
+  });
+  drawFlag(vp, { id: "FLAG_PMP_CMD", x: 1185, y: 133, w: 195, h: 30, side: "right", label: "CM_XFER_PMP/CAS_IN_D", sub: "", liveText: h.pmpCmd, status: h.pmpCmd === "Start" ? "ok" : "normal" });
+
+  drawFlag(vp, { id: "FLAG_HDR_PT", x: 556, y: 232, w: 185, h: 30, side: "left", label: "CM_HDR_PT/AI1/OUT", sub: "", liveText: `${state.hdrPress.toFixed(1)}bar`, status: h.highPressTrip ? "bad" : "ok" });
+  drawFbdBlock(vp, {
+    id: "CND_HDR_HI", x: 780, y: 212, w: 170, h: 86, cls: "CND", name: "CND_HDR_HI", execNum: 3,
+    inputs: [{ name: "PT", dy: 44 }], outputs: [{ name: "TRIP", dy: 44 }],
+    bodyLines: ["> 6.0 bar"], status: h.highPressTrip ? "bad" : "normal", liveBadge: h.highPressTrip ? "TRIP" : "0"
+  });
+  drawFbdBlock(vp, {
+    id: "ACT_FAIL_STATE", x: 985, y: 212, w: 165, h: 86, cls: "ACT", name: "ACT_FAIL_STATE", execNum: 4,
+    inputs: [{ name: "IN_D", dy: 44 }], outputs: [{ name: "SAFE", dy: 44 }],
+    bodyLines: ["HEADER_CLOSED"], status: h.highPressTrip ? "bad" : "normal", liveBadge: h.highPressTrip ? "SHUT!" : "0"
+  });
+  drawFlag(vp, { id: "FLAG_FAIL_OUT", x: 1185, y: 241, w: 195, h: 30, side: "right", label: "^/FAIL_STATE := CLOSED", sub: "", liveText: h.highPressTrip ? "ACTIVE" : "0", status: h.highPressTrip ? "bad" : "ok" });
+
+  drawWire(vp, [[741, 106], [760, 106], [760, 124], [780, 124]], { kind: "dashed", active: h.xv101Match });
+  drawWire(vp, [[741, 142], [760, 142], [760, 148], [780, 148]], { kind: "dashed", active: h.xv102Match, fault: !h.xv102Match });
+  drawWire(vp, [[741, 178], [760, 178], [760, 172], [780, 172]], { kind: "dashed", active: h.xv103Match });
+  drawWire(vp, [[950, 148], [985, 148]], { kind: "dashed", active: h.valvesAligned, fault: !h.valvesAligned });
+  drawWire(vp, [[1150, 148], [1185, 148]], { kind: "dashed", active: h.pmpCmd === "Start" });
+  drawWire(vp, [[741, 247], [780, 256]], { kind: "solid", fault: h.highPressTrip });
+  drawWire(vp, [[950, 256], [985, 256]], { kind: "dashed", fault: h.highPressTrip });
+  drawWire(vp, [[1150, 256], [1185, 256]], { kind: "dashed", fault: h.highPressTrip });
+
+  // #5 ACT_MODE_CAS (Mode Alignment — Pattern 3!)
+  drawFlag(vp, { id: "FLAG_EM_AUTO", x: 556, y: 356, w: 185, h: 30, side: "left", label: "^/MODE.ACTUAL=CAS", sub: "", liveText: "CAS", status: "ok" });
+  drawFbdBlock(vp, {
+    id: "ACT2", x: 780, y: 332, w: 170, h: 80, cls: "ACT", name: "ACT_MODE_CAS", execNum: 5,
+    inputs: [{ name: "IN_D", dy: 42 }], outputs: [{ name: "CAS", dy: 42 }],
+    bodyLines: ["Push CAS to 4 CMs"], status: state.xv102Mode === "CAS" ? "ok" : "warn", liveBadge: "CAS"
+  });
+  drawFlag(vp, { id: "FLAG_FEED_MODE_TGT", x: 985, y: 359, w: 280, h: 30, side: "right", label: "XV101..103 & PMP / MODE.TARGET", sub: "", liveText: `XV102:${state.xv102Mode}`, status: state.xv102Mode === "CAS" ? "ok" : "bad" });
+  drawWire(vp, [[741, 371], [780, 374]], { kind: "dashed", active: true });
+  drawWire(vp, [[950, 374], [985, 374]], { kind: "dashed", active: state.xv102Mode === "CAS", fault: state.xv102Mode !== "CAS" });
+
+  // #6 CALC_PV_STATE -> #7 CND_FAIL_ALM (CM Feedback & State Confirmation — Pattern 4!)
+  drawFlag(vp, { id: "FLAG_T3_PMP", x: 556, y: 500, w: 185, h: 30, side: "left", label: "CM_XFER_PMP/PV_D", sub: "", liveText: h.pmpPv, status: h.pmpMatch ? "ok" : "warn" });
+  drawFlag(vp, { id: "FLAG_T3_CMD", x: 556, y: 690, w: 185, h: 30, side: "left", label: "^/SP_D (Target)", sub: "", liveText: state.hdrCmdState.slice(0, 12), status: "normal" });
+
+  drawFbdBlock(vp, {
+    id: "CALC_PV_STATE", x: 780, y: 462, w: 185, h: 138, cls: "CALC", name: "CALC_PV_STATE", execNum: 6,
+    inputs: [{ name: "XVs", dy: 44 }, { name: "PMP", dy: 90 }], outputs: [{ name: "PV_D", dy: 68 }],
+    bodyLines: ["Decode Confirmed", "Header PV_D"], status: h.stateAligned ? "ok" : "warn", liveBadge: h.stateAligned ? "OK" : "DIFF"
+  });
+  drawFlag(vp, { id: "FLAG_OUT_PV_STATE", x: 1015, y: 515, w: 245, h: 30, side: "right", label: "^/PV_D (→ T1 & EPH)", sub: "", liveText: h.pvState.slice(0, 14), status: h.stateAligned ? "ok" : "warn" });
+
+  drawFbdBlock(vp, {
+    id: "CND_FAIL_ALM", x: 1015, y: 636, w: 185, h: 112, cls: "CND", name: "CND_FAIL_ALM", execNum: 7,
+    inputs: [{ name: "PV_D", dy: 40 }, { name: "SP_D", dy: 78 }], outputs: [{ name: "ALM", dy: 58 }],
+    bodyLines: ["SP_D <> PV_D (8s)"], status: h.failActive ? "bad" : "ok", liveBadge: h.failActive ? "ALM=1" : "0"
+  });
+  drawFlag(vp, { id: "FLAG_OUT_FAIL_ACT", x: 1230, y: 679, w: 155, h: 30, side: "right", label: "^/FAIL_ACTIVE", sub: "", liveText: h.failActive ? "TRUE!" : "0", status: h.failActive ? "bad" : "ok" });
+
+  // Shared valve PV_D bus down from top into #6 CALC_PV_STATE!
+  drawWire(vp, [[760, 142], [760, 506], [780, 506]], { kind: "dashed", active: h.valvesAligned, fault: !h.valvesAligned });
+  drawWire(vp, [[741, 515], [752, 515], [752, 552], [780, 552]], { kind: "dashed", active: h.pmpMatch });
+  drawWire(vp, [[965, 530], [1015, 530]], { kind: "dashed", active: h.stateAligned, fault: !h.stateAligned });
+  drawWire(vp, [[990, 530], [990, 676], [1015, 676]], { kind: "dashed", fault: h.failActive });
+  drawWire(vp, [[741, 705], [990, 705], [990, 714], [1015, 714]], { kind: "dashed" });
+  drawWire(vp, [[1200, 694], [1230, 694]], { kind: "dashed", fault: h.failActive });
+
+  if (showLens) {
+    const zones = [
+      { x: 220, y: 78, w: 312, h: 724, col: "#0284c7", bg: "rgba(2,132,199,0.06)", lbl: "PATTERN 1: SINGLE-STEP STATE SFC" },
+      { x: 550, y: 82, w: 842, h: 226, col: "#dc2626", bg: "rgba(220,38,38,0.05)", lbl: "PATTERN 2: PATH GATE & OVERPRESSURE TRIP (#1–#4)" },
+      { x: 550, y: 320, w: 842, h: 106, col: "#7c3aed", bg: "rgba(124,58,237,0.05)", lbl: "PATTERN 3: CASCADE MODE PUSH (#5 — NO ANALOG MATH NEEDED)" },
+      { x: 550, y: 440, w: 842, h: 358, col: "#0f766e", bg: "rgba(15,118,110,0.05)", lbl: "PATTERN 4: PV_D STATE DECODER & TIMEOUT (#6–#7)" }
+    ];
+    zones.forEach(z => {
+      vp.appendChild(el("rect", { x: z.x, y: z.y, width: z.w, height: z.h, rx: 6, fill: z.bg, stroke: z.col, "stroke-width": 2.4, "stroke-dasharray": "8,5", "pointer-events": "none" }));
+      const bw = z.lbl.length * 6.5 + 16;
+      vp.appendChild(el("rect", { x: z.x + z.w - bw - 8, y: z.y + 6, width: bw, height: 20, rx: 4, fill: z.col, "pointer-events": "none" }));
+      vp.appendChild(el("text", { x: z.x + z.w - bw / 2 - 8, y: z.y + 20, "text-anchor": "middle", "font-size": 9.8, "font-weight": 800, fill: "#fff", "pointer-events": "none" }, z.lbl));
+    });
+  }
 }
 
 // =========================================================================
@@ -1686,16 +2268,16 @@ function getInspectorInfo(id, d, h) {
     // --- MODULE 2: EM_XFER_HDR (STATE-DRIVEN — CH. 7) ---
     HDR_HANDSHAKE: {
       type: "CHAPTER 7 — STATE-DRIVEN EM HEADER",
-      title: "EM_XFER_HDR (State-Driven Coordination)",
-      role: "Unlike Command-Driven EM_TANK_CHARGE (which runs a multi-step sequence over time), a State-Driven EM snaps directly to a target equipment alignment (EM_S_COMMAND) and verifies that PV_D matches.",
+      title: "EM_XFER_HDR (SP_D vs. PV_D Handshake)",
+      role: "Unlike Command-Driven EM_TANK_CHARGE (which uses A_COMMAND to run a multi-step sequence), a State-Driven EM acts like a module-level discrete controller: the EPH writes CAS_IN_D (setting target state SP_D), and field limit switches prove confirmed state PV_D.",
       paths: [
-        ["^/EM_S_COMMAND", "Desired Named-Set State requested by EPH or Operator"],
+        ["^/CAS_IN_D → ^/SP_D", "Target Named-Set State requested by EPH (CAS) or Operator (AUTO)"],
         ["^/PV_D", "Actual State confirmed by all 4 CM limit switches"],
-        ["^/FAIL_ACTIVE", "True if PV_D fails to match EM_S_COMMAND within DURATION (8s)"]
+        ["^/FAIL_ACTIVE", "True if PV_D fails to match SP_D within DURATION (8s)"]
       ],
-      expr: `(* EPH requests header alignment before pumping *)\n'EM_XFER_HDR/EM_S_COMMAND' := ROUTE_TANK_A;\nWAIT UNTIL 'EM_XFER_HDR/PV_D' = ROUTE_TANK_A;`,
+      expr: `(* EPH in CAS drives State-Driven EM via CAS_IN_D -> SP_D *)\n'EM_XFER_HDR/CAS_IN_D' := ROUTE_TANK_A;\nWAIT UNTIL 'EM_XFER_HDR/PV_D' = ROUTE_TANK_A;`,
       live: [
-        ["EM_S_COMMAND", state.hdrCmdState, "v-info"],
+        ["SP_D (Target)", state.hdrCmdState, "v-info"],
         ["Confirmed PV_D", h.pvState, h.stateAligned ? "v-good" : "v-bad"],
         ["FAIL_ACTIVE", h.failActive ? "TRUE (Alarm!)" : "FALSE (Aligned)", h.failActive ? "v-bad" : "v-good"]
       ]
@@ -1791,9 +2373,9 @@ function getInspectorInfo(id, d, h) {
     CND_FAIL_ALM: {
       type: "HDR TAB 3 — FBD CONDITION BLOCK (#2)",
       title: "CND_FAIL_ALM — Transition Timeout (DURATION = 8s)",
-      role: "Gives valves 8 seconds to stroke when EM_S_COMMAND changes. If PV_D still doesn't equal EM_S_COMMAND after 8s (e.g., XV102 left in MAN or stuck open), sets FAIL_ACTIVE = 1.",
-      paths: [["^/EM_S_COMMAND", "Desired State"], ["^/PV_D", "Confirmed State"], ["^/FAIL_ACTIVE", "Header State Mismatch Alarm"]],
-      expr: `(* DURATION = 8s *)\n'^/EM_S_COMMAND' <> '^/PV_D';`,
+      role: "Gives valves 8 seconds to stroke when SP_D changes. If PV_D still doesn't equal SP_D after 8s (e.g., XV102 left in MAN or stuck open), sets FAIL_ACTIVE = 1.",
+      paths: [["^/SP_D", "Target State"], ["^/PV_D", "Confirmed State"], ["^/FAIL_ACTIVE", "Header State Mismatch Alarm"]],
+      expr: `(* DURATION = 8s *)\n'^/SP_D' <> '^/PV_D';`,
       live: [["Execution Order", "#2", "v-info"], ["FAIL_ACTIVE", h.failActive ? "TRUE (1)" : "FALSE (0)", h.failActive ? "v-bad" : "v-good"]]
     }
   };
@@ -1877,6 +2459,7 @@ function render() {
     else if (state.tab === "p2") renderPattern2(vp, d);
     else if (state.tab === "p3") renderPattern3(vp, d);
     else if (state.tab === "p4") renderPattern4(vp, d);
+    else if (state.tab === "p5") renderPattern5Combo(vp, d);
   } else {
     // Module 2: EM_XFER_HDR
     const hPill = document.getElementById("hdrStatusPill");
@@ -1899,15 +2482,16 @@ function render() {
     let defaultHdrMsg = h.highPressTrip
       ? `OVERPRESSURE TRIP (${state.hdrPress.toFixed(1)} > 6.0 bar)! Header forced to FAIL_STATE (HEADER_CLOSED) and pump stopped.`
       : h.stateAligned
-        ? `ALIGNED: EM_S_COMMAND = ${state.hdrCmdState} matches confirmed PV_D = ${h.pvState}.`
-        : `STATE MISMATCH (FAIL_ACTIVE=1): Requested ${state.hdrCmdState}, but PV_D = ${h.pvState}. Check red row in Device Mask!`;
+        ? `ALIGNED: SP_D = ${state.hdrCmdState} matches confirmed PV_D = ${h.pvState} (T1_CONFIRMED = TRUE → Termination).`
+        : `STATE MISMATCH (FAIL_ACTIVE=1): SP_D = ${state.hdrCmdState}, but PV_D = ${h.pvState}. Check red action row or Tab 4 [COMBO]!`;
     document.getElementById("diagText").textContent = state.notice || defaultHdrMsg;
     document.getElementById("diagMetrics").textContent =
-      `Cmd: ${state.hdrCmdState} | PV_D: ${h.pvState} | PT: ${state.hdrPress.toFixed(1)} bar`;
+      `SP_D: ${state.hdrCmdState} | PV_D: ${h.pvState} | PT: ${state.hdrPress.toFixed(1)} bar`;
 
     if (state.tab === "h1") renderHeaderTab1(vp, h);
     else if (state.tab === "h2") renderHeaderTab2(vp, h);
     else if (state.tab === "h3") renderHeaderTab3(vp, h);
+    else if (state.tab === "h4") renderHeaderTab4Combo(vp, h);
   }
 
   applyTransform();
@@ -1949,11 +2533,13 @@ function fitToView() {
   const wrap = document.getElementById("canvasWrap");
   const w = wrap.clientWidth || 900;
   const h = wrap.clientHeight || 600;
-  const contentW = 940, contentH = 575;
-  const scale = Math.min((w - 30) / contentW, (h - 30) / contentH, 1.15);
-  state.zoom = Math.max(0.55, +scale.toFixed(2));
-  state.panX = Math.max(10, Math.round((w - contentW * state.zoom) / 2));
-  state.panY = Math.max(10, Math.round((h - contentH * state.zoom) / 2));
+  const isCombo = (state.module === "charge" && state.tab === "p5") || (state.module === "header" && state.tab === "h4");
+  const contentW = isCombo ? 1420 : 940;
+  const contentH = isCombo ? 825 : 575;
+  const scale = Math.min((w - 24) / contentW, (h - 24) / contentH, 1.15);
+  state.zoom = Math.max(0.36, +scale.toFixed(2));
+  state.panX = Math.max(8, Math.round((w - contentW * state.zoom) / 2));
+  state.panY = Math.max(8, Math.round((h - contentH * state.zoom) / 2));
   applyTransform();
 }
 
@@ -1991,7 +2577,13 @@ document.getElementById("btnOnline").addEventListener("click", () => {
 document.getElementById("schematic").addEventListener("click", (e) => {
   const target = e.target.closest("[data-id]");
   if (target) {
-    state.selectedId = target.getAttribute("data-id");
+    const clickedId = target.getAttribute("data-id");
+    if (clickedId === "TOGGLE_COMBO_LENS") {
+      state.showComboLens = !state.showComboLens;
+      render();
+      return;
+    }
+    state.selectedId = clickedId;
     const cmdState = target.getAttribute("data-cmdstate");
     if (cmdState) {
       state.hdrCmdState = cmdState;
@@ -2191,12 +2783,12 @@ window.addEventListener("mouseup", () => { dragging = false; });
 wrap.addEventListener("wheel", (e) => {
   e.preventDefault();
   const delta = e.deltaY < 0 ? 0.1 : -0.1;
-  state.zoom = Math.min(2.2, Math.max(0.45, +(state.zoom + delta).toFixed(2)));
+  state.zoom = Math.min(2.2, Math.max(0.34, +(state.zoom + delta).toFixed(2)));
   applyTransform();
 }, { passive: false });
 
 document.getElementById("zoomIn").addEventListener("click", () => { state.zoom = Math.min(2.2, +(state.zoom + 0.15).toFixed(2)); applyTransform(); });
-document.getElementById("zoomOut").addEventListener("click", () => { state.zoom = Math.max(0.45, +(state.zoom - 0.15).toFixed(2)); applyTransform(); });
+document.getElementById("zoomOut").addEventListener("click", () => { state.zoom = Math.max(0.34, +(state.zoom - 0.15).toFixed(2)); applyTransform(); });
 document.getElementById("zoomReset").addEventListener("click", () => { state.zoom = 1; state.panX = 20; state.panY = 15; applyTransform(); });
 document.getElementById("zoomFit").addEventListener("click", fitToView);
 

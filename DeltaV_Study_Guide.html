@@ -610,7 +610,7 @@
 <h3>2.2 "4 Algorithms" vs. "4 Patterns" — The House Floor Plan vs. The Rooms Inside</h3>
 <ul>
   <li><strong>Algorithms (Official DeltaV Menu Setting — Pick ONE):</strong> The outer container template you select from a dropdown in DeltaV Explorer when creating the Equipment Module.</li>
-  <li><strong>Patterns (Your Engineering Reading Checklist — Up to ALL FOUR Inside):</strong> The four everyday jobs wired inside that container so you can read any Control Studio sheet without getting lost in wires.</li>
+  <li><strong>Patterns (The 4 Jobs Living Together Inside That 1 Algorithm):</strong> Yes—your <strong>1</strong> chosen Algorithm container can hold <strong>all 4 Patterns working together at the same time</strong> (like <code>EM_TANK_CHARGE</code>, which has all 4 tabs inside 1 Command-Driven EM). It says <em>"up to all four"</em> only because a tiny EM might skip one it doesn't need (for example, an <code>FBD</code>-only EM has zero Pattern 1 steps and just uses Patterns 2, 3, and 4; a simple valve header might skip Pattern 3 setpoint math and just use Patterns 1, 2, and 4).</li>
 </ul>
 
 <table>
@@ -676,7 +676,11 @@
       <li><strong>Compare Against a State-Driven EM:</strong> Open the top-left module dropdown and switch to <code>EM_XFER_HDR (State-Driven — Ch. 7)</code>. Look at Tab <strong>1. State Diagram &amp; Device Mask</strong>: notice there are <em>no transition crossbars between steps</em>—clicking <code>Route_Tank_A</code> or <code>CIP_Flush</code> snaps the entire 4-device manifold directly to that state's alignment! Switch back to <code>EM_TANK_CHARGE</code> when finished.</li>
     </ol>
     <div class="workshop-takeaway">
-      <strong>What You Are Supposed to Learn From This Workshop:</strong> Never look for "step numbers" on Patterns 2, 3, or 4—they don't have any! Every FBD block is awake and solving 24/7, even when the Equipment Module is sitting in <code>IDLE</code>. And when you open an EM in a plant, check its outer Algorithm first so you immediately know whether it walks through timed stages (Command-Driven) or snaps to a fixed valve mask (State-Driven).
+      <strong>What You Are Supposed to Learn From This Workshop (SFC Steps vs. FBD #1/#2/#3 Badges!):</strong> Don't confuse <strong>SFC Batch Steps</strong> (<code>S0, S10, S20, S30</code> in Pattern 1) with <strong>FBD Lower-Right Execution Order Badges</strong> (<code>#1, #2, #3</code> in Patterns 2–4):
+      <ul style="margin:4px 0 0 0;">
+        <li><strong>SFC Steps (<code>S10 → S20</code>) = Waiting Over Minutes:</strong> Only <em>one</em> step is active at a time while the others sit asleep waiting on a physical process gate (<code>┼</code>) like the tank filling up.</li>
+        <li><strong>FBD Lower-Right Numbers (<code>#1 → #2 → #3</code>) = Math Solve Order Inside 1 Millisecond:</strong> <em>Every single FBD block</em> wakes up and runs from <code>#1</code> to <code>#9</code> on <em>every single Scan</em> (every second, 24/7, even in <code>IDLE</code>)—the <code>#1, #2, #3</code> badge just tells the CPU which block's output wire must be calculated first inside that same millisecond heartbeat!</li>
+      </ul>
     </div>
   </div>
 </div>

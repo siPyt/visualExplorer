@@ -681,8 +681,8 @@ const DECODE_DRILLS = [
     title: "Manifold State Transition Timeout Check",
     context: "Found inside EM_XFER_HDR → Tab 3 → CND_FAIL_ALM (Configured with DURATION = 8s)",
     tokens: [
-      { t: "'^/EM_S_COMMAND'", cls: "tok-path", tip: "Desired Named-Set route requested on State-Driven header EM_XFER_HDR (e.g., ROUTE_TANK_A)." },
-      { t: "!=", cls: "tok-op", tip: "Not-Equal operator (!= or <> in DeltaV). True whenever desired state and confirmed state disagree." },
+      { t: "'^/SP_D'", cls: "tok-path", tip: "Target Named-Set route on State-Driven header EM_XFER_HDR (set via CAS_IN_D from the EPH or directly in AUTO, e.g., ROUTE_TANK_A)." },
+      { t: "!=", cls: "tok-op", tip: "Not-Equal operator (!= or <> in DeltaV). True whenever target state SP_D and confirmed state PV_D disagree." },
       { t: "'^/PV_D'", cls: "tok-path", tip: "Confirmed actual header state decoded from all 4 child CM physical limit switches." }
     ],
     question: "Why do engineers pair this '!=' expression with DURATION = 8s on CND_FAIL_ALM instead of DURATION = 0s?",
