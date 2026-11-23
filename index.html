@@ -37,23 +37,24 @@
   header {
     background: #0b1324;
     border-bottom: 1px solid var(--border-ui);
-    padding: 9px 16px;
+    padding: 7px 14px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
+    gap: 6px 10px;
     flex-wrap: wrap;
   }
   .brand {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
+    order: 1;
   }
   .brand-badge {
     background: linear-gradient(135deg, #0284c7, #2563eb);
     color: white;
     font-weight: 800;
-    font-size: 11.5px;
+    font-size: 11px;
     padding: 4px 8px;
     border-radius: 5px;
     letter-spacing: 0.5px;
@@ -69,17 +70,17 @@
     color: #f8fafc;
     border: 1px solid #38bdf8;
     border-radius: 6px;
-    padding: 5px 9px;
-    font-size: 13px;
+    padding: 4px 8px;
+    font-size: 12.5px;
     font-weight: 700;
     cursor: pointer;
   }
   .alg-pill {
-    font-size: 11px;
+    font-size: 10.5px;
     color: #bae6fd;
     background: rgba(2, 132, 199, 0.22);
     border: 1px solid rgba(56, 189, 248, 0.35);
-    padding: 3px 8px;
+    padding: 2px 8px;
     border-radius: 999px;
     font-weight: 600;
     white-space: nowrap;
@@ -89,14 +90,18 @@
     display: flex;
     gap: 6px;
     flex-wrap: wrap;
+    order: 3;
+    flex-basis: 100%;
+    padding-top: 5px;
+    border-top: 1px solid rgba(51, 65, 85, 0.55);
   }
   .tab-btn {
     background: var(--bg-panel);
     color: #cbd5e1;
     border: 1px solid var(--border-ui);
-    padding: 6px 11px;
+    padding: 4px 10px;
     border-radius: 6px;
-    font-size: 12px;
+    font-size: 11.5px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.15s;
@@ -109,7 +114,7 @@
     box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.35);
   }
   .tab-btn .tag-kind {
-    font-size: 10px;
+    font-size: 9.5px;
     padding: 1px 5px;
     border-radius: 4px;
     margin-left: 5px;
@@ -120,7 +125,9 @@
   .header-right {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 7px;
+    order: 2;
+    margin-left: auto;
   }
   .mode-switch {
     display: flex;
@@ -133,8 +140,8 @@
     border: none;
     background: transparent;
     color: var(--text-muted);
-    padding: 6px 10px;
-    font-size: 12px;
+    padding: 4px 9px;
+    font-size: 11.5px;
     font-weight: 600;
     cursor: pointer;
   }
@@ -150,9 +157,9 @@
     background: var(--bg-panel);
     color: #e2e8f0;
     border: 1px solid var(--border-ui);
-    padding: 6px 10px;
+    padding: 4px 9px;
     border-radius: 6px;
-    font-size: 12px;
+    font-size: 11.5px;
     font-weight: 600;
     cursor: pointer;
   }
@@ -162,26 +169,26 @@
   .sim-bar {
     background: var(--bg-panel-2);
     border-bottom: 1px solid var(--border-ui);
-    padding: 8px 16px;
+    padding: 6px 14px;
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 6px 12px;
     flex-wrap: wrap;
-    font-size: 12px;
+    font-size: 11.5px;
   }
   .sim-bar.hidden { display: none; }
   .sim-group {
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding-right: 12px;
+    gap: 5px;
+    padding-right: 10px;
     border-right: 1px solid var(--border-ui);
   }
   .sim-group:last-child { border-right: none; padding-right: 0; }
   .sim-label {
     color: var(--text-muted);
     font-weight: 600;
-    font-size: 11px;
+    font-size: 10.5px;
     text-transform: uppercase;
     letter-spacing: 0.4px;
   }
@@ -189,9 +196,9 @@
     background: #263449;
     color: #f1f5f9;
     border: 1px solid #475569;
-    padding: 4px 9px;
+    padding: 3px 8px;
     border-radius: 5px;
-    font-size: 12px;
+    font-size: 11.5px;
     font-weight: 600;
     cursor: pointer;
   }
@@ -323,18 +330,19 @@
 
   .legend-box {
     position: absolute;
-    bottom: 14px;
-    right: 14px;
-    background: rgba(255, 255, 255, 0.96);
+    bottom: 10px;
+    right: 12px;
+    max-width: calc(100% - 210px);
+    background: rgba(255, 255, 255, 0.95);
     border: 1px solid #94a3b8;
-    border-radius: 4px;
-    padding: 7px 11px;
+    border-radius: 5px;
+    padding: 5px 10px;
     color: #0f172a;
-    font-size: 11px;
+    font-size: 10.5px;
     display: flex;
-    gap: 12px;
+    gap: 10px;
     align-items: center;
-    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.1);
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.12);
     pointer-events: none;
     flex-wrap: wrap;
   }
@@ -502,11 +510,13 @@
     margin: 0 5px 5px 5px;
     background: #ffffff;
     border: 1px solid #8c8980;
+    overflow-x: auto;
   }
   .cs-watch-tbl {
     width: 100%;
+    table-layout: fixed;
     border-collapse: collapse;
-    font-size: 10.5px;
+    font-size: 9.8px;
     font-family: Tahoma, "Segoe UI", Arial, sans-serif;
   }
   .cs-watch-tbl th {
@@ -514,17 +524,22 @@
     color: #111827;
     border-bottom: 1px solid #9c988e;
     border-right: 1px solid #d1cfc7;
-    padding: 3px 6px;
+    padding: 3px 4px;
     text-align: left;
     font-weight: 700;
   }
+  .cs-watch-tbl th:nth-child(1) { width: 51%; }
+  .cs-watch-tbl th:nth-child(2) { width: 22%; }
+  .cs-watch-tbl th:nth-child(3) { width: 27%; }
   .cs-watch-tbl td {
-    padding: 3px 6px;
+    padding: 3px 4px;
     border-bottom: 1px solid #e5e7eb;
     border-right: 1px solid #e5e7eb;
     color: #111827;
     font-family: Consolas, ui-monospace, monospace;
-    font-size: 10.2px;
+    font-size: 9.3px;
+    word-break: break-word;
+    overflow-wrap: anywhere;
   }
   .cs-watch-tbl td.st-bad {
     color: #b91c1c;
@@ -635,7 +650,7 @@
       <button id="btnOnline" class="active">On-Line</button>
     </div>
     <a class="btn-util" href="ex.html" target="_blank" style="text-decoration:none; background:#b45309; border-color:#f59e0b; color:#fff;" title="Open Expression Forge — Interactive DeltaV Expression &amp; Parameter Trainer">⚡ Expression Forge</a>
-    <a class="btn-util" href="DeltaV_Study_Guide.html" target="_blank" style="text-decoration:none; background:#0369a1; border-color:#38bdf8;" title="Open the full 7-Chapter Textbook &amp; Workshops in a clean large-text browser tab">📘 Study Guide</a>
+    <a class="btn-util" href="DeltaV_Study_Guide.html" target="_blank" style="text-decoration:none; background:#0369a1; border-color:#38bdf8;" title="Open the full 11-Chapter Textbook &amp; 12 Workshops in a clean large-text browser tab">📘 Study Guide</a>
     <a class="btn-util" href="DeltaV_Study_Guide.pdf" target="_blank" style="text-decoration:none;" title="Open the print-ready PDF textbook &amp; workshop manual in your browser">📄 PDF</a>
     <button class="btn-util" id="btnVocab">Session Vocab</button>
   </div>
@@ -1548,13 +1563,18 @@ function drawFlag(parent, { id, x, y, w = 210, h = 34, side = "left", label, sub
   }));
 
   const textX = side === "right" ? x + 12 : x + 7;
+  const maxTextW = Math.max(40, w - 22);
+  const lblEstW = label.length * 6.35;
+  const lblFont = lblEstW > maxTextW ? Math.max(8.1, +(10.5 * (maxTextW / lblEstW)).toFixed(1)) : 10.5;
   g.appendChild(el("text", {
-    x: textX, y: y + (sub ? 13.5 : h / 2 + 4),
-    "font-size": 10.5, "font-weight": 700, fill: "#0f172a",
+    x: textX, y: y + (sub ? 13.5 : h / 2 + 3.8),
+    "font-size": lblFont, "font-weight": 700, fill: "#0f172a",
     "font-family": "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
   }, label));
   if (sub) {
-    g.appendChild(el("text", { x: textX, y: y + 26.5, "font-size": 9.2, fill: "#334155" }, sub));
+    const subEstW = sub.length * 5.0;
+    const subFont = subEstW > maxTextW ? Math.max(7.6, +(9.2 * (maxTextW / subEstW)).toFixed(1)) : 9.2;
+    g.appendChild(el("text", { x: textX, y: y + Math.min(h - 6, 26.5), "font-size": subFont, fill: "#334155" }, sub));
   }
   if (state.online && liveText) {
     drawOnlineValueBox(g, {
@@ -1572,8 +1592,8 @@ function drawFlag(parent, { id, x, y, w = 210, h = 34, side = "left", label, sub
 function drawFbdBlock(parent, { id, x, y, w = 185, h = 110, cls, name, execNum, inputs = [], outputs = [], bodyLines = [], status = "normal", liveBadge = "", badSt = false }) {
   const g = el("g", { class: "clickable", "data-id": id });
   g.appendChild(el("text", {
-    x: x + w / 2, y: y - 6,
-    "text-anchor": "middle", "font-size": 11, "font-weight": 800, fill: "#334155", "letter-spacing": "0.6px"
+    x: x + w / 2, y: y - 5,
+    "text-anchor": "middle", "font-size": 10.4, "font-weight": 800, fill: "#334155", "letter-spacing": "0.5px"
   }, cls));
 
   let stroke = "#57554e", headerFill = "#cfccc2", bodyFill = "#dfddd6";
@@ -1591,15 +1611,49 @@ function drawFbdBlock(parent, { id, x, y, w = 185, h = 110, cls, name, execNum, 
   }));
   g.appendChild(el("rect", { x: x + 1, y: y + 1, width: w - 2, height: 24, rx: 1, fill: headerFill }));
   g.appendChild(el("line", { x1: x, y1: y + 25, x2: x + w, y2: y + 25, stroke, "stroke-width": 1 }));
+
+  // Smart header sizing so block tag NEVER collides with On-Line liveBadge!
+  const badgeW = (state.online && liveBadge) ? (Math.max(22, liveBadge.length * 6.3) + 14 + (badSt ? 14 : 0)) : 0;
+  const maxNameW = Math.max(48, w - badgeW - 14);
+  const nameEstW = name.length * 7.0;
+  const nameFont = nameEstW > maxNameW ? Math.max(8.5, +(11.2 * (maxNameW / nameEstW)).toFixed(1)) : 11.2;
   g.appendChild(el("text", {
-    x: x + 9, y: y + 17, "font-size": 11.5, "font-weight": 800, fill: "#0f172a",
+    x: x + 8, y: y + 16.8, "font-size": nameFont, "font-weight": 800, fill: "#0f172a",
     "font-family": "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
   }, name));
 
+  // Smart pin-safe interior layout for bodyLines so text NEVER collides with pin names!
+  const bodyStartDy = 41;
+  const lineStep = 14.5;
+  const bodyEndDy = bodyLines.length ? (bodyStartDy + (bodyLines.length - 1) * lineStep) : bodyStartDy;
+
+  let leftPad = 8;
+  let rightPad = 8;
+  inputs.forEach(p => {
+    if (p.dy >= bodyStartDy - 12 && p.dy <= bodyEndDy + 12) {
+      leftPad = Math.max(leftPad, 14 + p.name.length * 5.7);
+    }
+  });
+  outputs.forEach(p => {
+    if (p.dy >= bodyStartDy - 12 && p.dy <= bodyEndDy + 12) {
+      rightPad = Math.max(rightPad, 14 + p.name.length * 5.7);
+    }
+  });
+  // If pins leave a cramped corridor (< 64px), use full width above/centered with gentle font scaling
+  let availW = w - leftPad - rightPad;
+  let cx = x + leftPad + availW / 2;
+  if (availW < 64) {
+    leftPad = 10; rightPad = 10;
+    availW = w - 20;
+    cx = x + w / 2;
+  }
+
   bodyLines.forEach((line, idx) => {
+    const estW = line.length * 5.55;
+    const fz = estW > availW ? Math.max(8.0, +(10.0 * (availW / estW)).toFixed(1)) : 10.0;
     g.appendChild(el("text", {
-      x: x + w / 2, y: y + 48 + idx * 15,
-      "text-anchor": "middle", "font-size": 10.2, fill: "#1e293b", "font-weight": 600
+      x: cx, y: y + bodyStartDy + idx * lineStep,
+      "text-anchor": "middle", "font-size": fz, fill: "#1e293b", "font-weight": 600
     }, line));
   });
 
@@ -1607,7 +1661,7 @@ function drawFbdBlock(parent, { id, x, y, w = 185, h = 110, cls, name, execNum, 
   inputs.forEach(pin => {
     g.appendChild(el("rect", { x: x + 1, y: y + pin.dy - 3.2, width: 6.4, height: 6.4, fill: "#ffffff", stroke: "#1e293b", "stroke-width": 1.1 }));
     g.appendChild(el("text", {
-      x: x + 10, y: y + pin.dy + 3.5, "font-size": 9.5, "font-weight": 700, fill: "#1e293b",
+      x: x + 10, y: y + pin.dy + 3.4, "font-size": 9.2, "font-weight": 700, fill: "#1e293b",
       "font-family": "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
     }, pin.name));
   });
@@ -1615,7 +1669,7 @@ function drawFbdBlock(parent, { id, x, y, w = 185, h = 110, cls, name, execNum, 
   outputs.forEach(pin => {
     g.appendChild(el("rect", { x: x + w - 7.4, y: y + pin.dy - 3.2, width: 6.4, height: 6.4, fill: "#ffffff", stroke: "#1e293b", "stroke-width": 1.1 }));
     g.appendChild(el("text", {
-      x: x + w - 10, y: y + pin.dy + 3.5, "text-anchor": "end", "font-size": 9.5, "font-weight": 700, fill: "#1e293b",
+      x: x + w - 10, y: y + pin.dy + 3.4, "text-anchor": "end", "font-size": 9.2, "font-weight": 700, fill: "#1e293b",
       "font-family": "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
     }, pin.name));
   });
@@ -1785,7 +1839,7 @@ function renderPattern1(vp, d) {
   const transSpecs = [
     { id: "T10_START_OK", y: 207, label: "T10_START_OK", expr: "'^/PERM_READY.CV' = TRUE", ok: d.t10Ok, after: 0 },
     { id: "T20_PRECLOSE", y: 332, label: "T20_PRECLOSE", expr: "'^/CUTOFF_REACHED.CV' = TRUE", ok: d.t20Ok, after: 1 },
-    { id: "T30_SHUT_OK", y: 457, label: "T30_SHUT_OK", expr: "'^/VALVE_SHUT_OK.CV' = TRUE AND ...", ok: d.t30Ok, after: 2 }
+    { id: "T30_SHUT_OK", y: 457, label: "T30_SHUT_OK", expr: "VALVE_SHUT_OK AND TIME>=5", ok: d.t30Ok, after: 2 }
   ];
 
   for (let i = 0; i < 3; i++) {
@@ -1800,7 +1854,7 @@ function renderPattern1(vp, d) {
   stepSpecs.forEach(s => drawSfcStep(vp, { id: s.id, x: 110, y: s.y, w: 220, h: 56, title: s.title, sub: s.sub, initial: s.initial, idx: s.idx }));
   transSpecs.forEach(t => drawSfcTransition(vp, { id: t.id, cx: 220, y: t.y, label: t.label, expr: t.expr, ok: t.ok, belowActive: state.stepIdx === t.after }));
 
-  const subX = 460, subY = 120, subW = 350;
+  const subX = 480, subY = 120, subW = 350;
   const activeStepId = STEPS[state.stepIdx];
   const actBox = el("g", { class: "clickable", "data-id": activeStepId });
   actBox.appendChild(el("rect", { x: subX, y: subY, width: subW, height: 175, rx: 4, fill: "#ffffff", stroke: "#475569", "stroke-width": 1.4 }));
@@ -1963,41 +2017,41 @@ function renderPattern3(vp, d) {
   vp.appendChild(el("text", { x: 860, y: 176, "font-size": 10, "font-weight": 800, fill: "#1e3a8a" }, "→ T20"));
 
   // Strip B: Separate MODE.TARGET (written by ACT2) from MODE.ACTUAL (read back from DC1!)
-  drawSectionStrip(vp, 25, 340, 895, 195, "SECTION B: CASCADE MODE PUSH (ACT2 WRITES MODE.TARGET := CAS) VS. DC1 READBACK (MODE.ACTUAL)", "#0f766e");
-  drawFlag(vp, { id: "FLAG_EM_AUTO", x: 45, y: 416, w: 195, side: "left", label: "^/PUSH_CAS_REQ.CV", sub: "Wired Trigger into ACT2", liveText: "True", status: "ok" });
+  drawSectionStrip(vp, 25, 336, 895, 214, "SECTION B: CASCADE MODE PUSH (ACT2 WRITES MODE.TARGET := CAS) VS. DC1 READBACK (MODE.ACTUAL)", "#0f766e");
+  drawFlag(vp, { id: "FLAG_EM_AUTO", x: 45, y: 424, w: 195, side: "left", label: "^/PUSH_CAS_REQ.CV", sub: "Wired Trigger into ACT2", liveText: "True", status: "ok" });
   drawFbdBlock(vp, {
-    id: "ACT2", x: 295, y: 382, w: 225, h: 110, cls: "ACT", name: "ACT2", execNum: 4,
+    id: "ACT2", x: 295, y: 390, w: 225, h: 110, cls: "ACT", name: "ACT2", execNum: 4,
     inputs: [{ name: "IN_D", dy: 52 }], outputs: [],
     bodyLines: ["IN_D only (no outputs)", "'//CM_FEED_XV/DC1/", "MODE.TARGET' := CAS;"], status: "ok", liveBadge: "True"
   });
-  drawFlag(vp, { id: "FLAG_FEED_MODE_TGT", x: 585, y: 374, w: 315, side: "right", label: "CM_FEED_XV/DC1/MODE.TARGET", sub: "Expr Write := CAS (Requested Mode)", liveText: "CAS", status: "ok" });
-  drawFlag(vp, { id: "FLAG_AGIT_MODE_TGT", x: 585, y: 424, w: 315, side: "right", label: "CM_AGIT_MTR/DC1/MODE.TARGET", sub: "Expr Write := CAS (Requested Mode)", liveText: "CAS", status: "ok" });
+  drawFlag(vp, { id: "FLAG_FEED_MODE_TGT", x: 585, y: 388, w: 315, side: "right", label: "CM_FEED_XV/DC1/MODE.TARGET", sub: "Expr Write := CAS (Requested Mode)", liveText: "CAS", status: "ok" });
+  drawFlag(vp, { id: "FLAG_AGIT_MODE_TGT", x: 585, y: 440, w: 315, side: "right", label: "CM_AGIT_MTR/DC1/MODE.TARGET", sub: "Expr Write := CAS (Requested Mode)", liveText: "CAS", status: "ok" });
   // Separate un-wired readback box showing what CM_FEED_XV/DC1/MODE.ACTUAL really is in the controller!
-  drawFlag(vp, { id: "FLAG_VALVE_MODE", x: 585, y: 482, w: 315, side: "left", label: "CM_FEED_XV/DC1/MODE.ACTUAL", sub: "Separate Readback! (DC1 supports CAS or AUTO)", liveText: state.valveMode, status: state.valveMode === "CAS" ? "ok" : "bad" });
-  drawWire(vp, [[240, 433], [295, 434]], { active: true });
-  drawWire(vp, [[520, 434], [555, 434], [555, 391], [585, 391]], { ref: true, label: "expr :=", labelPos: [552, 378] });
-  drawWire(vp, [[555, 434], [555, 441], [585, 441]], { ref: true });
+  drawFlag(vp, { id: "FLAG_VALVE_MODE", x: 585, y: 498, w: 315, side: "left", label: "CM_FEED_XV/DC1/MODE.ACTUAL", sub: "Separate Readback! (DC1 supports CAS or AUTO)", liveText: state.valveMode, status: state.valveMode === "CAS" ? "ok" : "bad" });
+  drawWire(vp, [[240, 441], [295, 442]], { active: true });
+  drawWire(vp, [[520, 442], [555, 442], [555, 405], [585, 405]], { ref: true, label: "expr :=", labelPos: [552, 392] });
+  drawWire(vp, [[555, 442], [555, 457], [585, 457]], { ref: true });
 }
 
 function renderPattern4(vp, d) {
-  drawSectionStrip(vp, 30, 25, 860, 168, "STRIP A: HOW EMs COMMAND CMs — EM WRITES MODULE-LEVEL CAS_SP; INSIDE CHILD CM, CAS_SP WIRES TO DC1/CAS_IN_D", "#1e3a8a");
-  drawFlag(vp, { id: "FLAG_STEP_SRC_XV", x: 46, y: 68, w: 222, side: "left", label: "EM SFC / ACT1 Expression", sub: `Writes 'vlvnc-sp:${d.feedCmdText}'`, liveText: d.feedCmdText, status: d.feedCmdOpen ? "ok" : "normal" });
-  drawFlag(vp, { id: "FLAG_STEP_SRC_MTR", x: 46, y: 132, w: 222, side: "left", label: "Step S30_AGITATE [N] Action", sub: `Writes 'mtr2-sp:${d.agitCmdText}'`, liveText: d.agitCmdText, status: d.agitCmdRun ? "ok" : "normal" });
+  drawSectionStrip(vp, 30, 18, 860, 186, "STRIP A: HOW EMs COMMAND CMs — EM WRITES MODULE-LEVEL CAS_SP; INSIDE CHILD CM, CAS_SP WIRES TO DC1/CAS_IN_D", "#1e3a8a");
+  drawFlag(vp, { id: "FLAG_STEP_SRC_XV", x: 46, y: 76, w: 222, side: "left", label: "EM SFC / ACT1 Expression", sub: `Writes 'vlvnc-sp:${d.feedCmdText}'`, liveText: d.feedCmdText, status: d.feedCmdOpen ? "ok" : "normal" });
+  drawFlag(vp, { id: "FLAG_STEP_SRC_MTR", x: 46, y: 140, w: 222, side: "left", label: "Step S30_AGITATE [N] Action", sub: `Writes 'mtr2-sp:${d.agitCmdText}'`, liveText: d.agitCmdText, status: d.agitCmdRun ? "ok" : "normal" });
 
-  drawFlag(vp, { id: "FLAG_OUT_XV_CMD", x: 326, y: 68, w: 214, side: "right", label: "CM_FEED_XV/CAS_SP.CV", sub: "EM Boundary → Child CM Input", liveText: d.feedCmdText, status: d.feedCmdOpen ? "ok" : (state.valveMode !== "CAS" ? "warn" : "normal") });
-  drawFlag(vp, { id: "FLAG_OUT_MTR_CMD", x: 326, y: 132, w: 214, side: "right", label: "CM_AGIT_MTR/CAS_SP.CV", sub: "EM Boundary → Child CM Input", liveText: d.agitCmdText, status: d.agitCmdRun ? "ok" : "normal" });
+  drawFlag(vp, { id: "FLAG_OUT_XV_CMD", x: 326, y: 76, w: 214, side: "right", label: "CM_FEED_XV/CAS_SP.CV", sub: "EM Boundary → Child CM Input", liveText: d.feedCmdText, status: d.feedCmdOpen ? "ok" : (state.valveMode !== "CAS" ? "warn" : "normal") });
+  drawFlag(vp, { id: "FLAG_OUT_MTR_CMD", x: 326, y: 140, w: 214, side: "right", label: "CM_AGIT_MTR/CAS_SP.CV", sub: "EM Boundary → Child CM Input", liveText: d.agitCmdText, status: d.agitCmdRun ? "ok" : "normal" });
 
   // Explicit X-Ray Cutaway Frame showing DC1 lives in SEPARATE Control Module CM_FEED_XV (not on Tab 5 EM sheet!)
   vp.appendChild(el("rect", {
-    x: 582, y: 48, width: 296, height: 138, rx: 5,
+    x: 586, y: 50, width: 294, height: 144, rx: 5,
     fill: "rgba(241,245,249,0.9)", stroke: "#0284c7", "stroke-width": 1.6, "stroke-dasharray": "6,3"
   }));
-  vp.appendChild(el("rect", { x: 583, y: 49, width: 294, height: 18, rx: 4, fill: "#e0f2fe" }));
-  vp.appendChild(el("text", { x: 730, y: 61, "text-anchor": "middle", "font-size": 8.9, "font-weight": 800, fill: "#0369a1" },
+  vp.appendChild(el("rect", { x: 587, y: 51, width: 292, height: 18, rx: 4, fill: "#e0f2fe" }));
+  vp.appendChild(el("text", { x: 733, y: 63, "text-anchor": "middle", "font-size": 8.9, "font-weight": 800, fill: "#0369a1" },
     "X-RAY: SEPARATE MODULE CM_FEED_XV (Not on EM Tab 5)"));
 
   drawFbdBlock(vp, {
-    id: "DC1_CUTAWAY", x: 614, y: 80, w: 248, h: 98, cls: "DC", name: "DC1 (inside CM_FEED_XV)", execNum: 1,
+    id: "DC1_CUTAWAY", x: 616, y: 86, w: 248, h: 98, cls: "DC", name: "DC1 (inside CM_FEED_XV)", execNum: 1,
     inputs: [{ name: "CAS_IN_D", dy: 38 }],
     outputs: [{ name: "OUT_D", dy: 38 }, { name: "PV_D", dy: 68 }],
     bodyLines: [`MODE: ${state.valveMode} (CAS/AUTO)`, `FAIL_ACTIVE: ${d.valveMismatch ? "1" : "0"}`],
@@ -2005,35 +2059,35 @@ function renderPattern4(vp, d) {
     liveBadge: `PV=${d.valvePvText}`
   });
 
-  drawWire(vp, [[268, 85], [326, 85]], { ref: true, label: "expr :=", labelPos: [297, 73] });
-  drawWire(vp, [[268, 149], [326, 149]], { ref: true });
-  drawWire(vp, [[540, 85], [576, 85], [576, 118], [614, 118]], { active: d.feedCmdOpen, fault: d.valveMismatch, label: state.online ? d.feedCmdText : "CAS_IN_D", labelPos: [576, 74] });
+  drawWire(vp, [[268, 93], [326, 93]], { ref: true, label: "expr :=", labelPos: [297, 80] });
+  drawWire(vp, [[268, 157], [326, 157]], { ref: true });
+  drawWire(vp, [[540, 93], [574, 93], [574, 124], [616, 124]], { active: d.feedCmdOpen, fault: d.valveMismatch, label: state.online ? d.feedCmdText : "CAS_IN_D", labelPos: [564, 78] });
 
-  drawSectionStrip(vp, 30, 205, 860, 315, "STRIP B: INBOUND READBACK (PV / PV_D) & TIME_DURATION MISMATCH WATCH (FBR p413, p422)", "#0f766e");
-  drawFlag(vp, { id: "FLAG_IN_PV_D", x: 55, y: 262, w: 245, side: "left", label: "CM_FEED_XV/PV.CV (DC1/PV_D)", sub: "Expr Ref ('vlvnc-pv:CLOSED')", liveText: d.valvePvText, status: d.valveMismatch ? "bad" : (d.valveShutOk ? "ok" : "normal") });
-  drawFlag(vp, { id: "FLAG_IN_CMD_ECHO", x: 55, y: 405, w: 245, side: "left", label: "CM_FEED_XV/CAS_SP.CV", sub: "Expr Ref ('vlvnc-sp:OPEN/CLOSE')", liveText: d.feedCmdText, status: "normal" });
+  drawSectionStrip(vp, 30, 218, 860, 315, "STRIP B: INBOUND READBACK (PV / PV_D) & TIME_DURATION MISMATCH WATCH (FBR p413, p422)", "#0f766e");
+  drawFlag(vp, { id: "FLAG_IN_PV_D", x: 55, y: 276, w: 245, side: "left", label: "CM_FEED_XV/PV.CV (DC1/PV_D)", sub: "Expr Ref ('vlvnc-pv:CLOSED')", liveText: d.valvePvText, status: d.valveMismatch ? "bad" : (d.valveShutOk ? "ok" : "normal") });
+  drawFlag(vp, { id: "FLAG_IN_CMD_ECHO", x: 55, y: 418, w: 245, side: "left", label: "CM_FEED_XV/CAS_SP.CV", sub: "Expr Ref ('vlvnc-sp:OPEN/CLOSE')", liveText: d.feedCmdText, status: "normal" });
 
   drawFbdBlock(vp, {
-    id: "CND4", x: 380, y: 240, w: 205, h: 108, cls: "CND", name: "CND4", execNum: 1,
+    id: "CND4", x: 380, y: 254, w: 205, h: 108, cls: "CND", name: "CND4", execNum: 1,
     inputs: [], outputs: [{ name: "OUT_D", dy: 48 }],
     bodyLines: ["Confirm Valve Shut", "PV = 'vlvnc-pv:CLOSED'"],
     status: d.valveShutOk ? "ok" : "warn", liveBadge: d.valveShutOk ? "True" : "False"
   });
   drawFbdBlock(vp, {
-    id: "CND5", x: 380, y: 382, w: 205, h: 118, cls: "CND", name: "CND5", execNum: 2,
+    id: "CND5", x: 380, y: 396, w: 205, h: 118, cls: "CND", name: "CND5", execNum: 2,
     inputs: [], outputs: [{ name: "OUT_D", dy: 62 }],
     bodyLines: ["TIME_DURATION = 10s", "CAS_SP != PV (custom)"],
     status: d.valveMismatch ? "bad" : "normal", liveBadge: d.valveMismatch ? "True" : "False"
   });
 
-  drawFlag(vp, { id: "FLAG_VALVE_SHUT_OK", x: 645, y: 270, w: 220, side: "right", label: "^/VALVE_SHUT_OK.CV", sub: "Wired Output → SFC T30", liveText: d.valveShutOk ? "True" : "False", status: d.valveShutOk ? "ok" : "warn" });
-  drawFlag(vp, { id: "FLAG_MISMATCH_ALM", x: 645, y: 426, w: 220, side: "right", label: "^/VALVE_MISMATCH_ALM", sub: "Or DC1/FAIL_ACTIVE (FBR p422)", liveText: d.valveMismatch ? "True" : "False", status: d.valveMismatch ? "bad" : "ok" });
+  drawFlag(vp, { id: "FLAG_VALVE_SHUT_OK", x: 645, y: 284, w: 220, side: "right", label: "^/VALVE_SHUT_OK.CV", sub: "Wired Output → SFC T30", liveText: d.valveShutOk ? "True" : "False", status: d.valveShutOk ? "ok" : "warn" });
+  drawFlag(vp, { id: "FLAG_MISMATCH_ALM", x: 645, y: 440, w: 220, side: "right", label: "^/VALVE_MISMATCH_ALM", sub: "Or DC1/FAIL_ACTIVE (FBR p422)", liveText: d.valveMismatch ? "True" : "False", status: d.valveMismatch ? "bad" : "ok" });
 
-  drawWire(vp, [[300, 279], [340, 279], [340, 288], [380, 288]], { ref: true, label: "expr ref", labelPos: [340, 266] });
-  drawWire(vp, [[340, 279], [340, 444], [380, 444]], { ref: true });
-  drawWire(vp, [[300, 422], [322, 422], [322, 444], [380, 444]], { ref: true });
-  drawWire(vp, [[585, 288], [645, 288]], { active: d.valveShutOk, fault: !d.valveShutOk && state.stepIdx === 2 });
-  drawWire(vp, [[585, 444], [645, 444]], { active: d.valveMismatch, fault: d.valveMismatch });
+  drawWire(vp, [[300, 293], [340, 293], [340, 302], [380, 302]], { ref: true, label: "expr ref", labelPos: [340, 280] });
+  drawWire(vp, [[340, 293], [340, 458], [380, 458]], { ref: true });
+  drawWire(vp, [[300, 435], [322, 435], [322, 458], [380, 458]], { ref: true });
+  drawWire(vp, [[585, 302], [645, 302]], { active: d.valveShutOk, fault: !d.valveShutOk && state.stepIdx === 2 });
+  drawWire(vp, [[585, 458], [645, 458]], { active: d.valveMismatch, fault: d.valveMismatch });
 }
 
 // =========================================================================
@@ -2207,11 +2261,11 @@ function renderPattern5Combo(vp, d) {
   drawFlag(vp, { id: "FLAG_HI_HI", x: 554, y: 214, w: 204, h: 30, side: "left", label: "^/HI_HI_LVL.CV", sub: "", liveText: state.hiHi ? "1" : "0", status: state.hiHi ? "bad" : "ok" });
 
   drawFbdBlock(vp, {
-    id: "CND1", x: 780, y: 88, w: 165, h: 92, cls: "CND", name: "CND1", execNum: 1,
-    inputs: [], outputs: [{ name: "OUT_D", dy: 52 }],
+    id: "CND1", x: 780, y: 96, w: 165, h: 86, cls: "CND", name: "CND1", execNum: 1,
+    inputs: [], outputs: [{ name: "OUT_D", dy: 48 }],
     bodyLines: ["Start Permissive"], status: d.permReady ? "ok" : "warn", liveBadge: d.permReady ? "True" : "False"
   });
-  drawFlag(vp, { id: "FLAG_PERM_READY", x: 990, y: 124, w: 175, h: 30, side: "right", label: "^/PERM_READY.CV", sub: "", liveText: d.permReady ? "True" : "False", status: d.permReady ? "ok" : "warn" });
+  drawFlag(vp, { id: "FLAG_PERM_READY", x: 990, y: 129, w: 175, h: 30, side: "right", label: "^/PERM_READY.CV", sub: "", liveText: d.permReady ? "True" : "False", status: d.permReady ? "ok" : "warn" });
 
   drawFbdBlock(vp, {
     id: "CND2", x: 780, y: 198, w: 165, h: 88, cls: "CND", name: "CND2", execNum: 2,
@@ -2467,9 +2521,9 @@ function renderHeaderTab1(vp, h) {
 function renderHeaderTab2(vp, h) {
   drawSectionStrip(vp, 25, 25, 890, 260, "STRIP A: CUSTOM ANTI-CROSS-MIX PATH GATE (CND HAS OUT_D ONLY → ACT HAS IN_D ONLY)", "#1e3a8a");
 
-  drawFlag(vp, { id: "FLAG_XV101_PV", x: 45, y: 68, w: 225, side: "left", label: "CM_HDR_XV101/PV.CV", sub: `Expr Ref (Req: ${h.xv101Cmd})`, liveText: h.xv101Pv, status: h.xv101Match ? "ok" : "bad" });
-  drawFlag(vp, { id: "FLAG_XV102_PV", x: 45, y: 126, w: 225, side: "left", label: "CM_HDR_XV102/PV.CV", sub: `Req: ${h.xv102Cmd} | DC1 Mode: ${state.xv102Mode}`, liveText: h.xv102Pv, status: (h.xv102Match && state.xv102Mode === "CAS") ? "ok" : "bad" });
-  drawFlag(vp, { id: "FLAG_XV103_PV", x: 45, y: 184, w: 225, side: "left", label: "CM_HDR_XV103/PV.CV", sub: `Expr Ref (Req: ${h.xv103Cmd})`, liveText: h.xv103Pv, status: h.xv103Match ? "ok" : "bad" });
+  drawFlag(vp, { id: "FLAG_XV101_PV", x: 45, y: 74, w: 225, side: "left", label: "CM_HDR_XV101/PV.CV", sub: `Expr Ref (Req: ${h.xv101Cmd})`, liveText: h.xv101Pv, status: h.xv101Match ? "ok" : "bad" });
+  drawFlag(vp, { id: "FLAG_XV102_PV", x: 45, y: 132, w: 225, side: "left", label: "CM_HDR_XV102/PV.CV", sub: `Req: ${h.xv102Cmd} | DC1 Mode: ${state.xv102Mode}`, liveText: h.xv102Pv, status: (h.xv102Match && state.xv102Mode === "CAS") ? "ok" : "bad" });
+  drawFlag(vp, { id: "FLAG_XV103_PV", x: 45, y: 190, w: 225, side: "left", label: "CM_HDR_XV103/PV.CV", sub: `Expr Ref (Req: ${h.xv103Cmd})`, liveText: h.xv103Pv, status: h.xv103Match ? "ok" : "bad" });
 
   drawFbdBlock(vp, {
     id: "CND_PATH_OK", x: 335, y: 82, w: 200, h: 132, cls: "CND", name: "CND_PATH_OK", execNum: 1,
@@ -2488,9 +2542,9 @@ function renderHeaderTab2(vp, h) {
 
   drawFlag(vp, { id: "FLAG_PMP_CMD", x: 792, y: 139, w: 112, side: "right", label: "CAS_SP.CV", sub: "CM_XFER_PMP (ref)", liveText: h.pmpCmd, status: h.pmpCmd === "START" ? "ok" : (h.pmpWantRun ? "warn" : "normal") });
 
-  drawWire(vp, [[270, 85], [302, 85], [302, 156], [335, 156]], { ref: true, label: "expr ref", labelPos: [302, 72] });
-  drawWire(vp, [[270, 143], [302, 143], [302, 156], [335, 156]], { ref: true });
-  drawWire(vp, [[270, 201], [302, 201], [302, 156], [335, 156]], { ref: true });
+  drawWire(vp, [[270, 91], [302, 91], [302, 156], [335, 156]], { ref: true, label: "expr ref", labelPos: [302, 74] });
+  drawWire(vp, [[270, 149], [302, 149], [302, 156], [335, 156]], { ref: true });
+  drawWire(vp, [[270, 207], [302, 207], [302, 156], [335, 156]], { ref: true });
   drawWire(vp, [[535, 156], [585, 156]], { active: h.valvesAligned, fault: !h.valvesAligned });
   drawWire(vp, [[765, 156], [792, 156]], { ref: true });
 
@@ -2530,7 +2584,7 @@ function renderHeaderTab3(vp, h) {
   drawFlag(vp, { id: "FLAG_T3_CMD",   x: 45, y: 395, w: 225, side: "left", label: "^/A_COMMAND", sub: "Requested State ($em_hdr)", liveText: h.aCommand, status: "normal" });
 
   drawFbdBlock(vp, {
-    id: "CALC_PV_STATE", x: 330, y: 105, w: 215, h: 195, cls: "CALC", name: "CALC_PV_STATE", execNum: 1,
+    id: "CALC_PV_STATE", x: 330, y: 105, w: 228, h: 195, cls: "CALC", name: "CALC_PV_STATE", execNum: 1,
     inputs: [{ name: "IN1", dy: 38 }, { name: "IN2", dy: 80 }, { name: "IN3", dy: 122 }, { name: "IN4", dy: 164 }],
     outputs: [{ name: "OUT1", dy: 96 }],
     bodyLines: ["Mirrors State Table", "Readback Proof →", "EM A_PV (7009 p462)"],
@@ -2538,7 +2592,7 @@ function renderHeaderTab3(vp, h) {
   });
 
   drawFbdBlock(vp, {
-    id: "CND_FAIL_ALM", x: 600, y: 290, w: 195, h: 138, cls: "CND", name: "CND_ALIGN_ALM", execNum: 2,
+    id: "CND_FAIL_ALM", x: 604, y: 290, w: 195, h: 138, cls: "CND", name: "CND_ALIGN_ALM", execNum: 2,
     inputs: [],
     outputs: [{ name: "OUT_D", dy: 70 }],
     bodyLines: ["TIME_DURATION = 8s", "'^/A_PV' != '^/A_COMMAND'"],
@@ -2546,17 +2600,17 @@ function renderHeaderTab3(vp, h) {
   });
 
   drawFlag(vp, { id: "FLAG_OUT_PV_STATE", x: 635, y: 184, w: 260, side: "right", label: "^/A_PV (Confirmed State)", sub: "Idle (255) until all items match", liveText: h.aPv, status: h.stateAligned ? "ok" : "warn" });
-  drawFlag(vp, { id: "FLAG_OUT_FAIL_ACT", x: 815, y: 343, w: 92, side: "right", label: "^/ALIGN_ALM", sub: "Wired OUT_D", liveText: h.failActive ? "True" : "False", status: h.failActive ? "bad" : "ok" });
+  drawFlag(vp, { id: "FLAG_OUT_FAIL_ACT", x: 817, y: 343, w: 92, side: "right", label: "^/ALIGN_ALM", sub: "Wired OUT_D", liveText: h.failActive ? "True" : "False", status: h.failActive ? "bad" : "ok" });
 
   drawWire(vp, [[270, 112], [300, 112], [300, 143], [330, 143]], { active: true });
   drawWire(vp, [[270, 172], [300, 172], [300, 185], [330, 185]], { active: true, fault: !h.xv102Match });
   drawWire(vp, [[270, 232], [300, 232], [300, 227], [330, 227]], { active: true });
   drawWire(vp, [[270, 292], [300, 292], [300, 269], [330, 269]], { active: true });
 
-  drawWire(vp, [[545, 201], [635, 201]], { active: h.stateAligned, fault: !h.stateAligned });
-  drawWire(vp, [[572, 201], [572, 345], [600, 345]], { ref: true });
-  drawWire(vp, [[270, 412], [572, 412], [572, 375], [600, 375]], { ref: true });
-  drawWire(vp, [[795, 360], [815, 360]], { active: h.failActive, fault: h.failActive });
+  drawWire(vp, [[558, 201], [635, 201]], { active: h.stateAligned, fault: !h.stateAligned });
+  drawWire(vp, [[580, 201], [580, 345], [604, 345]], { ref: true });
+  drawWire(vp, [[270, 412], [580, 412], [580, 375], [604, 375]], { ref: true });
+  drawWire(vp, [[799, 360], [817, 360]], { active: h.failActive, fault: h.failActive });
 }
 
 // =========================================================================
@@ -2686,47 +2740,47 @@ function renderHeaderTab4Combo(vp, h) {
     "Custom FBD Safety Sheet [Solved Continuously #1 → #6 Every Scan]"));
 
   // #1 CND_PATH_OK -> #2 ACT_PMP_GATE + #3 CND_HDR_HI -> #4 ACT_SAFE_CLOSE
-  drawFlag(vp, { id: "FLAG_XV101_PV", x: 556, y: 92,  w: 185, h: 28, side: "left", label: "CM_HDR_XV101/PV.CV", sub: "", liveText: h.xv101Pv, status: h.xv101Match ? "ok" : "bad" });
-  drawFlag(vp, { id: "FLAG_XV102_PV", x: 556, y: 128, w: 185, h: 28, side: "left", label: "CM_HDR_XV102/PV.CV", sub: "", liveText: h.xv102Pv, status: h.xv102Match ? "ok" : "bad" });
-  drawFlag(vp, { id: "FLAG_XV103_PV", x: 556, y: 164, w: 185, h: 28, side: "left", label: "CM_HDR_XV103/PV.CV", sub: "", liveText: h.xv103Pv, status: h.xv103Match ? "ok" : "bad" });
+  drawFlag(vp, { id: "FLAG_XV101_PV", x: 556, y: 98,  w: 185, h: 28, side: "left", label: "CM_HDR_XV101/PV.CV", sub: "", liveText: h.xv101Pv, status: h.xv101Match ? "ok" : "bad" });
+  drawFlag(vp, { id: "FLAG_XV102_PV", x: 556, y: 136, w: 185, h: 28, side: "left", label: "CM_HDR_XV102/PV.CV", sub: "", liveText: h.xv102Pv, status: h.xv102Match ? "ok" : "bad" });
+  drawFlag(vp, { id: "FLAG_XV103_PV", x: 556, y: 174, w: 185, h: 28, side: "left", label: "CM_HDR_XV103/PV.CV", sub: "", liveText: h.xv103Pv, status: h.xv103Match ? "ok" : "bad" });
 
   drawFbdBlock(vp, {
-    id: "CND_PATH_OK", x: 780, y: 90, w: 170, h: 102, cls: "CND", name: "CND_PATH_OK", execNum: 1,
-    inputs: [], outputs: [{ name: "OUT_D", dy: 58 }],
+    id: "CND_PATH_OK", x: 780, y: 94, w: 170, h: 102, cls: "CND", name: "CND_PATH_OK", execNum: 1,
+    inputs: [], outputs: [{ name: "OUT_D", dy: 56 }],
     bodyLines: ["Anti-Cross-Mix"], status: h.valvesAligned ? "ok" : "bad", liveBadge: h.valvesAligned ? "True" : "False"
   });
   drawFbdBlock(vp, {
-    id: "ACT_PMP_GATE", x: 985, y: 96, w: 165, h: 90, cls: "ACT", name: "ACT_PMP_GATE", execNum: 2,
-    inputs: [{ name: "IN_D", dy: 52 }], outputs: [],
+    id: "ACT_PMP_GATE", x: 985, y: 100, w: 165, h: 90, cls: "ACT", name: "ACT_PMP_GATE", execNum: 2,
+    inputs: [{ name: "IN_D", dy: 50 }], outputs: [],
     bodyLines: ["Pump Start Gate"], status: h.pmpCmd === "START" ? "ok" : "normal", liveBadge: h.pmpCmd
   });
-  drawFlag(vp, { id: "FLAG_PMP_CMD", x: 1185, y: 133, w: 195, h: 30, side: "right", label: "CM_XFER_PMP/CAS_SP.CV", sub: "", liveText: h.pmpCmd, status: h.pmpCmd === "START" ? "ok" : "normal" });
+  drawFlag(vp, { id: "FLAG_PMP_CMD", x: 1185, y: 135, w: 195, h: 30, side: "right", label: "CM_XFER_PMP/CAS_SP.CV", sub: "", liveText: h.pmpCmd, status: h.pmpCmd === "START" ? "ok" : "normal" });
 
-  drawFlag(vp, { id: "FLAG_HDR_PT", x: 556, y: 232, w: 185, h: 30, side: "left", label: "CM_HDR_PT/AI1/OUT", sub: "", liveText: `${state.hdrPress.toFixed(1)}bar`, status: h.highPressTrip ? "bad" : "ok" });
+  drawFlag(vp, { id: "FLAG_HDR_PT", x: 556, y: 238, w: 185, h: 30, side: "left", label: "CM_HDR_PT/AI1/OUT", sub: "", liveText: `${state.hdrPress.toFixed(1)}bar`, status: h.highPressTrip ? "bad" : "ok" });
   drawFbdBlock(vp, {
-    id: "CND_HDR_HI", x: 780, y: 212, w: 170, h: 86, cls: "CND", name: "CND_HDR_HI", execNum: 3,
+    id: "CND_HDR_HI", x: 780, y: 218, w: 170, h: 86, cls: "CND", name: "CND_HDR_HI", execNum: 3,
     inputs: [], outputs: [{ name: "OUT_D", dy: 44 }],
     bodyLines: ["> 6.0 bar"], status: h.highPressTrip ? "bad" : "normal", liveBadge: h.highPressTrip ? "True" : "False"
   });
   drawFbdBlock(vp, {
-    id: "ACT_FAIL_STATE", x: 985, y: 212, w: 165, h: 86, cls: "ACT", name: "ACT_SAFE_CLOSE", execNum: 4,
+    id: "ACT_FAIL_STATE", x: 985, y: 218, w: 165, h: 86, cls: "ACT", name: "ACT_SAFE_CLOSE", execNum: 4,
     inputs: [{ name: "IN_D", dy: 44 }], outputs: [],
     bodyLines: ["A_COMMAND:=CLOSED"], status: h.highPressTrip ? "bad" : "normal", liveBadge: h.highPressTrip ? "True" : "False"
   });
-  drawFlag(vp, { id: "FLAG_FAIL_OUT", x: 1185, y: 241, w: 195, h: 30, side: "right", label: "^/A_COMMAND := CLOSED", sub: "", liveText: h.effectiveTarget.slice(0, 13), status: h.highPressTrip ? "bad" : "ok" });
+  drawFlag(vp, { id: "FLAG_FAIL_OUT", x: 1185, y: 247, w: 195, h: 30, side: "right", label: "^/A_COMMAND := CLOSED", sub: "", liveText: h.effectiveTarget.slice(0, 13), status: h.highPressTrip ? "bad" : "ok" });
 
-  drawWire(vp, [[741, 106], [760, 106], [760, 148], [780, 148]], { ref: true });
-  drawWire(vp, [[741, 142], [760, 142], [760, 148], [780, 148]], { ref: true });
-  drawWire(vp, [[741, 178], [760, 178], [760, 148], [780, 148]], { ref: true });
-  drawWire(vp, [[950, 148], [985, 148]], { active: h.valvesAligned, fault: !h.valvesAligned });
-  drawWire(vp, [[1150, 148], [1185, 148]], { ref: true });
-  drawWire(vp, [[741, 247], [780, 256]], { ref: true });
-  drawWire(vp, [[950, 256], [985, 256]], { active: h.highPressTrip, fault: h.highPressTrip });
-  drawWire(vp, [[1150, 256], [1185, 256]], { ref: true });
+  drawWire(vp, [[741, 112], [760, 112], [760, 150], [780, 150]], { ref: true });
+  drawWire(vp, [[741, 150], [760, 150], [780, 150]], { ref: true });
+  drawWire(vp, [[741, 188], [760, 188], [760, 150], [780, 150]], { ref: true });
+  drawWire(vp, [[950, 150], [985, 150]], { active: h.valvesAligned, fault: !h.valvesAligned });
+  drawWire(vp, [[1150, 150], [1185, 150]], { ref: true });
+  drawWire(vp, [[741, 253], [780, 262]], { ref: true });
+  drawWire(vp, [[950, 262], [985, 262]], { active: h.highPressTrip, fault: h.highPressTrip });
+  drawWire(vp, [[1150, 262], [1185, 262]], { ref: true });
 
-  // Mode Readback Callout Box (MODE.TARGET vs MODE.ACTUAL in State Table!)
-  drawFlag(vp, { id: "FLAG_FEED_MODE_TGT", x: 556, y: 342, w: 320, h: 32, side: "right", label: "CM_HDR_XV102/MODE.TARGET (Item 2 Write)", sub: "", liveText: "CAS", status: "ok" });
-  drawFlag(vp, { id: "FLAG_XV102_MODE", x: 920, y: 342, w: 340, h: 32, side: "left", label: "CM_HDR_XV102/MODE.ACTUAL (Item 2 Readback)", sub: "", liveText: state.xv102Mode, status: state.xv102Mode === "CAS" ? "ok" : "bad" });
+  // Mode Readback Callout Boxes (positioned to the right of vertical wire bus x=760!)
+  drawFlag(vp, { id: "FLAG_FEED_MODE_TGT", x: 780, y: 344, w: 288, h: 32, side: "right", label: "CM_HDR_XV102/MODE.TARGET (Item 2)", sub: "", liveText: "CAS", status: "ok" });
+  drawFlag(vp, { id: "FLAG_XV102_MODE", x: 1084, y: 344, w: 298, h: 32, side: "left", label: "CM_HDR_XV102/MODE.ACTUAL (Readback)", sub: "", liveText: state.xv102Mode, status: state.xv102Mode === "CAS" ? "ok" : "bad" });
 
   // #5 CALC_PV_STATE -> #6 CND_ALIGN_ALM (A_PV & Timeout)
   drawFlag(vp, { id: "FLAG_T3_PMP", x: 556, y: 500, w: 185, h: 30, side: "left", label: "CM_XFER_PMP/PV.CV", sub: "", liveText: h.pmpPv, status: h.pmpMatch ? "ok" : "warn" });
@@ -2746,7 +2800,7 @@ function renderHeaderTab4Combo(vp, h) {
   });
   drawFlag(vp, { id: "FLAG_OUT_FAIL_ACT", x: 1230, y: 679, w: 155, h: 30, side: "right", label: "^/ALIGN_ALM", sub: "", liveText: h.failActive ? "True" : "False", status: h.failActive ? "bad" : "ok" });
 
-  drawWire(vp, [[760, 142], [760, 506], [780, 506]], { active: true, fault: !h.valvesAligned });
+  drawWire(vp, [[760, 150], [760, 506], [780, 506]], { active: true, fault: !h.valvesAligned });
   drawWire(vp, [[741, 515], [752, 515], [752, 552], [780, 552]], { active: true });
   drawWire(vp, [[965, 530], [1015, 530]], { active: h.stateAligned, fault: !h.stateAligned });
   drawWire(vp, [[990, 530], [990, 680], [1015, 680]], { ref: true });
@@ -3198,13 +3252,13 @@ function renderPidTab1(vp, pid) {
   drawSectionStrip(vp, 22, 16, 896, 326, "STRIP A: SINGLE-LOOP REGULATORY CONTROL — AI1 (#1) → PID1 (#2) → AO1 (#3) + GRAY DOTTED BKCAL FEEDBACK WIRE (#3 → #2)", "#1e3a8a");
 
   // Unwired left-side module-level Internal Reference parameter (Course 7017 p. 243!)
-  drawFlag(vp, { id: "PID_MODE_REF", x: 38, y: 52, w: 168, h: 28, side: "left", label: "MODE (Int Ref → PID1)", sub: "Unwired (7017 p243)", liveText: pid.pidActual, status: pid.pidActual === "AUTO" ? "ok" : "warn" });
+  drawFlag(vp, { id: "PID_MODE_REF", x: 38, y: 62, w: 168, h: 28, side: "left", label: "MODE (Int Ref → PID1)", sub: "Unwired (7017 p243)", liveText: pid.pidActual, status: pid.pidActual === "AUTO" ? "ok" : "warn" });
 
   // #1 AI1
   drawFbdBlock(vp, {
-    id: "PID_AI1_BLK", x: 38, y: 112, w: 168, h: 122, cls: "AI", name: "AI1 (FT-101)", execNum: 1,
+    id: "PID_AI1_BLK", x: 38, y: 116, w: 168, h: 120, cls: "AI", name: "AI1 (FT-101)", execNum: 1,
     inputs: [],
-    outputs: [{ name: "OUT", dy: 62 }],
+    outputs: [{ name: "OUT", dy: 58 }],
     bodyLines: ["IO_IN: CH01 (4-20mA)", `PV_FTIME = 1.5s`, `OUT: ${state.pidPv} gpm`],
     status: pid.aiBad ? "bad" : "ok", liveBadge: `${state.pidPv} gpm`, badSt: pid.aiBad
   });
@@ -3226,9 +3280,9 @@ function renderPidTab1(vp, pid) {
 
   // #3 AO1
   drawFbdBlock(vp, {
-    id: "PID_AO1_BLK", x: 590, y: 92, w: 215, h: 162, cls: "AO", name: "AO1 (FV-101)", execNum: 3,
-    inputs: [{ name: "CAS_IN", dy: 82 }],
-    outputs: [{ name: "OUT", dy: 64 }, { name: "BKCAL_OUT", dy: 120 }],
+    id: "PID_AO1_BLK", x: 590, y: 86, w: 215, h: 174, cls: "AO", name: "AO1 (FV-101)", execNum: 3,
+    inputs: [{ name: "CAS_IN", dy: 108 }],
+    outputs: [{ name: "OUT", dy: 108 }, { name: "BKCAL_OUT", dy: 144 }],
     bodyLines: [
       `MODE: ${pid.aoActual}`,
       `Valve: ${pid.aoOut}% ${state.pidHiLim ? "(HI-LIM!)" : ""}`,
@@ -3239,15 +3293,15 @@ function renderPidTab1(vp, pid) {
   });
 
   // Right-side output parameter box (leaving diagram to physical I/O channel)
-  drawFlag(vp, { id: "PID_IO_OUT", x: 828, y: 139, w: 80, h: 34, side: "right", label: "IO_OUT", sub: "4-20 mA", liveText: `${pid.aoOut}%`, status: pid.aoActual === "OOS" ? "bad" : "ok" });
+  drawFlag(vp, { id: "PID_IO_OUT", x: 828, y: 177, w: 80, h: 34, side: "right", label: "IO_OUT", sub: "4-20 mA", liveText: `${pid.aoOut}%`, status: pid.aoActual === "OOS" ? "bad" : "ok" });
 
   // Forward solid wires (#1 -> #2 -> #3 -> IO_OUT)
   drawWire(vp, [[206, 174], [278, 174]], { active: !pid.aiBad, fault: pid.aiBad, label: pid.aiBad ? "BAD ✕" : `${state.pidPv} gpm`, labelPos: [242, 160] });
-  drawWire(vp, [[516, 174], [590, 174]], { active: pid.aoActual === "CAS", fault: pid.pidActual === "LO", label: `${pid.pidOut}%`, labelPos: [553, 160] });
-  drawWire(vp, [[805, 156], [828, 156]], { active: pid.aoOut > 0, fault: pid.aoActual === "OOS" });
+  drawWire(vp, [[516, 174], [552, 174], [552, 194], [590, 194]], { active: pid.aoActual === "CAS", fault: pid.pidActual === "LO", label: `${pid.pidOut}%`, labelPos: [552, 160] });
+  drawWire(vp, [[805, 194], [828, 194]], { active: pid.aoOut > 0, fault: pid.aoActual === "OOS" });
 
   // REAL DELTAV GRAY DOTTED FEEDBACK WIRE (#3 AO1/BKCAL_OUT -> #2 PID1/BKCAL_IN)!
-  drawWire(vp, [[805, 212], [820, 212], [820, 314], [248, 314], [248, 210], [278, 210]], {
+  drawWire(vp, [[805, 230], [820, 230], [820, 314], [248, 314], [248, 210], [278, 210]], {
     feedback: true,
     label: `BKCAL (#3 → #2 Feedback: ${pid.bkcalVal}% | ${pid.bkcalShort})`,
     labelPos: [534, 314]
@@ -3271,7 +3325,7 @@ function renderPidTab1(vp, pid) {
   drawWire(vp, [[489, 452], [536, 452], [536, 344], [228, 344], [228, 238], [278, 238]], {
     feedback: true,
     label: "TRK_IN_D (#4 → #2 Feedback → Forces LO)",
-    labelPos: [690, 452]
+    labelPos: [388, 344]
   });
 
   // Explanatory card bottom-right of Strip B
@@ -3315,7 +3369,7 @@ function renderPidTab2(vp, pid) {
   // Forward arrow
   drawWire(vp, [[386, 110], [534, 110]], { active: pid.aoActual === "CAS", fault: pid.pidActual === "LO", label: `OUT → CAS_IN (${pid.pidOut}%)`, labelPos: [460, 94] });
   // Backward gray dotted feedback arrow
-  drawWire(vp, [[534, 174], [386, 174]], { feedback: true, label: `BKCAL_OUT → BKCAL_IN (${pid.bkcalVal}% | ${pid.bkcalShort})`, labelPos: [460, 196] });
+  drawWire(vp, [[534, 174], [386, 174]], { feedback: true, label: `BKCAL: ${pid.bkcalVal}% [${pid.bkcalShort}]`, labelPos: [460, 194] });
 
   // Live Status Truth Table below
   const tbl = el("g", { class: "clickable", "data-id": "PID_BKCAL_WIRE" });
@@ -3371,17 +3425,17 @@ function renderCascadeTab1(vp, cas) {
 
   // #1 AI_TT
   drawFbdBlock(vp, {
-    id: "CAS_AI_TT", x: 36, y: 112, w: 138, h: 110, cls: "AI", name: "AI_TT (Temp)", execNum: 1,
-    inputs: [], outputs: [{ name: "OUT", dy: 56 }],
+    id: "CAS_AI_TT", x: 34, y: 122, w: 136, h: 106, cls: "AI", name: "AI_TT (Temp)", execNum: 1,
+    inputs: [], outputs: [{ name: "OUT", dy: 70 }],
     bodyLines: ["Reactor Temp", `${state.casTempPv} °C`],
     status: "ok", liveBadge: `${state.casTempPv}°C`
   });
 
   // #2 PID_TIC (Master)
   drawFbdBlock(vp, {
-    id: "CAS_TIC_BLK", x: 214, y: 84, w: 196, h: 168, cls: "PID", name: "PID_TIC (Master)", execNum: 2,
-    inputs: [{ name: "IN", dy: 84 }, { name: "BKCAL_IN", dy: 128 }],
-    outputs: [{ name: "OUT", dy: 84 }],
+    id: "CAS_TIC_BLK", x: 212, y: 74, w: 198, h: 192, cls: "PID", name: "PID_TIC (Master)", execNum: 2,
+    inputs: [{ name: "IN", dy: 118 }, { name: "BKCAL_IN", dy: 152 }],
+    outputs: [{ name: "OUT", dy: 118 }],
     bodyLines: [
       `TGT: ${state.casTicTarget} | ACT: ${cas.ticActual}`,
       `Temp SP: ${cas.tempSp} °C`,
@@ -3394,9 +3448,9 @@ function renderCascadeTab1(vp, cas) {
 
   // #3 PID_FIC (Slave)
   drawFbdBlock(vp, {
-    id: "CAS_FIC_BLK", x: 458, y: 84, w: 196, h: 168, cls: "PID", name: "PID_FIC (Slave)", execNum: 3,
-    inputs: [{ name: "CAS_IN", dy: 84 }, { name: "BKCAL_IN", dy: 128 }],
-    outputs: [{ name: "OUT", dy: 84 }, { name: "BKCAL_OUT", dy: 128 }],
+    id: "CAS_FIC_BLK", x: 458, y: 74, w: 198, h: 192, cls: "PID", name: "PID_FIC (Slave)", execNum: 3,
+    inputs: [{ name: "CAS_IN", dy: 118 }, { name: "BKCAL_IN", dy: 152 }],
+    outputs: [{ name: "OUT", dy: 118 }, { name: "BKCAL_OUT", dy: 152 }],
     bodyLines: [
       `TGT: ${state.casFicTarget} | ACT: ${cas.ficActual}`,
       `SP (from TIC): ${cas.flowSp} gpm`,
@@ -3409,9 +3463,9 @@ function renderCascadeTab1(vp, cas) {
 
   // #4 AO_VLV
   drawFbdBlock(vp, {
-    id: "CAS_AO_BLK", x: 702, y: 98, w: 186, h: 140, cls: "AO", name: "AO_VLV (Steam)", execNum: 4,
-    inputs: [{ name: "CAS_IN", dy: 70 }],
-    outputs: [{ name: "OUT", dy: 52 }, { name: "BKCAL_OUT", dy: 108 }],
+    id: "CAS_AO_BLK", x: 704, y: 86, w: 184, h: 176, cls: "AO", name: "AO_VLV (Steam)", execNum: 4,
+    inputs: [{ name: "CAS_IN", dy: 106 }],
+    outputs: [{ name: "OUT", dy: 106 }, { name: "BKCAL_OUT", dy: 138 }],
     bodyLines: [
       `MODE: ${cas.aoActual}`,
       `Steam Vlv: ${cas.aoOut}%`,
@@ -3422,22 +3476,22 @@ function renderCascadeTab1(vp, cas) {
   });
 
   // Forward wires (#1 -> #2 -> #3 -> #4)
-  drawWire(vp, [[174, 168], [214, 168]], { active: true });
-  drawWire(vp, [[410, 168], [458, 168]], { active: cas.ficActual === "CAS", label: `${cas.flowSp}`, labelPos: [434, 152] });
-  drawWire(vp, [[654, 168], [702, 168]], { active: !cas.aoNotCas, label: `${cas.ficOut}%`, labelPos: [678, 152] });
+  drawWire(vp, [[170, 192], [212, 192]], { active: true });
+  drawWire(vp, [[410, 192], [458, 192]], { active: cas.ficActual === "CAS", label: `${cas.flowSp}`, labelPos: [434, 176] });
+  drawWire(vp, [[656, 192], [704, 192]], { active: !cas.aoNotCas, label: `${cas.ficOut}%`, labelPos: [680, 176] });
 
   // Gray dotted BKCAL feedback wire #4 -> #3
-  drawWire(vp, [[888, 206], [902, 206], [902, 294], [434, 294], [434, 212], [458, 212]], {
+  drawWire(vp, [[888, 224], [902, 224], [902, 302], [434, 302], [434, 226], [458, 226]], {
     feedback: true,
     label: `BKCAL #4 → #3 (${cas.aoOut}% | ${cas.aoBkcalStatus})`,
-    labelPos: [684, 294]
+    labelPos: [684, 302]
   });
 
   // Gray dotted BKCAL feedback wire #3 -> #2
-  drawWire(vp, [[654, 212], [672, 212], [672, 340], [192, 340], [192, 212], [214, 212]], {
+  drawWire(vp, [[656, 226], [672, 226], [672, 344], [190, 344], [190, 226], [212, 226]], {
     feedback: true,
     label: `BKCAL #3 → #2 (${cas.flowSp} gpm | ${cas.ficBkcalStatus})`,
-    labelPos: [414, 340]
+    labelPos: [414, 344]
   });
 
   // Bottom Diagnostic Summary Card
@@ -3460,9 +3514,9 @@ function renderCascadeTab2(vp, cas) {
 
   // #1 PID_FLOW (Normal Control)
   drawFbdBlock(vp, {
-    id: "CAS_OVR_FLOW", x: 48, y: 66, w: 222, h: 144, cls: "PID", name: "PID_FLOW (Normal)", execNum: 1,
-    inputs: [{ name: "BKCAL_IN", dy: 112 }],
-    outputs: [{ name: "OUT", dy: 64 }],
+    id: "CAS_OVR_FLOW", x: 46, y: 62, w: 226, h: 148, cls: "PID", name: "PID_FLOW (Normal)", execNum: 1,
+    inputs: [{ name: "BKCAL_IN", dy: 122 }],
+    outputs: [{ name: "OUT", dy: 96 }],
     bodyLines: [
       `Flow Demand: ${cas.flowPidOut}%`,
       !cas.overrideActive && cas.ctlslActual === "AUTO" ? "★ SELECTED BY CTLSL1" : "Unselected (Clamped)",
@@ -3474,9 +3528,9 @@ function renderCascadeTab2(vp, cas) {
 
   // #2 PID_HI_PRESS (High Discharge Pressure Override)
   drawFbdBlock(vp, {
-    id: "CAS_OVR_PRESS", x: 48, y: 248, w: 222, h: 144, cls: "PID", name: "PID_HI_PRESS (Override)", execNum: 2,
-    inputs: [{ name: "BKCAL_IN", dy: 112 }],
-    outputs: [{ name: "OUT", dy: 64 }],
+    id: "CAS_OVR_PRESS", x: 46, y: 244, w: 226, h: 148, cls: "PID", name: "PID_HI_PRESS (Override)", execNum: 2,
+    inputs: [{ name: "BKCAL_IN", dy: 122 }],
+    outputs: [{ name: "OUT", dy: 96 }],
     bodyLines: [
       `Press: ${state.casPressPv.toFixed(1)} / 8.5 bar`,
       `Override Out: ${cas.pressPidOut}%`,
@@ -3488,9 +3542,9 @@ function renderCascadeTab2(vp, cas) {
 
   // #3 CTLSL1 (Control Selector — FBR p. 185!)
   drawFbdBlock(vp, {
-    id: "CAS_CTLSL_BLK", x: 358, y: 126, w: 232, h: 210, cls: "CTLSL", name: "CTLSL1 (LOW Select)", execNum: 3,
-    inputs: [{ name: "SEL_1", dy: 52 }, { name: "SEL_2", dy: 102 }, { name: "BKCAL_IN", dy: 168 }],
-    outputs: [{ name: "OUT", dy: 76 }, { name: "BKCAL_SEL1", dy: 132 }, { name: "BKCAL_SEL2", dy: 168 }],
+    id: "CAS_CTLSL_BLK", x: 356, y: 112, w: 248, h: 230, cls: "CTLSL", name: "CTLSL1 (LOW Select)", execNum: 3,
+    inputs: [{ name: "SEL_1", dy: 110 }, { name: "SEL_2", dy: 148 }, { name: "BKCAL_IN", dy: 188 }],
+    outputs: [{ name: "OUT", dy: 116 }, { name: "BKCAL_SEL1", dy: 152 }, { name: "BKCAL_SEL2", dy: 188 }],
     bodyLines: [
       `SEL_TYPE: LOW (min)`,
       `MODE.ACTUAL: ${cas.ctlslActual}`,
@@ -3503,9 +3557,9 @@ function renderCascadeTab2(vp, cas) {
 
   // #4 AO_VLV
   drawFbdBlock(vp, {
-    id: "CAS_AO_BLK", x: 676, y: 150, w: 204, h: 148, cls: "AO", name: "AO_VLV (Control Vlv)", execNum: 4,
-    inputs: [{ name: "CAS_IN", dy: 52 }],
-    outputs: [{ name: "OUT", dy: 52 }, { name: "BKCAL_OUT", dy: 112 }],
+    id: "CAS_AO_BLK", x: 682, y: 128, w: 198, h: 178, cls: "AO", name: "AO_VLV (Control Vlv)", execNum: 4,
+    inputs: [{ name: "CAS_IN", dy: 100 }],
+    outputs: [{ name: "OUT", dy: 100 }, { name: "BKCAL_OUT", dy: 136 }],
     bodyLines: [
       `MODE: ${cas.aoActual}`,
       `Valve: ${cas.ctlslOut}%`,
@@ -3516,24 +3570,24 @@ function renderCascadeTab2(vp, cas) {
   });
 
   // Forward wires (#1/#2 -> #3 -> #4)
-  drawWire(vp, [[270, 130], [312, 130], [312, 178], [358, 178]], { active: !cas.overrideActive && cas.ctlslActual === "AUTO", label: `${cas.flowPidOut}%`, labelPos: [312, 114] });
-  drawWire(vp, [[270, 312], [312, 312], [312, 228], [358, 228]], { active: cas.overrideActive, fault: cas.pressBad || cas.overrideActive, label: cas.pressBad ? "BAD ✕" : `${cas.pressPidOut}%`, labelPos: [312, 326] });
-  drawWire(vp, [[590, 202], [676, 202]], { active: !cas.aoNotCas, fault: cas.overrideActive, label: `${cas.ctlslOut}%`, labelPos: [633, 188] });
+  drawWire(vp, [[272, 158], [312, 158], [312, 222], [356, 222]], { active: !cas.overrideActive && cas.ctlslActual === "AUTO", label: `${cas.flowPidOut}%`, labelPos: [312, 142] });
+  drawWire(vp, [[272, 340], [312, 340], [312, 260], [356, 260]], { active: cas.overrideActive, fault: cas.pressBad || cas.overrideActive, label: cas.pressBad ? "BAD ✕" : `${cas.pressPidOut}%`, labelPos: [312, 354] });
+  drawWire(vp, [[604, 228], [682, 228]], { active: !cas.aoNotCas, fault: cas.overrideActive, label: `${cas.ctlslOut}%`, labelPos: [643, 212] });
 
   // Gray dotted BKCAL feedback #4 -> #3
-  drawWire(vp, [[880, 262], [896, 262], [896, 368], [336, 368], [336, 294], [358, 294]], {
+  drawWire(vp, [[880, 264], [896, 264], [896, 370], [336, 370], [336, 300], [356, 300]], {
     feedback: true,
     label: `AO BKCAL_OUT → CTLSL1/BKCAL_IN (${cas.aoBkcalStatus})`,
-    labelPos: [638, 368]
+    labelPos: [638, 370]
   });
 
   // Gray dotted BKCAL_SEL1 (#3 -> #1) & BKCAL_SEL2 (#3 -> #2)
-  drawWire(vp, [[590, 258], [622, 258], [622, 424], [28, 424], [28, 178], [48, 178]], {
+  drawWire(vp, [[604, 264], [626, 264], [626, 424], [26, 424], [26, 184], [46, 184]], {
     feedback: true,
     label: `BKCAL_SEL1 → PID_FLOW (${cas.sel1Bkcal})`,
     labelPos: [250, 424]
   });
-  drawWire(vp, [[590, 294], [608, 294], [608, 456], [36, 456], [36, 360], [48, 360]], {
+  drawWire(vp, [[604, 300], [614, 300], [614, 456], [34, 456], [34, 366], [46, 366]], {
     feedback: true,
     label: `BKCAL_SEL2 → PID_HI_PRESS (${cas.sel2Bkcal})`,
     labelPos: [250, 456]
@@ -3572,10 +3626,10 @@ function renderPwTab1(vp, pw) {
   p01G.appendChild(el("text", { x: 197, y: 276, "text-anchor": "middle", "font-size": 8.6, "font-weight": 700, fill: pw.xv01Pos === "TRANSFER" ? "#15803d" : "#475569", "font-family": "ui-monospace, monospace" }, pw.xv01Pos));
   vp.appendChild(p01G);
 
-  // Pipes EQ -> P01 -> XV01 -> Neut
+  // Pipes EQ -> P01 -> XV01 -> Neut (clean left-wall entry)
   drawWire(vp, [[100, 220], [100, 249]], { active: pw.p01Run });
   drawWire(vp, [[117, 266], [158, 266]], { active: pw.p01Run });
-  drawWire(vp, [[236, 266], [268, 266], [268, 194]], { active: pw.xv01Pos === "TRANSFER" });
+  drawWire(vp, [[236, 266], [246, 266], [246, 184], [256, 184]], { active: pw.xv01Pos === "TRANSFER" });
 
   // Neutralization Tank
   const trtG = el("g", { class: "clickable", "data-id": "PW_TRT_TANK" });
@@ -3588,15 +3642,17 @@ function renderPwTab1(vp, pw) {
   trtG.appendChild(el("text", { x: 325, y: 144, "text-anchor": "middle", "font-size": 8.4, fill: "#475569", "font-family": "ui-monospace, monospace" }, "TP002:80% | TP004:20%"));
   vp.appendChild(trtG);
 
-  // AIC002 + Acid / Base Dosing Box (top-right of P&ID)
+  // AIC002 + Acid / Base Dosing Box (top-right of P&ID — IMG_1121 & IMG_1154!)
   const aicG = el("g", { class: "clickable", "data-id": "PW_AIC002" });
-  aicG.appendChild(el("rect", { x: 406, y: 50, width: 122, height: 118, rx: 5, fill: pw.aicMode === "RCAS" ? "#f0fdf4" : "#faf5ff", stroke: pw.aicMode === "RCAS" ? "#16a34a" : "#9333ea", "stroke-width": 1.8 }));
-  aicG.appendChild(el("text", { x: 467, y: 67, "text-anchor": "middle", "font-size": 9.5, "font-weight": 800, fill: "#0f172a", "font-family": "ui-monospace, monospace" }, "3WT-0001-AIC002"));
-  aicG.appendChild(el("text", { x: 467, y: 83, "text-anchor": "middle", "font-size": 9.2, "font-weight": 800, fill: pw.aicMode === "RCAS" ? "#15803d" : "#7e22ce", "font-family": "ui-monospace, monospace" }, `MODE: ${pw.aicMode} | SP: 8.0`));
-  aicG.appendChild(el("text", { x: 467, y: 100, "text-anchor": "middle", "font-size": 9.0, fill: "#1e293b", "font-family": "ui-monospace, monospace" }, `Base OUT1: ${pw.baseDose}%`));
-  aicG.appendChild(el("text", { x: 467, y: 116, "text-anchor": "middle", "font-size": 9.0, fill: "#1e293b", "font-family": "ui-monospace, monospace" }, `Acid OUT2: ${pw.acidDose}%`));
-  aicG.appendChild(el("text", { x: 467, y: 134, "text-anchor": "middle", "font-size": 8.4, fill: "#475569", "font-family": "ui-monospace, monospace" }, "Ramp: AI02RMP"));
-  aicG.appendChild(el("text", { x: 467, y: 152, "text-anchor": "middle", "font-size": 8.4, fill: "#475569", "font-family": "ui-monospace, monospace" }, "LAL001/002: Normal"));
+  const aicOut = pw.aicMode === "LO" ? 50 : Math.max(0, Math.min(100, Math.round(50 + (pw.baseDose - pw.acidDose) / 2)));
+  aicG.appendChild(el("rect", { x: 406, y: 50, width: 122, height: 122, rx: 5, fill: pw.aicMode === "RCAS" ? "#f0fdf4" : "#faf5ff", stroke: pw.aicMode === "RCAS" ? "#16a34a" : "#9333ea", "stroke-width": 1.8 }));
+  aicG.appendChild(el("text", { x: 467, y: 66, "text-anchor": "middle", "font-size": 9.4, "font-weight": 800, fill: "#0f172a", "font-family": "ui-monospace, monospace" }, "3WT-0001-AIC002"));
+  aicG.appendChild(el("text", { x: 467, y: 81, "text-anchor": "middle", "font-size": 9.0, "font-weight": 800, fill: pw.aicMode === "RCAS" ? "#15803d" : "#7e22ce", "font-family": "ui-monospace, monospace" }, `MODE: ${pw.aicMode} | SP: 8.0`));
+  aicG.appendChild(el("text", { x: 467, y: 97, "text-anchor": "middle", "font-size": 8.9, "font-weight": 700, fill: pw.aicMode === "LO" ? "#7e22ce" : "#0f172a", "font-family": "ui-monospace, monospace" }, `OUT: ${aicOut}% ${pw.aicMode === "LO" ? "(TRK=50)" : "(Split)"}`));
+  aicG.appendChild(el("text", { x: 467, y: 113, "text-anchor": "middle", "font-size": 8.8, fill: "#1e293b", "font-family": "ui-monospace, monospace" }, `Base OUT1: ${pw.baseDose}%`));
+  aicG.appendChild(el("text", { x: 467, y: 128, "text-anchor": "middle", "font-size": 8.8, fill: "#1e293b", "font-family": "ui-monospace, monospace" }, `Acid OUT2: ${pw.acidDose}%`));
+  aicG.appendChild(el("text", { x: 467, y: 145, "text-anchor": "middle", "font-size": 8.2, fill: "#475569", "font-family": "ui-monospace, monospace" }, "Ramp: AI02RMP (DEV19)"));
+  aicG.appendChild(el("text", { x: 467, y: 161, "text-anchor": "middle", "font-size": 8.2, fill: "#475569", "font-family": "ui-monospace, monospace" }, "LAL001/002: Normal"));
   vp.appendChild(aicG);
   drawWire(vp, [[406, 108], [394, 108]], { active: pw.baseDose > 0 || pw.acidDose > 0 });
 
@@ -3617,7 +3673,7 @@ function renderPwTab1(vp, pw) {
   drawWire(vp, [[454, 266], [468, 266]], { active: pw.xv05Pos === "DRAIN", fault: pw.cnd3PhOut && state.pwCmd === "DISCHARGE" });
 
   // Bottom-Left: Command State Table (mirroring IMG_1111 / IMG_1113!)
-  drawSectionStrip(vp, 18, 370, 520, 174, "COMMAND STATE TABLE (IMG_1111) — 6 ENABLED COMMANDS + 5 EMPTY SHELLS", "#1e3a8a");
+  drawSectionStrip(vp, 18, 370, 520, 180, "COMMAND STATE TABLE (IMG_1111) — 6 ENABLED COMMANDS + 5 EMPTY SHELLS", "#1e3a8a");
   const cmds = [
     ["COMMAND_00000", "HOLD",      true],
     ["COMMAND_00001", "IDLE",      true],
@@ -3629,10 +3685,10 @@ function renderPwTab1(vp, pw) {
   ];
   cmds.forEach(([blk, nm, en], i) => {
     if (!en && state.pwHideStubs) return;
-    const cy = 402 + i * 20;
+    const cy = 412 + i * 19;
     const isAct = en && pw.activeCmd === nm;
     const cg = el("g", { class: en ? "clickable" : "", "data-id": "PW_CMD_TABLE", "data-pwcmd": en ? nm : "" });
-    cg.appendChild(el("rect", { x: 28, y: cy - 12, width: 500, height: 18, rx: 2, fill: isAct ? "#dcfce7" : (en ? "#ffffff" : "#f1f5f9"), stroke: isAct ? "#16a34a" : "#e2e8f0" }));
+    cg.appendChild(el("rect", { x: 28, y: cy - 12, width: 500, height: 17, rx: 2, fill: isAct ? "#dcfce7" : (en ? "#ffffff" : "#f1f5f9"), stroke: isAct ? "#16a34a" : "#e2e8f0" }));
     cg.appendChild(el("text", { x: 36, y: cy, "font-size": 9.2, "font-weight": isAct ? 800 : 600, fill: en ? "#0f172a" : "#94a3b8", "font-family": "ui-monospace, monospace" }, `${isAct ? "✓ " : "  "}${blk.padEnd(15)} ${nm}`));
     cg.appendChild(el("text", { x: 520, y: cy, "text-anchor": "end", "font-size": 9.0, "font-weight": 700, fill: isAct ? "#15803d" : (en ? "#475569" : "#94a3b8"), "font-family": "ui-monospace, monospace" }, en ? (isAct ? "ACTIVE / COMPLETE" : "Enabled = True") : "Enabled = False"));
     vp.appendChild(cg);
@@ -3742,8 +3798,8 @@ function renderPwTab2(vp, pw) {
   const tpG = el("g", { class: "clickable", "data-id": "PW_TUNING_PARAMS" });
   tpG.appendChild(el("rect", { x: 30, y: 378, width: 242, height: 156, rx: 5, fill: "#ffffff", stroke: "#7c3aed", "stroke-width": 1.6 }));
   tpG.appendChild(el("rect", { x: 31, y: 379, width: 240, height: 20, rx: 4, fill: "#ede9fe" }));
-  tpG.appendChild(el("text", { x: 151, y: 393, "text-anchor": "middle", "font-size": 9.2, "font-weight": 800, fill: "#5b21b6", "font-family": "ui-monospace, monospace" },
-    state.pwHideStubs ? "TUNING PARAMS (8 Active Only!)" : "TP001–TP008 (TP009–40 & OP1–20 Unused)"));
+  tpG.appendChild(el("text", { x: 151, y: 393, "text-anchor": "middle", "font-size": 8.6, "font-weight": 800, fill: "#5b21b6", "font-family": "ui-monospace, monospace" },
+    state.pwHideStubs ? "TUNING PARAMS (8 Active Only!)" : "TP001–008 (32 TPs & 20 OPs Unused)"));
   const tps = [
     "TP001: 50%  EQ Xfer Start Min",
     "TP002: 80%  Neut Xfer Target",
@@ -3852,88 +3908,88 @@ function renderPwTab2(vp, pw) {
 
 function renderPwTab3(vp, pw) {
   // Top Half: MONITOR Composite (IMG_1139 – IMG_1141 & IMG_1150 – IMG_1153)
-  drawSectionStrip(vp, 18, 14, 898, 294, "MONITOR COMPOSITE (PATTERN 2 WATCHDOG — IMG_1139–1141 & 1150–1153)", "#991b1b");
+  drawSectionStrip(vp, 18, 12, 898, 308, "MONITOR COMPOSITE (PATTERN 2 WATCHDOG — IMG_1139–1141 & 1150–1153)", "#991b1b");
 
   drawFbdBlock(vp, {
-    id: "PW_MONITOR_SM", x: 34, y: 56, w: 264, h: 118, cls: "AT + COMPOSITE", name: "SENTINEL_MONITOR (#1–#3)", execNum: 3,
-    inputs: [], outputs: [{ name: "SM_FAIL", dy: 62 }],
+    id: "PW_MONITOR_SM", x: 34, y: 52, w: 268, h: 120, cls: "AT + COMPOSITE", name: "SENTINEL_MONITOR", execNum: 3,
+    inputs: [], outputs: [{ name: "SM_FAIL", dy: 82 }],
     bodyLines: [
-      "SM_AT1 (#1) + SM_AT2 (#2) → SM (#3)",
-      "SM_01..SM_17 = True (Active Devices)",
-      "SM_18..SM_32 = False (Unused Ignored)"
+      "SM_AT1 (16) + SM_AT2 (3) = 19 DEV",
+      "SM_01..17=True | SM_18..19=False",
+      "CALC SM_1_32 | SM_BYPASS=False"
     ],
     status: pw.sentinelFault ? "bad" : "ok", liveBadge: pw.sentinelFault ? "TRIP!" : "OK"
   });
 
   drawFbdBlock(vp, {
-    id: "PW_MONITOR_HM", x: 34, y: 184, w: 264, h: 112, cls: "AT + COMPOSITE", name: "HOLD_MONITOR (#4–#6)", execNum: 6,
-    inputs: [], outputs: [{ name: "HM_FAIL", dy: 58 }],
+    id: "PW_MONITOR_HM", x: 34, y: 194, w: 268, h: 114, cls: "AT + COMPOSITE", name: "HOLD_MONITOR", execNum: 6,
+    inputs: [], outputs: [{ name: "HM_FAIL", dy: 78 }],
     bodyLines: [
-      "HM_AT1 (#4) + HM_AT2 (#5) → HM (#6)",
-      "HM_01 = True (Process Fail Watch)",
-      "HM_02..HM_32 = False"
+      "HM_AT1 (T_OUT_D1..2=0, 2 cfg'd)",
+      "HM_01=True | HM_02..32=False",
+      "CALC HM1 | HM_BYPASS=False"
     ],
     status: pw.holdMonFault ? "bad" : "ok", liveBadge: pw.holdMonFault ? "TRIP!" : "OK"
   });
 
   drawFbdBlock(vp, {
-    id: "PW_FAIL_EXPR", x: 356, y: 98, w: 226, h: 136, cls: "CALC", name: "FAIL_EXPRESSION", execNum: 7,
-    inputs: [{ name: "IN1 (TIMER)", dy: 52 }, { name: "IN2 (HMS)", dy: 96 }],
-    outputs: [{ name: "OUT1", dy: 74 }],
-    bodyLines: ["Reads ^ACTION_TIMER", "Formats Active Failure", "Triggers COMMAND_00000"],
-    status: pw.anyFailure ? "bad" : "normal", liveBadge: pw.anyFailure ? "HOLD!" : "OK"
+    id: "PW_FAIL_EXPR", x: 358, y: 98, w: 224, h: 146, cls: "CALC", name: "FAIL_EXPRESSION", execNum: 7,
+    inputs: [{ name: "IN1", dy: 96 }, { name: "IN2", dy: 124 }],
+    outputs: [{ name: "OUT1", dy: 110 }],
+    bodyLines: ["IN1: ^ACTION_TIMER (0.016m)", "IN2: HH_MM_SS_ENAB (False)", "Formats Wait & Fail Text"],
+    status: pw.anyFailure ? "bad" : "normal", liveBadge: pw.anyFailure ? "HOLD!" : "22.0"
   });
 
   drawFbdBlock(vp, {
-    id: "PW_OAR_CNL", x: 642, y: 56, w: 254, h: 108, cls: "COMPOSITE", name: "CANCEL_WAIT (#8) & OAR (#9)", execNum: 9,
+    id: "PW_OAR_CNL", x: 642, y: 52, w: 254, h: 112, cls: "COMPOSITE", name: "CANCEL_WAIT & OAR", execNum: 9,
     inputs: [], outputs: [],
-    bodyLines: ["CANCEL_WAIT: Supervisor bypass wait", "OAR: Operator prompts (CALC1 + CND1)", "OAR_STATUS: NONE | HORN: False"],
+    bodyLines: ["CANCEL_WAIT (#8): CALC bypass", "OAR (#9): CALC1 + CND1 Horn", "OAR_STATUS: NONE | HORN: False"],
     status: "normal", liveBadge: "IDLE"
   });
 
-  drawFlag(vp, { id: "PW_FAIL_OUT", x: 642, y: 196, w: 254, h: 66, side: "right", label: "^/FAILED (To HMI & HOLD)", sub: pw.failMsg.slice(0, 38), liveText: pw.anyFailure ? "HOLD!" : "Clear", status: pw.anyFailure ? "bad" : "ok" });
+  drawFlag(vp, { id: "PW_FAIL_OUT", x: 642, y: 202, w: 254, h: 66, side: "right", label: "^/FAILED (To HMI & HOLD)", sub: pw.failMsg.slice(0, 38), liveText: pw.anyFailure ? "HOLD!" : "Clear", status: pw.anyFailure ? "bad" : "ok" });
 
-  drawWire(vp, [[298, 118], [326, 118], [326, 150], [356, 150]], { ref: true });
-  drawWire(vp, [[298, 242], [326, 242], [326, 194], [356, 194]], { ref: true });
-  drawWire(vp, [[582, 172], [642, 224]], { active: pw.anyFailure, fault: pw.anyFailure });
+  drawWire(vp, [[302, 134], [330, 134], [330, 194], [358, 194]], { ref: true });
+  drawWire(vp, [[302, 272], [330, 272], [330, 222], [358, 222]], { ref: true });
+  drawWire(vp, [[582, 208], [612, 208], [612, 235], [642, 235]], { active: pw.anyFailure, fault: pw.anyFailure });
 
   // Bottom Half: TMR1 PCSD TIMER COMPOSITE (IMG_1142 — REAL WIRED RET #1 -> TM_CALC #2!)
-  drawSectionStrip(vp, 18, 322, 898, 224,
+  drawSectionStrip(vp, 18, 332, 898, 224,
     state.pwHideStubs
       ? "TMR1: PCSD TIMER COMPOSITE — EXCESSIVE TREATMENT TIMER (TMR2–TMR8 HIDDEN)"
       : "TMR1: PCSD TIMER COMPOSITE — EXCESSIVE TREATMENT TIMER (IMG_1142 • TMR2–TMR8 UNUSED)", "#0f766e");
 
-  drawFlag(vp, { id: "PW_TMR1_BLK", x: 34, y: 368, w: 158, h: 28, side: "left", label: "TM_HOLD (Run/Hold)", sub: "", liveText: pw.activeCmd === "TREAT" ? "Run (1)" : "Hold (0)", status: pw.activeCmd === "TREAT" ? "ok" : "normal" });
-  drawFlag(vp, { id: "PW_TMR1_BLK", x: 34, y: 408, w: 158, h: 28, side: "left", label: "TM_RESET", sub: "", liveText: "False", status: "normal" });
-  drawFlag(vp, { id: "PW_TMR1_BLK", x: 34, y: 468, w: 158, h: 28, side: "left", label: "TM_SP (Minutes)", sub: "", liveText: "90 min", status: "normal" });
+  drawFlag(vp, { id: "PW_TMR1_BLK", x: 34, y: 386, w: 158, h: 28, side: "left", label: "TM_HOLD (Run/Hold)", sub: "", liveText: pw.activeCmd === "TREAT" ? "Run (1)" : "Hold (0)", status: pw.activeCmd === "TREAT" ? "ok" : "normal" });
+  drawFlag(vp, { id: "PW_TMR1_BLK", x: 34, y: 428, w: 158, h: 28, side: "left", label: "TM_RESET", sub: "", liveText: "False", status: "normal" });
+  drawFlag(vp, { id: "PW_TMR1_BLK", x: 34, y: 486, w: 158, h: 28, side: "left", label: "TM_SP (Minutes)", sub: "", liveText: "90 min", status: "normal" });
 
   drawFbdBlock(vp, {
-    id: "PW_TMR1_BLK", x: 238, y: 362, w: 170, h: 98, cls: "RET", name: "TIMER (TMR1)", execNum: 1,
-    inputs: [{ name: "IN_D", dy: 34 }, { name: "RESET_IN", dy: 64 }],
-    outputs: [{ name: "ELAPSED_TIMER", dy: 56 }],
+    id: "PW_TMR1_BLK", x: 226, y: 374, w: 196, h: 112, cls: "RET", name: "TIMER (TMR1)", execNum: 1,
+    inputs: [{ name: "IN_D", dy: 72 }, { name: "RESET_IN", dy: 96 }],
+    outputs: [{ name: "ELAPSED_TIMER", dy: 80 }],
     bodyLines: ["Retentive Timer", state.pwTmr1Trip ? "90.0 min!" : (pw.activeCmd === "TREAT" ? "Counting..." : "0.0 min")],
     status: state.pwTmr1Trip ? "bad" : (pw.activeCmd === "TREAT" ? "ok" : "normal"), liveBadge: state.pwTmr1Trip ? "90m" : "0m"
   });
 
   drawFbdBlock(vp, {
-    id: "PW_TMR1_BLK", x: 462, y: 366, w: 196, h: 138, cls: "CALC", name: "TM_CALC", execNum: 2,
-    inputs: [{ name: "IN1 (ELAPSED)", dy: 52 }, { name: "IN2 (SP=90)", dy: 96 }],
-    outputs: [{ name: "OUT1 (COMP)", dy: 42 }, { name: "OUT2 (PV)", dy: 76 }, { name: "OUT3 (REM)", dy: 110 }],
-    bodyLines: ["PV >= SP → Complete", "HH_MM_SS_ENAB=True", "DD:HH:MM:SS format"],
+    id: "PW_TMR1_BLK", x: 468, y: 374, w: 196, h: 154, cls: "CALC", name: "TM_CALC", execNum: 2,
+    inputs: [{ name: "IN1", dy: 80 }, { name: "IN2", dy: 122 }],
+    outputs: [{ name: "OUT1", dy: 78 }, { name: "OUT2", dy: 100 }, { name: "OUT3", dy: 122 }],
+    bodyLines: ["PV >= SP → Complete", "HH_MM_SS_ENAB = True", "DD:HH:MM:SS format"],
     status: state.pwTmr1Trip ? "bad" : "normal", liveBadge: state.pwTmr1Trip ? "1" : "0"
   });
 
-  drawFlag(vp, { id: "PW_TMR1_BLK", x: 704, y: 392, w: 192, h: 28, side: "right", label: "TM_COMPLETE → HM_01", sub: "", liveText: state.pwTmr1Trip ? "True!" : "False", status: state.pwTmr1Trip ? "bad" : "ok" });
-  drawFlag(vp, { id: "PW_TMR1_BLK", x: 704, y: 432, w: 192, h: 28, side: "right", label: "TM_PV (HH_MM_SS)", sub: "", liveText: state.pwTmr1Trip ? "01:30:00" : "00:00:00", status: "normal" });
-  drawFlag(vp, { id: "PW_TMR1_BLK", x: 704, y: 472, w: 192, h: 28, side: "right", label: "TM_REMAIN (DWN)", sub: "", liveText: state.pwTmr1Trip ? "00:00:00" : "01:30:00", status: "normal" });
+  drawFlag(vp, { id: "PW_TMR1_BLK", x: 704, y: 404, w: 192, h: 28, side: "right", label: "TM_COMPLETE → HM_01", sub: "", liveText: state.pwTmr1Trip ? "True!" : "False", status: state.pwTmr1Trip ? "bad" : "ok" });
+  drawFlag(vp, { id: "PW_TMR1_BLK", x: 704, y: 444, w: 192, h: 28, side: "right", label: "TM_PV (HH_MM_SS)", sub: "", liveText: state.pwTmr1Trip ? "01:30:00" : "00:00:00", status: "normal" });
+  drawFlag(vp, { id: "PW_TMR1_BLK", x: 704, y: 484, w: 192, h: 28, side: "right", label: "TM_REMAIN (DWN)", sub: "", liveText: state.pwTmr1Trip ? "00:00:00" : "01:30:00", status: "normal" });
 
-  drawWire(vp, [[192, 382], [238, 396]], { active: pw.activeCmd === "TREAT" });
-  drawWire(vp, [[192, 422], [238, 426]], { active: false });
-  drawWire(vp, [[408, 418], [462, 418]], { active: pw.activeCmd === "TREAT" || state.pwTmr1Trip });
-  drawWire(vp, [[192, 482], [436, 482], [436, 462], [462, 462]], { active: true });
-  drawWire(vp, [[658, 408], [704, 406]], { active: state.pwTmr1Trip, fault: state.pwTmr1Trip });
-  drawWire(vp, [[658, 442], [704, 446]], { active: state.pwTmr1Trip });
-  drawWire(vp, [[658, 476], [704, 486]], { active: !state.pwTmr1Trip });
+  drawWire(vp, [[192, 400], [208, 400], [208, 446], [226, 446]], { active: pw.activeCmd === "TREAT" });
+  drawWire(vp, [[192, 442], [200, 442], [200, 470], [226, 470]], { active: false });
+  drawWire(vp, [[422, 454], [468, 454]], { active: pw.activeCmd === "TREAT" || state.pwTmr1Trip });
+  drawWire(vp, [[192, 500], [442, 500], [442, 496], [468, 496]], { active: true });
+  drawWire(vp, [[664, 452], [684, 452], [684, 418], [704, 418]], { active: state.pwTmr1Trip, fault: state.pwTmr1Trip });
+  drawWire(vp, [[664, 474], [684, 474], [684, 458], [704, 458]], { active: state.pwTmr1Trip });
+  drawWire(vp, [[664, 496], [684, 496], [684, 498], [704, 498]], { active: !state.pwTmr1Trip });
 }
 
 // =========================================================================
@@ -4655,16 +4711,16 @@ function getInspectorInfo(id, d, h, ts, pid, cas, pw) {
 
     // --- MODULE 6: 3WT-0001-NEUT (REAL PLANT PCSD EM — CH. 11) ---
     PW_SFC_ACTIVE: {
-      type: "PATTERN 1 — PCSD COMMAND SFC (IMG_1128–1133)",
+      type: "PATTERN 1 — PCSD COMMAND SFC (IMG_1114, 1124, 1128–1133)",
       title: `3WT-0001-NEUT / ${pw.activeCmd} SFC Skeleton`,
-      role: "Every Run command in Emerson's PCSD _EM_CMD32_140 template shares the exact same skeleton: S0000/S0010/S0020 (boilerplate init, ACQ_REL device acquisition, Sentinel Monitor enable) → S0100 (the REAL process work!) → S9900 (cleanup & release). HOLD (COMMAND_00000) uses 12 selection branches (H1000..H10000 + H3000R) into H9900.",
+      role: "Every Run SFC uses Emerson's PCSD boilerplate: S0020/A010 (Sentinel setup) + S0020/A020 (ACQ_REL shared-device acquire) → S0100 (actual process work; TREAT adds S0100R Restart/Recovery branch!) → S9900/A010 (release devices). In your OFF screenshot (IMG_1133), step timers 1.005 + 1.996 + 5.999 + 1 + 13.001 = 23.001s (exact A_TIME in IMG_1114!), while A_COMMAND clears to Undefined once A_STATE = Complete!",
       paths: [
-        ["S0000–S0020 / S9900", "Standard PCSD boilerplate startup & cleanup steps"],
-        ["S0100 / S0100R", "Actual process work (skip straight here when troubleshooting!)"],
-        ["T0020A / T9900A", "Standard bypass rails around startup or directly to S9900"]
+        ["S0020 / S9900", "A010 = Sentinel setup; A020 = Acquire; S9900/A010 = Release (IMG_1124)"],
+        ["S0100 / S0100R", "Actual process work (R = Restart/Recovery branch matching H3000R!)"],
+        ["A_COMMAND / A_PV", "A_COMMAND clears to Undefined on Complete; A_PV stays OFF (IMG_1114)"]
       ],
-      expr: `Active Command: ${pw.activeCmd}\nA_PV = ${pw.activeCmd} | HOLD_REQ = ${pw.holdReq}\nEnabled Commands: HOLD, IDLE, TRANSFER, TREAT, DISCHARGE, OFF\nDisabled Shells : CMD6, CMD7, CMD8, CMD9, CMD10`,
-      live: [["Active Cmd", pw.activeCmd, "v-info"], ["HOLD_REQ", pw.holdReq ? "True (Manual)" : "False (EM Lock)", "v-info"], ["Failure", pw.anyFailure ? "ACTIVE!" : "False", pw.anyFailure ? "v-bad" : "v-good"]]
+      expr: `Active Command: ${pw.activeCmd} | A_STATE = Complete\nOFF Step Post-Mortem: 1.005 + 1.996 + 5.999 + 1 + 13.001 = 23.001s (A_TIME)\nHOLD Branches: H1000..H10000 (1 per CMD) + H3000R (TREAT Recovery)`,
+      live: [["Active Cmd (A_PV)", pw.activeCmd, "v-info"], ["HOLD_REQ", pw.holdReq ? "True (Manual Op)" : "False (EM Lock)", "v-info"], ["Failure", pw.anyFailure ? "ACTIVE!" : "False", pw.anyFailure ? "v-bad" : "v-good"]]
     },
     PW_EQ_TANK: {
       type: "EQUALIZATION TANK (IMG_1154 • DEV2 / DEV5)",
@@ -4675,26 +4731,26 @@ function getInspectorInfo(id, d, h, ts, pid, cas, pw) {
       live: [["LI001 Level", `${state.pwEqLvl.toFixed(1)}%`, pw.cnd1EqLow ? "v-warn" : "v-good"], ["CND1 Low Lvl", pw.cnd1EqLow ? "True (1)" : "False (0)", pw.cnd1EqLow ? "v-warn" : "v-good"]]
     },
     PW_TRT_TANK: {
-      type: "NEUTRALIZATION TANK (IMG_1154 • DEV3 / DEV6 / DEV18)",
+      type: "NEUTRALIZATION TANK (IMG_1118, 1154 • DEV3 / DEV6 / DEV18)",
       title: "Neutralization Tank (3WT-0001-LI002 / AI02AVG)",
-      role: "Holds process waste during TREAT recirculation & Base/Acid pH neutralization toward TP003 (8.0 pH). Once stabilized (CND2 #43) and within 6–10 pH (CND3 #44 Clear), DISCHARGE pumps down to TP004 (20%).",
-      paths: [["DEV3: TRT_TNK_LVL", "3WT-0001-LI002 (%)"], ["DEV18: TRT_TNK_PH_AVG", "3WT-0001-AI02AVG (pH)"]],
+      role: "Holds process waste during TREAT recirculation & Base/Acid neutralization toward TP003 (8.0 pH). DEV18 (3WT-0001-AI02AVG) averages DATA_INPS = 2 redundant pH probes (SCAN_RATE = 2, ENABLE_AVG = 0 when OFF). Once stabilized (CND2 #43) and within 6–10 pH (CND3 #44 Clear), DISCHARGE pumps down to TP004 (20%).",
+      paths: [["DEV3: TRT_TNK_LVL", "3WT-0001-LI002 (%)"], ["DEV18: TRT_TNK_PH_AVG", "3WT-0001-AI02AVG (DATA_INPS = 2 probes)"]],
       expr: `TP002 = 80% (Transfer Target) | TP004 = 20% (Discharge Min)\nTP003 = 8.0 pH | CND2 Stable ROC <= 0.7`,
       live: [["LI002 Level", `${state.pwTrtLvl.toFixed(1)}%`, "v-info"], ["AI02AVG pH", `${state.pwPh.toFixed(1)} pH`, pw.phInRange ? "v-good" : "v-bad"]]
     },
     PW_AIC002: {
-      type: "PATTERN 3 — SPLIT-RANGE pH CONTROLLER (IMG_1121 • DEV17)",
+      type: "PATTERN 3 — SPLIT-RANGE pH PID (IMG_1121, 1154 • DEV17)",
       title: "TRT_TNK_PH (3WT-0001-AIC002 • #18)",
-      role: "Split-range pH PID controller (_REQ_MODE = Remote cascade/, _REQ_SP = 8, _SP_HI_LIM = 10, _SP_LO_LIM = 6, _TRK_VAL = 50%) with OUT1 (Base dosing) and OUT2 (Acid dosing) plus Ramp module 3WT-0001-AI02RMP (DEV19). In OFF/HOLD it drops to purple LO mode (neutral 50% track -> 0% dosing)!",
-      paths: [["DEV17: TRT_TNK_PH", "3WT-0001-AIC002 (OUT1=Base, OUT2=Acid)"], ["DEV19: TRT_PH_RAMP", "3WT-0001-AI02RMP (RAMP_COMPLETE)"]],
-      expr: `_REQ_MODE = Remote cascade/ | _REQ_SP = 8.0 pH\n_SP_LO_LIM = 6.0 | _SP_HI_LIM = 10.0 | _TRK_VAL = 50%`,
-      live: [["AIC002 Mode", pw.aicMode, pw.aicMode === "RCAS" ? "v-good" : "v-warn"], ["Base / Acid", `${pw.baseDose}% / ${pw.acidDose}%`, "v-info"]]
+      role: "CRITICAL SPLIT-RANGE LESSON: _TRK_VAL = 50% (NOT 0%!). Because AIC002 is a split-range Acid/Base PID (0–50% = Acid OUT2, 50% = neutral deadband with BOTH dosing pumps off, 50–100% = Base OUT1), tracking to 0% on shutdown would dump 100% Acid! In OFF/HOLD it drops to purple LO mode on the HMI with OUT = 50.0% (Base = 0%, Acid = 0%).",
+      paths: [["DEV17: TRT_TNK_PH", "3WT-0001-AIC002 (_TRK_VAL=50, OUT1=Base, OUT2=Acid)"], ["DEV19: TRT_PH_RAMP", "3WT-0001-AI02RMP (RAMP_COMPLETE=1, LOCK_OVR=False)"]],
+      expr: `_REQ_MODE = Remote cascade/ | _REQ_SP = 8.0 pH\n_SP_LO_LIM = 6.0 | _SP_HI_LIM = 10.0\n_TRK_VAL = 50.0 | _REQ_OUTP = 50.0 (* Neutral Midpoint! *)`,
+      live: [["AIC002 Mode", pw.aicMode, pw.aicMode === "RCAS" ? "v-good" : "v-warn"], ["PID OUT / Track", pw.aicMode === "LO" ? "50% (Neutral LO)" : "Active Split-Range", "v-info"], ["Base / Acid", `${pw.baseDose}% / ${pw.acidDose}%`, "v-info"]]
     },
     PW_P01_XV01: {
-      type: "PATTERN 4 — TRANSFER DEVICES (IMG_1120 • DEV11 / DEV14)",
+      type: "PATTERN 4 — TRANSFER DEVICES (IMG_1120, 1154 • DEV11 / DEV14)",
       title: "EQ_XFR_PMP (P01) & EQ_XFR_VLV (XV01)",
-      role: "Shared subordinate Control Modules driven via PCSD device interface (_REQ_MODE = Cascade/, _REQ_SP = START/STOP or TRANSFER/RECIRC) with confirmed readbacks (PV_D, PV_STATE, FAILURE) watched by SENTINEL_MONITOR.",
-      paths: [["DEV11: EQ_XFR_PMP", "3WT-0001-P01"], ["DEV14: EQ_XFR_VLV", "3WT-0001-XV01 (3-Way)"]],
+      role: "Shared subordinate Control Modules driven via PCSD device interface (_REQ_MODE = Cascade/, _REQ_SP = START/STOP or TRANSFER/RECIRC). Notice on HMI IMG_1154, XV01 shows a purple LO border when P01 is stopped/interlocked to RECIRC!",
+      paths: [["DEV11: EQ_XFR_PMP", "3WT-0001-P01"], ["DEV14: EQ_XFR_VLV", "3WT-0001-XV01 (3-Way, purple LO in OFF)"]],
       expr: `P01: ${pw.p01Run ? "START" : "STOP"} | XV01: ${pw.xv01Pos}`,
       live: [["P01 Status", pw.p01Run ? "RUNNING" : "STOPPED", pw.p01Run ? "v-good" : "v-info"], ["XV01 Pos", pw.xv01Pos, "v-info"]]
     },
@@ -4707,12 +4763,12 @@ function getInspectorInfo(id, d, h, ts, pid, cas, pw) {
       live: [["P02 / XV05", pw.sentinelFault ? "FAILURE (SM TRIP!)" : `${pw.p02Run ? "RUN" : "STOP"} / ${pw.xv05Pos}`, pw.sentinelFault ? "v-bad" : "v-good"]]
     },
     PW_ACQ_REL: {
-      type: "PATTERN 3 — ARBITRATION COMPOSITE (IMG_1117 • #1)",
-      title: "ACQ_REL (#1) — Shared Device Arbitration",
-      role: "Handles acquiring and releasing the 19 Shared Devices (DEV1–DEV19) and manages EM ownership (OWNER_ID = Operator, HOLD_REQ = True in OFF to release mode lock so operators can control valves manually!).",
-      paths: [["OWNER_ID / OWNED", "Who currently owns 3WT-0001-NEUT"], ["HOLD_REQ", "True = temporarily removes mode lock from subordinate devices"]],
-      expr: `OWNER_ID = 'Operator' | OWNED = True | HOLD_REQ = ${pw.holdReq}`,
-      live: [["Execution Order", "#1", "v-info"], ["HOLD_REQ", pw.holdReq ? "True" : "False", "v-info"]]
+      type: "PATTERN 3 — ARBITRATION COMPOSITE (IMG_1117, 1124 • #1)",
+      title: "ACQ_REL (#1) — Arbitration, Mode-Lock & Bitmask",
+      role: "Acquires/releases the 19 Shared Devices (DEV1–DEV19). HOLD_REQ = True in OFF removes mode locks ('Equipment Placed in Manual Operation' on HMI; non-shared devices check '<EM>/HOLD_REQ.CV' = False in MODELOCK!). OPR_CMD_MASK = 47 is a bitmask (1+2+4+8+32) masking which commands operators can click on the faceplate; OVR_ENAB, OPER_REL_ENAB & RESTART_CMD_ENAB are False.",
+      paths: [["HOLD_REQ", "True = removes mode lock from subordinate devices (IMG_1117/1124)"], ["OPR_CMD_MASK = 47", "Bitmask controlling clickable HMI commands (bit 4 = 16 masked off)"]],
+      expr: `(* Non-Shared Device Mode-Lock — IMG_1124 Item 6 *)\n'//3WT-0001-NEUT/HOLD_REQ.CV' = False\n(* OWNER_ID = Operator | OPR_CMD_MASK = 47 | TP_PERMIT = True *)`,
+      live: [["Execution Order", "#1", "v-info"], ["HOLD_REQ", pw.holdReq ? "True (Manual)" : "False (Locked)", "v-info"], ["OPR_CMD_MASK", "47 (Bitmask)", "v-info"]]
     },
     PW_CND_BOX: {
       type: "PATTERN 2 — MAIN DIAGRAM TIMED CONDITIONS (IMG_1117 • #42–#44)",
@@ -4724,16 +4780,16 @@ function getInspectorInfo(id, d, h, ts, pid, cas, pw) {
     },
     PW_TUNING_PARAMS: {
       type: "PATTERN 3 — UNWIRED TUNING PARAMETERS (IMG_1122–1123)",
-      title: "TP001–TP008 (Out of 40 TP & 20 OP Slots)",
-      role: "All 20 Operating Parameters (OP001–OP020) and 32 Tuning Parameters (TP009–TP040) are 'Not Used'. Only TP001–TP008 are active unwired parameter boxes on the Main Diagram read by SFC steps and CND1–CND3!",
-      paths: [["TP001 / TP006", "50% EQ Xfer Start Min / 15% EQ Low Stop"], ["TP002 / TP004", "80% Neut Target / 20% Neut Disch Min"], ["TP003 / TP005 / TP007 / TP008", "8.0 pH SP / 0.7 Stable ROC / 0.5 Lockout ROC / 2% Deadband"]],
-      expr: `(* Unwired parameter boxes on Main FBD — read inside expressions! *)`,
+      title: "TP001–TP008 (TP_PERMIT = True, 32 TPs & 20 OPs Unused)",
+      role: "OP_PERMIT = True & TP_PERMIT = True allow changing setpoints mid-command. All 20 OPs and TP009–TP040 are 'Not Used'. Watch the real-plant quirk in IMG_1122–1123: TP001 (50% start) and TP006 (15% stop) share the same description string, and TP008 (2% deadband) has MAX = 0 / MIN = 0!",
+      paths: [["TP001 / TP006", "50% EQ Xfer Start Min / 15% EQ Low Stop (same desc!)"], ["TP002 / TP004", "80% Neut Target / 20% Neut Disch Min"], ["TP003 / TP005 / TP007 / TP008", "8.0 pH / 0.7 ROC / 0.5 Lockout ROC / 2% Deadband (MAX/MIN=0)"]],
+      expr: `(* Unwired parameter boxes on Main FBD — TP_PERMIT = True *)`,
       live: [["Active TPs", "8 of 40 (TP001–TP008)", "v-info"], ["Active OPs", "0 of 20 (All Not Used)", "v-info"]]
     },
     PW_DEV_GRID: {
       type: "PATTERN 4 — 19 BOUND SHARED DEVICES (IMG_1118–1121)",
       title: "DEV1–DEV19 Active (#2–#20) vs. DEV20–DEV32 Stubs (#21–#33)",
-      role: "Why are there ZERO wires on 3WT-0001-NEUT's Main FBD Diagram? Because PCSD places all 32 subordinate CM slots on the FBD sheet unwired and commands/reads them inside SFC expressions & MONITOR! DEV20–DEV32 are <Ignored> template stubs disabled via SM_18..32 = False.",
+      role: "Why are there ZERO wires on 3WT-0001-NEUT's Main FBD Diagram? Because PCSD places all 32 subordinate CM slots on the FBD sheet unwired (indexed by DEV1_ID..DEV32_ID) and commands/reads them inside SFC expressions & MONITOR! DEV20–DEV32 are <Ignored> stubs showing 3.40282E+38 & FAILURE=True — harmless because SM_18..32 = False!",
       paths: [["DEV1–DEV19", "19 bound plant devices (4 AI, 6 Switches, 6 Pumps/Valves, 3 pH)"], ["DEV20–DEV32", "13 <Ignored> unused stubs (SM_18..32 = False)"]],
       expr: `(* Click 'Stubs: Shown' in the top bar to hide unused DEV20-32 stubs! *)`,
       live: [["Active Devices", "19 of 32 (DEV1–DEV19)", "v-good"], ["Ignored Stubs", "13 (DEV20–DEV32)", "v-info"]]
@@ -4741,53 +4797,54 @@ function getInspectorInfo(id, d, h, ts, pid, cas, pw) {
     PW_MONITOR_SM: {
       type: "PATTERN 2 — SENTINEL MONITOR (IMG_1139–1141, 1153)",
       title: "SM_AT1 (#1) + SM_AT2 (#2) → SENTINEL_MONITOR (#3)",
-      role: "Watches subordinate DEVICE failures across up to 32 devices! In 3WT-0001-NEUT, SM_01 through SM_17 are True (monitoring DEV1–DEV17), while SM_18 through SM_32 are False (ignoring unused stubs). Any active device FAILURE trips FAIL_EXPRESSION and executes COMMAND_00000 (HOLD)!",
-      paths: [["SM_01..SM_17 = True", "Active Sentinel device failure masks"], ["SM_18..SM_32 = False", "Disabled masks for unused DEV20–DEV32"]],
-      expr: `(* Sentinel Monitor = Subordinate DEVICE Failure Watchdog (32 slots) *)`,
-      live: [["Sentinel Status", pw.sentinelFault ? "TRIPPED (P02/XV05)!" : "Clear", pw.sentinelFault ? "v-bad" : "v-good"]]
+      role: "AT Counting Trick (IMG_1141): SM_AT1 has 16 zeros (T_OUT_D1..16 = 0) and SM_AT2 has 3 zeros (T_OUT_D1..3 = 0, D4..16 = ???) → 16+3 = 19 bound devices! SM_01..SM_17 = True monitor all 17 physical field devices, while SM_18..19 = False mask out software helpers AI02AVG & AI02RMP! Inside SENTINEL_MONITOR sits CALC SM_1_32 (#1) + master SM_BYPASS.",
+      paths: [["SM_01..SM_17 = True", "Active Sentinel masks for all 17 physical field devices"], ["SM_18..SM_32 = False", "Masks out AI02AVG (DEV18), AI02RMP (DEV19) & unused DEV20–32"]],
+      expr: `(* SM_AT1: 16 zeros + SM_AT2: 3 zeros = 19 configured devices! *)\n(* Inside C_SNTL_32MON_V01: CALC SM_1_32 (#1) + SM_BYPASS *)`,
+      live: [["Configured / Active", "19 cfg'd / 17 True", "v-info"], ["Sentinel Status", pw.sentinelFault ? "TRIPPED (P02/XV05)!" : "Clear", pw.sentinelFault ? "v-bad" : "v-good"]]
     },
     PW_MONITOR_HM: {
       type: "PATTERN 2 — HOLD MONITOR (IMG_1139–1141, 1151)",
       title: "HM_AT1 (#4) + HM_AT2 (#5) → HOLD_MONITOR (#6)",
-      role: "Watches PROCESS failure conditions (up to 32 slots)! In 3WT-0001-NEUT, HM_01 = True (e.g., TMR1 90-Min Excessive Treatment Timeout) while HM_02–HM_32 = False. When tripped, captures the first failure description and drives COMMAND_00000 (HOLD)!",
-      paths: [["HM_01 = True", "Active process failure condition"], ["HM_02..HM_32 = False", "Unused Hold Monitor slots"]],
-      expr: `(* Hold Monitor = PROCESS Failure Watchdog (32 slots) *)`,
-      live: [["Hold Monitor", pw.holdMonFault ? "TRIPPED (HOLD!)": "Clear", pw.holdMonFault ? "v-bad" : "v-good"]]
+      role: "AT Counting Trick (IMG_1140): HM_AT1 shows T_OUT_D1 = 0 & T_OUT_D2 = 0 (T_OUT_D3..16 = ???), proving 2 process failure conditions are configured (T_USED_CND = 2), with HM_01 = True active (e.g., TMR1 timeout) and HM_02 = False masked off! Inside HOLD_MONITOR sits CALC HM1 (#1) + master HM_BYPASS = False.",
+      paths: [["HM_AT1 (D1..D2 = 0)", "2 configured process conditions; HM_01=True, HM_02=False"], ["C_H_32MON_V01", "CALC HM1 (#1) + HM_BYPASS = False (IMG_1151)"]],
+      expr: `(* Inside C_H_32MON_V01: CALC HM1 (#1) reads HM_AT1/2 & T_DESCx *)\n(* HM_BYPASS = False *)`,
+      live: [["Configured / Active", "2 cfg'd / 1 True", "v-info"], ["Hold Monitor", pw.holdMonFault ? "TRIPPED (HOLD!)" : "Clear", pw.holdMonFault ? "v-bad" : "v-good"]]
     },
     PW_FAIL_EXPR: {
       type: "MONITOR CALC (#7 — IMG_1139)",
       title: "FAIL_EXPRESSION (CALC #7)",
-      role: "Wired from ^ACTION_TIMER (IN1) and HH_MM_SS_ENAB (IN2); formats active wait time and consolidates Sentinel + Hold failure flags to trip COMMAND_00000 (HOLD).",
-      paths: [["^ACTION_TIMER → IN1", "Live step/action wait time"], ["HH_MM_SS_ENAB → IN2", "Time display formatting flag"]],
-      expr: `(* Consolidated failure & action timer formatter inside MONITOR *)`,
+      role: "Photo-accurate IMG_1139: Wired ONLY from ACTION_TIMER (^ACTION_TIMER = 0.01665 → IN1) and HH_MM_SS_ENAB (False → IN2), outputting OUT1 = 22.002 and SECONDS/MINUTES/HOURS/DAYS/HH_MM_SS! (SENTINEL_MONITOR & HOLD_MONITOR are unwired composites that write FAILURE/FAILURE_SAVE directly via expressions!)",
+      paths: [["^ACTION_TIMER → IN1", "Parameter Shortcut reading live action wait timer"], ["HH_MM_SS_ENAB → IN2", "Controls SECONDS / MINUTES / HOURS / DAYS / HH_MM_SS formatting"]],
+      expr: `IN1 := '^ACTION_TIMER' (0.01665)\nIN2 := 'HH_MM_SS_ENAB' (False) → OUT1 = 22.002`,
       live: [["Execution Order", "#7", "v-info"], ["Fault Active", pw.anyFailure ? "TRUE" : "False", pw.anyFailure ? "v-bad" : "v-good"]]
     },
     PW_OAR_CNL: {
       type: "OPERATOR INTERACTION COMPOSITES (IMG_1150, 1152)",
       title: "CANCEL_WAIT (#8) & OAR (#9)",
-      role: "CANCEL_WAIT lets a Supervisor/Operator cancel a process delay wait; OAR (Operator Action Request — containing CALC1 #2 + CND1 #1 horn timer) handles interactive HMI prompts and answers!",
-      paths: [["CANCEL_WAIT (#8)", "C_CNL_WT_EM_V01"], ["OAR (#9)", "C_OAR_ENG_EM_V01 (CALC1 + CND1)"]],
+      role: "CANCEL_WAIT (#8, CALC) lets a Supervisor cancel a process delay. Inside OAR (#9, IMG_1152), 7 inputs (TYPE, ACTION='Ask Again', DATA_IN=-999, DEFAULT=-999, HI/LO_LIMIT, VERIFY) wire into CALC1 (#2), while TIME wires directly into CND1 (#1)'s exposed TIME_DURATION input pin for Horn generation!",
+      paths: [["CANCEL_WAIT (#8)", "C_CNL_WT_EM_V01 (CALC #1)"], ["OAR (#9)", "C_OAR_ENG_EM_V01 (CALC1 #2 + CND1 #1 with wired TIME_DURATION)"]],
       expr: `OAR_STATUS = 'NONE' | ACTION = 'Ask Again' | HORN = False`,
       live: [["OAR Status", "NONE", "v-info"], ["Horn", "False", "v-good"]]
     },
     PW_TMR1_BLK: {
       type: "PCSD TIMER COMPOSITE (IMG_1142 — RET #1 → TM_CALC #2)",
       title: "TMR1: Excessive Treatment Timer (90 Minutes)",
-      role: "The ONLY configured timer out of TMR1–TMR8 (TMR2–TMR8 are unused stubs!). Uses a real wired Retentive Timer (RET #1) feeding TM_CALC (CALC #2): TM_SP = 90 Minutes, TM_TYPE = Continuous, HH_MM_SS_ENAB = True (DD:HH:MM:SS). Sets TM_COMPLETE = True if PV >= 90 min!",
-      paths: [["TIMER (RET #1)", "IN_D ← TM_HOLD | RESET_IN ← TM_RESET → ELAPSED_TIMER"], ["TM_CALC (CALC #2)", "Computes TM_COMPLETE, TM_PV, TM_REMAIN & HH:MM:SS strings"]],
-      expr: `TM_DESC = "Excessive Treatment Timer"\nTM_SP = 90 | TM_EU = Minutes | TM_TYPE = Continuous`,
-      live: [["TM_SP", "90 Minutes (01:30:00)", "v-info"], ["TM_COMPLETE", state.pwTmr1Trip ? "True (TIMED OUT!)" : "False", state.pwTmr1Trip ? "v-bad" : "v-good"]]
+      role: "The ONLY configured timer out of TMR1–TMR8 (TMR2–TMR8 show ??? ✕ in Read-Only On-Line view because they are unused stubs). Inside TMR1, RET TIMER (#1) wires ELAPSED_TIMER → TM_CALC (#2) IN1, alongside IN2 = TM_SP (90), IN3 = TM_EU (Minutes = 2), and IN4 = HH_MM_SS_ENAB (True = 1), with TM_TYPE = Continuous & HOLD_ON_RESET = True!",
+      paths: [["TIMER (RET #1)", "IN_D ← TM_HOLD | RESET_IN ← TM_RESET → ELAPSED_TIMER"], ["TM_CALC (CALC #2)", "4 wired inputs (IN1..IN4) → TM_COMPLETE, TM_PV, TM_REMAIN, DD:HH:MM:SS"]],
+      expr: `TM_DESC = "Excessive Treatment Timer"\nTM_SP = 90 | TM_EU = Minutes (2) | TM_TYPE = Continuous\nHOLD_ON_RESET = True | HH_MM_SS_DWN = 00:01:30:00`,
+      live: [["TM_SP", "90 Minutes (00:01:30:00)", "v-info"], ["TM_COMPLETE", state.pwTmr1Trip ? "True (TIMED OUT!)" : "False", state.pwTmr1Trip ? "v-bad" : "v-good"]]
     }
   };
 
   if (map[id]) return map[id];
+  const modLabel = { charge: "EM_TANK_CHARGE", header: "EM_XFER_HDR", twostage: "EM_2STAGE_VLV", pid: "FIC_101", cascade: "CASCADE_201", pwneut: "3WT-0001-NEUT" }[state.module] || state.module;
   return {
     type: "CONTROL STUDIO PARAMETER REFERENCE (PDS p1)",
     title: id.replace(/^TS_FLAG_|^FLAG_/, ""),
     role: "Rectangular Control Studio parameter reference box with a hollow square connection pin (or learning-only expression reference target when linked by a purple dashed line).",
     paths: [["Solid/Bold Wire", "Real FBD pin connection (Bold = non-zero On-Line, CONFIG p368)"], ["Purple Dashed Line", "Learning-only pointer showing what a CND/ACT expression reads or writes (real Control Studio draws no wire here)"]],
     expr: `(* Click any function block, SFC step/transition, or State column to inspect its expression *)`,
-    live: [["Active Module", state.module === "charge" ? "EM_TANK_CHARGE" : (state.module === "header" ? "EM_XFER_HDR" : "EM_2STAGE_VLV"), "v-info"]]
+    live: [["Active Module", modLabel, "v-info"]]
   };
 }
 
@@ -5140,11 +5197,12 @@ function fitToView() {
                   (state.module === "header" && state.tab === "h4") ||
                   (state.module === "twostage" && state.tab === "ts3");
   const contentW = isCombo ? 1420 : 940;
-  const contentH = isCombo ? 825 : 575;
-  const scale = Math.min((w - 24) / contentW, (h - 24) / contentH, 1.15);
+  const contentH = isCombo ? 830 : 592;
+  const availH = Math.max(260, h - 72); // Reserve bottom strip for legend & zoom controls
+  const scale = Math.min((w - 24) / contentW, availH / contentH, 1.15);
   state.zoom = Math.max(0.36, +scale.toFixed(2));
   state.panX = Math.max(8, Math.round((w - contentW * state.zoom) / 2));
-  state.panY = Math.max(8, Math.round((h - contentH * state.zoom) / 2));
+  state.panY = Math.max(6, Math.round((availH - contentH * state.zoom) / 2));
   applyTransform();
 }
 
@@ -5578,6 +5636,17 @@ document.getElementById("vocabModal").addEventListener("click", (e) => {
 document.getElementById("vocabSearch").addEventListener("input", (e) => renderVocab(e.target.value));
 
 window.addEventListener("resize", fitToView);
+(() => {
+  const q = new URLSearchParams(window.location.search);
+  const m = q.get("mod");
+  const t = q.get("tab");
+  if (m && MODULE_TABS[m]) {
+    state.module = m;
+    const match = MODULE_TABS[m].find(x => x.id === t) || MODULE_TABS[m][0];
+    state.tab = match.id;
+    state.selectedId = match.defaultSel;
+  }
+})();
 rebuildTabs();
 render();
 fitToView();

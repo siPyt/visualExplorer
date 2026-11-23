@@ -693,6 +693,71 @@ const DECODE_DRILLS = [
       { text: "So CM_XFER_PMP starts 8 seconds before the valves move.", ok: false }
     ],
     takeaway: "On any CND block, TIME_DURATION delays OUT_D until the expression stays continuously True for that many seconds (FBR p413)!"
+  },
+  {
+    id: "d6",
+    level: "Decode 6 • Real Plant PCSD Mode-Lock",
+    title: "3WT-0001-NEUT HOLD_REQ Device Mode-Lock Check",
+    context: "Verbatim from your plant PCSD Module Configuration (IMG_1124 Item 6: MODELOCK/CND/T_EXPRESSION)",
+    tokens: [
+      { t: "'//3WT-0001-NEUT/HOLD_REQ.CV'", cls: "tok-path", tip: "Reads the PCSD EM's HOLD_REQ parameter. On 3WT-0001-NEUT in OFF (IMG_1117 & IMG_1154), HOLD_REQ = True ('Equipment Placed in Manual Operation')." },
+      { t: "=", cls: "tok-op", tip: "Equality comparison inside the device's MODELOCK CND block." },
+      { t: "False", cls: "tok-kw", tip: "Unquoted Boolean keyword. When HOLD_REQ is False, the EM locks subordinate devices into EM control; when HOLD_REQ is True, the mode lock drops so operators can run manually!" }
+    ],
+    question: "When 3WT-0001-NEUT finishes OFF (HOLD_REQ = True, HMI says 'Equipment Placed in Manual Operation'), what does this Mode-Lock CND return?",
+    options: [
+      { text: "FALSE (0) — releasing the mode lock so operators can manually operate pumps and valves from the HMI.", ok: true },
+      { text: "TRUE (1) — locking all devices in Cascade so operators cannot touch them.", ok: false },
+      { text: "It trips SENTINEL_MONITOR and starts COMMAND_00000 (HOLD).", ok: false },
+      { text: "Syntax Error — False must be wrapped in single quotes.", ok: false }
+    ],
+    takeaway: "In PCSD EMs, HOLD_REQ = True temporarily removes mode locks from subordinate devices so operators can operate manually during OFF!"
+  },
+  {
+    id: "d7",
+    level: "Decode 7 • Real Plant pH Discharge Guard",
+    title: "3WT-0001-NEUT CND3 (#44) Discharge pH Window",
+    context: "Found inside 3WT-0001-NEUT → Main FBD → CND3 (#44: Discharge pH Out of Range, Limits 6.0–10.0 pH)",
+    tokens: [
+      { t: "(", cls: "tok-op", tip: "Groups the low-pH (acidic) trip branch." },
+      { t: "'//3WT-0001-AI001/PV.CV'", cls: "tok-path", tip: "DEV1 (DISCH_PH): Discharge line pH transmitter upstream of Drain (IMG_1118 & IMG_1154)." },
+      { t: "<", cls: "tok-op", tip: "Strictly less than low discharge compliance limit." },
+      { t: "6.0", cls: "tok-num", tip: "Low pH compliance limit (_SP_LO_LIM = 6 on 3WT-0001-AIC002, IMG_1121)." },
+      { t: ")", cls: "tok-op", tip: "Closes low-pH branch." },
+      { t: "OR", cls: "tok-kw", tip: "Boolean OR — trips if effluent is EITHER too acidic (< 6.0) OR too caustic (> 10.0)!" },
+      { t: "(", cls: "tok-op", tip: "Groups the high-pH (caustic) trip branch." },
+      { t: "'//3WT-0001-AI001/PV.CV'", cls: "tok-path", tip: "Same discharge pH transmitter (3WT-0001-AI001)." },
+      { t: ">", cls: "tok-op", tip: "Strictly greater than high discharge compliance limit." },
+      { t: "10.0", cls: "tok-num", tip: "High pH compliance limit (_SP_HI_LIM = 10 on 3WT-0001-AIC002, IMG_1121)." },
+      { t: ")", cls: "tok-op", tip: "Closes high-pH branch." }
+    ],
+    question: "During DISCHARGE, 3WT-0001-AI001 reads 7.8 pH (your real HMI snapshot in IMG_1154). What is CND3/OUT_D?",
+    options: [
+      { text: "FALSE (0) — 7.8 pH is safely inside the 6.0–10.0 pH window, so discharge is permitted.", ok: true },
+      { text: "TRUE (1) — because 7.8 is not equal to TP003 (8.0 pH).", ok: false },
+      { text: "TRUE (1) — because OR makes any positive number True.", ok: false },
+      { text: "Bad: Configuration Error — because AI001 appears twice.", ok: false }
+    ],
+    takeaway: "Out-of-range environmental compliance checks use (< Low) OR (> High) so either acidic or caustic excursions immediately stop discharge!"
+  },
+  {
+    id: "d8",
+    level: "Decode 8 • Real Plant Split-Range Track",
+    title: "3WT-0001-AIC002 Split-Range Safe Track (50%, NOT 0%!)",
+    context: "Found on 3WT-0001-AIC002 (DEV17 #18, IMG_1121 & IMG_1154: Base OUT1 = 0%, Acid OUT2 = 0% at OUT = 50%!)",
+    tokens: [
+      { t: "'//3WT-0001-AIC002/_TRK_VAL.CV'", cls: "tok-path", tip: "Tracking target value for the Neutralization Tank split-range pH PID controller (3WT-0001-AIC002)." },
+      { t: ":=", cls: "tok-op", tip: "Assignment stamp (:=) writing the safe tracking value." },
+      { t: "50.0", cls: "tok-num", tip: "DEAD-CENTER NEUTRAL (50%)! On a split-range Acid/Base PID, 0–50% = Acid (OUT2), 50% = BOTH PUMPS OFF, 50–100% = Base (OUT1)!" }
+    ],
+    question: "Why does 3WT-0001-AIC002 track to 50.0% in purple LO mode (IMG_1121 & IMG_1154) instead of 0.0% like FIC_101?",
+    options: [
+      { text: "Because 50% is the split-range deadband where Base OUT1 = 0% and Acid OUT2 = 0% — tracking to 0% would blast 100% Acid!", ok: true },
+      { text: "Because DeltaV PID blocks cannot accept 0.0 as a TRK_VAL.", ok: false },
+      { text: "To run both Base and Acid dosing pumps at 50% speed continuously during OFF.", ok: false },
+      { text: "To keep AI02AVG averaging at 50 samples per minute.", ok: false }
+    ],
+    takeaway: "Always check whether a PID is single-valve (safe = 0%) or split-range Acid/Base (safe = 50% midpoint) before writing TRK_VAL!"
   }
 ];
 
@@ -785,6 +850,39 @@ const BUILD_DRILLS = [
     chips: ["'//CM_FEED_XV/DC1/MODE.TARGET'", "'//CM_FEED_XV/DC1/MODE.ACTUAL'", ":=", "=", "CAS", "AUTO"],
     canon: "'//CM_FEED_XV/DC1/MODE.TARGET' := CAS",
     validate: (norm) => norm === "'//cm_feed_xv/dc1/mode.target':=cas" || norm === "'cm_feed_xv/dc1/mode.target':=cas"
+  },
+  {
+    id: "b9",
+    level: "Forge 9 • Real Plant PCSD Mode-Lock",
+    kind: "cond",
+    title: "3WT-0001-NEUT Device Mode-Lock Condition",
+    prompt: "From your plant's PCSD Module Configuration (IMG_1124 Item 6): write the MODELOCK CND expression that is TRUE when '//3WT-0001-NEUT/HOLD_REQ.CV' equals False.",
+    hint: "Use = and unquoted False: '//3WT-0001-NEUT/HOLD_REQ.CV' = False",
+    chips: ["'//3WT-0001-NEUT/HOLD_REQ.CV'", "=", ":=", "False", "True"],
+    canon: "'//3WT-0001-NEUT/HOLD_REQ.CV' = False",
+    validate: (norm) => norm === "'//3wt-0001-neut/hold_req.cv'=false" || norm === "'3wt-0001-neut/hold_req.cv'=false"
+  },
+  {
+    id: "b10",
+    level: "Forge 10 • Real Plant EQ Transfer Start",
+    kind: "cond",
+    title: "Check Equalization Tank Level >= TP001 (50%)",
+    prompt: "Write the TRANSFER start check verifying that Equalization Tank level ('//3WT-0001-LI001/PV.CV') is greater than or equal to local tuning parameter '^/TP001_VALUE.CV'.",
+    hint: "Wrap both paths in single quotes with >= between them: '//3WT-0001-LI001/PV.CV' >= '^/TP001_VALUE.CV'",
+    chips: ["'//3WT-0001-LI001/PV.CV'", "'^/TP001_VALUE.CV'", "'^/TP006_VALUE.CV'", ">=", "<=", "="],
+    canon: "'//3WT-0001-LI001/PV.CV' >= '^/TP001_VALUE.CV'",
+    validate: (norm) => norm === "'//3wt-0001-li001/pv.cv'>='^/tp001_value.cv'" || norm === "'3wt-0001-li001/pv.cv'>='^/tp001_value.cv'"
+  },
+  {
+    id: "b11",
+    level: "Forge 11 • Real Plant Split-Range Safe Track",
+    kind: "assign",
+    title: "Set Safe Neutral Track Value on 3WT-0001-AIC002",
+    prompt: "Write the action assigning the split-range neutral midpoint (50.0) to '//3WT-0001-AIC002/_TRK_VAL.CV' so both Base and Acid dosing pumps stay at 0% in LO mode.",
+    hint: "Use := and 50.0 (not 0.0!): '//3WT-0001-AIC002/_TRK_VAL.CV' := 50.0",
+    chips: ["'//3WT-0001-AIC002/_TRK_VAL.CV'", ":=", "=", "50.0", "0.0", "100.0"],
+    canon: "'//3WT-0001-AIC002/_TRK_VAL.CV' := 50.0",
+    validate: (norm) => norm === "'//3wt-0001-aic002/_trk_val.cv':=50.0" || norm === "'//3wt-0001-aic002/_trk_val.cv':=50" || norm === "'3wt-0001-aic002/_trk_val.cv':=50.0" || norm === "'3wt-0001-aic002/_trk_val.cv':=50"
   }
 ];
 
@@ -837,6 +935,30 @@ const DEBUG_DRILLS = [
     chips: ["'//CM_FEED_XV/PV.CV'", "'//CM_FEED_XV/CAS_SP.CV'", "=", "'vlvnc-pv:CLOSED'", "'vlvnc-sp:CLOSE'"],
     canon: "'//CM_FEED_XV/PV.CV' = 'vlvnc-pv:CLOSED'",
     validate: (norm) => norm === "'//cm_feed_xv/pv.cv'='vlvnc-pv:closed'" || norm === "'cm_feed_xv/pv.cv'='vlvnc-pv:closed'"
+  },
+  {
+    id: "x5",
+    level: "Bug Hunt 5 • Real Plant Split-Range Acid Dump!",
+    kind: "assign",
+    title: "Tracking 3WT-0001-AIC002 to 0% Dumped 100% Acid!",
+    symptom: "During an OFF/HOLD shutdown on Process Waste Neutralization, someone copied a single-valve tracking line into AIC002 — and the Acid dosing pump slammed to 100%!",
+    buggy: "'//3WT-0001-AIC002/_TRK_VAL.CV' := 0.0",
+    whyBug: "3WT-0001-AIC002 is a split-range Acid/Base pH loop (IMG_1121): 0% = 100% Acid, 50% = BOTH pumps off, 100% = 100% Base! Safe track value MUST be 50.0!",
+    chips: ["'//3WT-0001-AIC002/_TRK_VAL.CV'", ":=", "50.0", "0.0", "100.0"],
+    canon: "'//3WT-0001-AIC002/_TRK_VAL.CV' := 50.0",
+    validate: (norm) => norm === "'//3wt-0001-aic002/_trk_val.cv':=50.0" || norm === "'//3wt-0001-aic002/_trk_val.cv':=50" || norm === "'3wt-0001-aic002/_trk_val.cv':=50.0" || norm === "'3wt-0001-aic002/_trk_val.cv':=50"
+  },
+  {
+    id: "x6",
+    level: "Bug Hunt 6 • A_COMMAND Clears to Undefined!",
+    kind: "cond",
+    title: "Why Did the OFF Check Go False After OFF Completed?!",
+    symptom: "Look at your plant photo IMG_1114: 3WT-0001-NEUT is sitting finished in OFF (A_STATE = Complete), yet this check stays FALSE because A_COMMAND cleared to 'Undefined'!",
+    buggy: "'^/A_COMMAND.CV' = 'em_neut:OFF'",
+    whyBug: "In a Command-Driven EM, A_COMMAND clears to Undefined once accepted (IMG_1114) while A_PV retains the confirmed completed state ('OFF')! Always test '^/A_PV.CV'!",
+    chips: ["'^/A_PV.CV'", "'^/A_COMMAND.CV'", "=", "'em_neut:OFF'"],
+    canon: "'^/A_PV.CV' = 'em_neut:OFF'",
+    validate: (norm) => norm === "'^/a_pv.cv'='em_neut:off'"
   }
 ];
 
@@ -942,7 +1064,10 @@ const app = {
     "^/PRECLOSE_LEAD.CV": 15.0,
     "//CM_FEED_XV/DC1/MODE.ACTUAL": "CAS",
     "//CM_FEED_XV/PV.CV": "vlvnc-pv:CLOSED",
-    "^/HI_HI_LVL.CV": 0
+    "^/HI_HI_LVL.CV": 0,
+    "//3WT-0001-LI001/PV.CV": 35.6,
+    "//3WT-0001-AI001/PV.CV": 7.8,
+    "//3WT-0001-NEUT/HOLD_REQ.CV": 1
   },
   sandboxExpr: "('//CM_FEED_XV/DC1/MODE.ACTUAL' = CAS) AND ('//CM_TANK_WT/AI1/OUT.ST' >= GOOD) AND ('//CM_TANK_WT/AI1/OUT.CV' - '^/START_WT.CV' < '^/TARGET_WT.CV')"
 };
@@ -1240,7 +1365,9 @@ function renderSandboxMode(stage) {
     { name: "EM Start Permissive", expr: "('//CM_FEED_XV/DC1/MODE.ACTUAL' = CAS) AND ('//CM_TANK_WT/AI1/OUT.ST' >= GOOD) AND ('^/HI_HI_LVL.CV' = 0)" },
     { name: "Confirmed Valve Shut", expr: "'//CM_FEED_XV/PV.CV' = 'vlvnc-pv:CLOSED'" },
     { name: "Tutorial Low-Level Gate", expr: "'^/LI4-1/PV.CV' < 1.0" },
-    { name: "Bad Scale OR Hi-Hi Trip", expr: "('//CM_TANK_WT/AI1/OUT.ST' <= BAD) OR ('^/HI_HI_LVL.CV' = 1)" }
+    { name: "Bad Scale OR Hi-Hi Trip", expr: "('//CM_TANK_WT/AI1/OUT.ST' <= BAD) OR ('^/HI_HI_LVL.CV' = 1)" },
+    { name: "3WT-0001 Disch pH Trip (CND3)", expr: "('//3WT-0001-AI001/PV.CV' < 6.0) OR ('//3WT-0001-AI001/PV.CV' > 10.0)" },
+    { name: "3WT-0001 Xfer Start & Lock", expr: "('//3WT-0001-LI001/PV.CV' >= 50.0) AND ('//3WT-0001-NEUT/HOLD_REQ.CV' = False)" }
   ];
 
   const ev = evalSandboxExpression(app.sandboxExpr);
@@ -1321,6 +1448,29 @@ function renderSandboxMode(stage) {
               <select data-numsel="^/HI_HI_LVL.CV">
                 <option value="0" ${app.tags["^/HI_HI_LVL.CV"] === 0 ? "selected" : ""}>0 (Normal)</option>
                 <option value="1" ${app.tags["^/HI_HI_LVL.CV"] === 1 ? "selected" : ""}>1 (TRIP!)</option>
+              </select>
+            </div>
+          </div>
+          <div class="tag-row">
+            <span class="tag-name" data-tag="'//3WT-0001-LI001/PV.CV'">'//3WT-0001-LI001/PV.CV'</span>
+            <div class="tag-controls">
+              <input type="range" min="0" max="100" step="0.5" value="${app.tags["//3WT-0001-LI001/PV.CV"]}" data-numtag="//3WT-0001-LI001/PV.CV" />
+              <span>${app.tags["//3WT-0001-LI001/PV.CV"]} %</span>
+            </div>
+          </div>
+          <div class="tag-row">
+            <span class="tag-name" data-tag="'//3WT-0001-AI001/PV.CV'">'//3WT-0001-AI001/PV.CV'</span>
+            <div class="tag-controls">
+              <input type="range" min="2" max="13" step="0.1" value="${app.tags["//3WT-0001-AI001/PV.CV"]}" data-numtag="//3WT-0001-AI001/PV.CV" />
+              <span>${app.tags["//3WT-0001-AI001/PV.CV"]} pH</span>
+            </div>
+          </div>
+          <div class="tag-row">
+            <span class="tag-name" data-tag="'//3WT-0001-NEUT/HOLD_REQ.CV'">'//3WT-0001-NEUT/HOLD_REQ.CV'</span>
+            <div class="tag-controls">
+              <select data-numsel="//3WT-0001-NEUT/HOLD_REQ.CV">
+                <option value="1" ${app.tags["//3WT-0001-NEUT/HOLD_REQ.CV"] === 1 ? "selected" : ""}>True (Manual Op)</option>
+                <option value="0" ${app.tags["//3WT-0001-NEUT/HOLD_REQ.CV"] === 0 ? "selected" : ""}>False (EM Locked)</option>
               </select>
             </div>
           </div>
