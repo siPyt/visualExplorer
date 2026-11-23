@@ -1,6 +1,6 @@
 ================================================================================
 DELTAV CONTROL STUDIO MASTERY — PROGRESS & MISSION TRACKER
-Last Updated: 2026-11-22 (Edition v2.1 — Verified Against 12 Official Emerson PDFs)
+Last Updated: 2026-11-23 (Edition v2.2 — Verified Against 12 Official Emerson PDFs)
 Repository:   https://github.com/siPyt/visualExplorer.git
 ================================================================================
 
@@ -14,16 +14,17 @@ engineer in the room — with zero made-up syntax and zero guessing.
 HOW THIS WORKSPACE OPERATES
 ---------------------------
 1. Visual Explorer (index.html — launch anytime by typing 'run' in terminal):
-   Interactive visual Control Studio trainer (EM_TANK_CHARGE + EM_XFER_HDR).
-   Uses authentic Control Studio geometry, pins, modes, and State-Driven tables
-   while keeping clearly labeled study-aid colors and dotted expression-ref lines.
+   Interactive visual Control Studio trainer (EM_TANK_CHARGE + EM_XFER_HDR +
+   EM_2STAGE_VLV). Uses authentic Control Studio geometry, pins, modes, and
+   State-Driven tables (including '(not written)' cells & 4-Pattern Lens) while
+   keeping clearly labeled study-aid colors and dotted expression-ref lines.
 2. Expression Forge (ex.html — launch anytime by typing 'run ex' in terminal):
    Web & mobile-ready interactive DeltaV Structured Text expression & parameter
    trainer (Decode Cold, Forge Builder, 2 AM Bug Hunt, and On-Line Expression
    Tree Evaluator).
-3. Textbook & Lab Manual (DeltaV_Study_Guide.pdf — Edition v2.1):
+3. Textbook & Lab Manual (DeltaV_Study_Guide.pdf — Edition v2.2):
    Full in-depth native DeltaV lessons, pin-by-pin schematics, real-plant traps,
-   and 7 complete step-by-step Visual Explorer workshops (launch via 'run guide'
+   and 8 complete step-by-step Visual Explorer workshops (launch via 'run guide'
    or 'run pdf').
 4. Verified Truth Source (DELTAV_VERIFIED_FACTS.md + pdf reference/):
    Every Control Studio fact cited by exact PDF + page number across 12 official
@@ -63,19 +64,23 @@ HOW THIS WORKSPACE OPERATES
        - 4-Checkpoint triage sequence + stuck-open feed valve lab (CAS_SP vs. PV,
          DC1 built-in CFM_PASS_TIME / FAIL_ACTIVE + CND5 TIME_DURATION = 10s).
 
-[DONE] Ch. 7 + Workshop 7 — State-Driven Equipment Modules (EM_XFER_HDR)
-       - Authentic Control Studio Items x States table (Write path + Readback path,
-         '= Cascade/', '= OPEN', '= CLOSE' — 7016 p140), A_COMMAND vs. A_PV, plus
-         custom FBD anti-cross-mix pump gate, overpressure override, and 8s alarm.
+[DONE] Ch. 7 + Workshops 7–8 — State-Driven EMs (EM_XFER_HDR & EM_2STAGE_VLV)
+       - Authentic Control Studio Items x States table (zero SFCs! Write path +
+         Readback path, '= Cascade/', '= Auto/', '(not written)' skipped cells,
+         A_COMMAND vs. A_PV — 7016 p140, p166), deep-dive 4-pattern folding
+         (Command-Driven 3–4 patterns vs. State-Driven 2–3 patterns), custom FBD
+         anti-cross-mix gate, health watchdog, overpressure & tank trip overrides.
 
 ================================================================================
 2. WHERE WE ARE RIGHT NOW
 ================================================================================
-- Completed full 12-PDF Emerson Control Studio fact audit (DELTAV_VERIFIED_FACTS.md)
-  and synchronized Visual Explorer (index.html), Study Guide (DeltaV_Study_Guide.html
-  & DeltaV_Study_Guide.pdf v2.1), Expression Forge (ex.html), and SESSION_VOCAB.md.
+- Completed Edition v2.2 update incorporating the in-depth Command-Driven vs.
+  State-Driven 4-Pattern architecture comparison, State Table 3-in-1 folding,
+  Course 7016 2-Stage Valve State-Driven EM (EM_2STAGE_VLV with '(not written)'
+  Auto Mode cells & FBD watchdog/trip), and Workshop 8 across index.html and
+  DeltaV_Study_Guide.html / DeltaV_Study_Guide.pdf.
 - NEXT IMMEDIATE STEP:
-  -> Phase 3 / Chapter 8 + Workshop 8: Analog Control Modules & PID Loops
+  -> Phase 3 / Chapter 8 + Workshop 9: Analog Control Modules & PID Loops
      (AI -> PID -> AO, MAN/AUTO/CAS/ROUT, SP/PV/OUT, and BKCAL_IN / BKCAL_OUT
      anti-reset-windup back-calculation wires — verified straight from FBR!).
 

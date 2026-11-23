@@ -1,4 +1,4 @@
-# DeltaV Control Studio Vocabulary & Verified Rules — `EM_TANK_CHARGE` & `EM_XFER_HDR`
+# DeltaV Control Studio Vocabulary & Verified Rules — `EM_TANK_CHARGE`, `EM_XFER_HDR` & `EM_2STAGE_VLV`
 
 Strictly native Emerson DeltaV Control Studio vocabulary, architecture rules, and verified behaviors (cross-checked against `DELTAV_VERIFIED_FACTS.md` and `pdf reference/`).
 
@@ -40,5 +40,5 @@ Strictly native Emerson DeltaV Control Studio vocabulary, architecture rules, an
 
 ## 4. Command-Driven vs. State-Driven Equipment Modules
 
-- **Command-Driven (`EM_TANK_CHARGE` — *7009* p. 440):** Hierarchy contains `COMMAND_00001`, `COMMAND_00002`, … (each an SFC). Driven by `A_COMMAND` (`255 = Idle`); SFC Termination sets `A_PV` to the command name.
-- **State-Driven (`EM_XFER_HDR` — *7016* p. 140):** Configured in Control Studio as an **`Items × States` table** (no SFCs!). Each item maps a module-level **Write parameter path** and **Readback parameter path**; also driven by `A_COMMAND` (`255 = Idle`), and `A_PV` stays `Idle` until every row's Readback matches its target cell.
+- **Command-Driven (`EM_TANK_CHARGE` — *7009* p. 440):** Hierarchy contains `COMMAND_00001`, `COMMAND_00002`, … (each an SFC). Driven by `A_COMMAND` (`255 = Idle`); SFC Termination sets `A_PV` to the command name. Usually uses **all 4 patterns** (drops to 3 on pure on/off sequences without `XFR`/`CALC` analog math).
+- **State-Driven (`EM_XFER_HDR` & `EM_2STAGE_VLV` — *7016* pp. 140, 166):** Configured in Control Studio as an **`Items × States` table (ZERO graphical SFC steps or transitions!)**. Each item maps a module-level **Write parameter path** and **Readback parameter path**; unchecked cells are **`(not written)`** (e.g., `Auto Mode` writes `= Auto/` to `MODE.TARGET` while leaving `CAS_SP` untouched). Usually uses **2–3 patterns**: the State Table bundles Patterns 1, 3, and 4 into one grid, leaving Pattern 2 (every-Scan health watchdogs & safe-close interlocks) on the FBD sheet.

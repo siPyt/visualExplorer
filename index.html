@@ -618,6 +618,7 @@
       <select id="moduleSelect" class="module-select" title="Switch Control Studio Module">
         <option value="charge">EM_TANK_CHARGE (Command-Driven)</option>
         <option value="header">EM_XFER_HDR (State-Driven — Ch. 7)</option>
+        <option value="twostage">EM_2STAGE_VLV (State-Driven 2-Stage — 7016)</option>
       </select>
       <span id="algPill" class="alg-pill">Algorithm: Command-Driven</span>
     </div>
@@ -702,6 +703,40 @@
 
   <div class="sim-group">
     <button class="sim-btn" id="btnHdrReset" title="Clear all faults and return to HEADER_CLOSED">Reset Header</button>
+  </div>
+</div>
+
+<!-- Sim Bar 3: EM_2STAGE_VLV (State-Driven 2-Stage Valve — Course 7016) -->
+<div class="sim-bar hidden" id="simBarTwoStage">
+  <div class="sim-group">
+    <span class="sim-label">Status</span>
+    <span id="tsStatusPill" class="state-pill state-ALIGNED">ALIGNED</span>
+    <span class="sim-label" style="margin-left:4px;">A_COMMAND:</span>
+    <button class="sim-btn selected-cmd ts-cmd-btn" data-tsstate="Close">Close (1)</button>
+    <button class="sim-btn ts-cmd-btn" data-tsstate="Dribble">Dribble (2)</button>
+    <button class="sim-btn ts-cmd-btn" data-tsstate="Bulk">Bulk (3)</button>
+    <button class="sim-btn ts-cmd-btn" data-tsstate="Auto_Mode">Auto Mode (4)</button>
+    <button class="sim-btn ts-cmd-btn" data-tsstate="Idle">Idle (255)</button>
+  </div>
+
+  <div class="sim-group">
+    <span class="sim-label">CM_BULK_XV</span>
+    <select id="selTsBulkMode" class="sim-select" title="DC1 target mode — AUTO or CAS (FBR p427)">
+      <option value="CAS">MODE: CAS</option>
+      <option value="AUTO">MODE: AUTO (operator)</option>
+    </select>
+    <button class="sim-btn" id="btnTsBulkStuck" title="Simulate Bulk valve stuck open">Bulk XV: Normal</button>
+  </div>
+
+  <div class="sim-group">
+    <span class="sim-label">CM_DRIB_XV</span>
+    <button class="sim-btn" id="btnTsDribSt" title="Toggle Dribble valve feedback status (.ST)">.ST: GOOD</button>
+  </div>
+
+  <div class="sim-group">
+    <span class="sim-label">Pattern 2 Trip</span>
+    <button class="sim-btn" id="btnTsInterlock" title="Trigger tank safety interlock to force A_COMMAND := Close">Tank Trip: Clear</button>
+    <button class="sim-btn" id="btnTsReset" title="Clear all faults and return to Close">Reset 2-Stage</button>
   </div>
 </div>
 
@@ -821,11 +856,27 @@ const MODULE_TABS = {
     { id: "h2", label: "2. Path Gate & Interlock", kind: "FBD", defaultSel: "CND_PATH_OK" },
     { id: "h3", label: "3. A_PV & Alignment Timeout", kind: "FBD", defaultSel: "CND_FAIL_ALM" },
     { id: "h4", label: "4. Full Control Studio", kind: "COMBO", defaultSel: "HDR_DEVICE_MASK" }
+  ],
+  twostage: [
+    { id: "ts1", label: "1. Items & State Table", kind: "STATE TABLE", defaultSel: "TS_STATE_TABLE" },
+    { id: "ts2", label: "2. Watchdog & Trip", kind: "FBD", defaultSel: "TS_CND_HEALTH" },
+    { id: "ts3", label: "3. Full Control Studio", kind: "COMBO", defaultSel: "TS_STATE_TABLE" }
   ]
 };
 
 const STEPS = ["S0_IDLE", "S10_CHARGE_OPEN", "S20_TRIM_CLOSE", "S30_AGITATE"];
 const HDR_STATES = ["HEADER_CLOSED", "ROUTE_TANK_A", "ROUTE_TANK_B", "CIP_FLUSH"];
+const TS_STATES = ["Close", "Dribble", "Bulk", "Auto_Mode", "Idle"];
+
+// Items x States table for EM_2STAGE_VLV (Course 7016 State-Driven Items/States format, 7016 p140).
+// null = "(not written)" cell — untouched by that state!
+const TS_MASK = {
+  Close:     { num: 1, label: "Close",     bulkCmd: "CLOSE", dribCmd: "CLOSE", bulkMode: "CAS",  dribMode: "CAS",  desc: "Both valves in CAS and commanded CLOSE" },
+  Dribble:   { num: 2, label: "Dribble",   bulkCmd: "CLOSE", dribCmd: "OPEN",  bulkMode: "CAS",  dribMode: "CAS",  desc: "Bulk closed, Dribble open for fine trim weight" },
+  Bulk:      { num: 3, label: "Bulk",      bulkCmd: "OPEN",  dribCmd: "OPEN",  bulkMode: "CAS",  dribMode: "CAS",  desc: "Both Bulk and Dribble open for fast fill" },
+  Auto_Mode: { num: 4, label: "Auto Mode", bulkCmd: null,    dribCmd: null,    bulkMode: "AUTO", dribMode: "AUTO", desc: "Releases both valves to operator AUTO without writing CAS_SP!" },
+  Idle:      { num: 255, label: "Idle (255)", bulkCmd: null, dribCmd: null,    bulkMode: null,   dribMode: null,   desc: "Mandatory Named Set 255 entry — writes nothing" }
+};
 
 // Items x States table for State-Driven EM_XFER_HDR (layout verified: 7016 p140 Items/States grid).
 // Values use the course named sets 'vlvnc-sp' (OPEN/CLOSE) and 'mtr2-sp' (START/STOP) — 7016 p37-39, 7017 p245.
@@ -877,7 +928,16 @@ const state = {
   xv102Mode: "CAS",               // CAS | AUTO (DC block modes, FBR p427)
   xv102StuckOpen: false,          // Simulates Tank B valve stuck open
   hdrPress: 2.5,                  // CM_HDR_PT/AI1/OUT.CV (trips > 6.0 bar)
-  hdrPressLimit: 6.0
+  hdrPressLimit: 6.0,
+
+  // Module 3: EM_2STAGE_VLV (State-Driven 2-Stage Valve — Course 7016)
+  tsCmdState: "Close",            // Close | Dribble | Bulk | Auto_Mode | Idle
+  tsBulkMode: "CAS",              // Operator override on CM_BULK_XV (CAS | AUTO)
+  tsBulkStuck: false,             // Mechanical stuck-open fault on CM_BULK_XV
+  tsDribSt: "GOOD",               // Feedback .ST quality on CM_DRIB_XV (GOOD | BAD)
+  tsInterlock: false,             // Tank safety interlock forcing A_COMMAND := Close
+  tsLastBulkPv: "CLOSED",         // Retained valve state when Auto_Mode/Idle leaves CAS_SP (not written)
+  tsLastDribPv: "CLOSED"
 };
 
 function computeChargeDerived() {
@@ -1008,6 +1068,68 @@ function computeHeaderDerived() {
   };
 }
 
+function computeTwoStageDerived() {
+  const tripActive = state.tsInterlock;
+  const effectiveTarget = tripActive ? "Close" : state.tsCmdState;
+  const mask = TS_MASK[effectiveTarget];
+
+  // Effective actual modes:
+  // In Auto_Mode, the State Table writes MODE.TARGET := AUTO to both valves (unless overridden/unchanged).
+  // In Close/Dribble/Bulk, State Table writes MODE.TARGET := CAS, but operator override selTsBulkMode="AUTO" simulates operator grabbing CM_BULK_XV.
+  let bulkModeActual = mask.bulkMode === "AUTO" ? "AUTO" : (mask.bulkMode === "CAS" ? state.tsBulkMode : state.tsBulkMode);
+  let dribModeActual = mask.dribMode === "AUTO" ? "AUTO" : "CAS";
+  if (effectiveTarget === "Idle") {
+    bulkModeActual = state.tsBulkMode;
+    dribModeActual = "CAS";
+  }
+
+  // Valve PVs: if cell is "(not written)" (null), valve stays wherever it last was!
+  let bulkPv = state.tsLastBulkPv;
+  if (mask.bulkCmd !== null) {
+    bulkPv = (bulkModeActual === "CAS")
+      ? (mask.bulkCmd === "OPEN" ? "OPEN" : "CLOSED")
+      : "CLOSED"; // in AUTO, DC1 ignores CAS_IN_D and stays at operator SP_D (modeled CLOSED)
+  }
+  if (state.tsBulkStuck) bulkPv = "OPEN";
+
+  let dribPv = state.tsLastDribPv;
+  if (mask.dribCmd !== null) {
+    dribPv = mask.dribCmd === "OPEN" ? "OPEN" : "CLOSED";
+  }
+
+  // Row-by-row Readback verification (null / "(not written)" rows are skipped by State-Driven confirmation!)
+  const bulkCmdMatch = (mask.bulkCmd === null) ? true : ((mask.bulkCmd === "OPEN") === (bulkPv === "OPEN"));
+  const dribCmdMatch = (mask.dribCmd === null) ? true : ((mask.dribCmd === "OPEN") === (dribPv === "OPEN") && state.tsDribSt === "GOOD");
+  const bulkModeMatch = (mask.bulkMode === null) ? true : (bulkModeActual === mask.bulkMode);
+  const dribModeMatch = (mask.dribMode === null) ? true : (dribModeActual === mask.dribMode);
+
+  const allWrittenMatch = bulkCmdMatch && dribCmdMatch && bulkModeMatch && dribModeMatch;
+  const isIdle = effectiveTarget === "Idle";
+
+  // Pattern 2 FBD Health Watchdog (scans every cycle): flags Bad .ST, mode mismatch, or readback failure
+  const dribBadSt = state.tsDribSt === "BAD";
+  const healthFault = dribBadSt || (!isIdle && !allWrittenMatch) || tripActive;
+
+  // Standard EM parameters (7009 p462): A_COMMAND, A_TARGET, A_PV (255 = Idle if unaligned or Idle)
+  const aCommand = TS_MASK[state.tsCmdState].label;
+  const aTarget = mask.label;
+  const aligned = !isIdle && !tripActive && allWrittenMatch;
+  const aPv = aligned ? mask.label : "Idle (255)";
+
+  let bannerPill = "ALIGNED";
+  if (tripActive) bannerPill = "SAFE CLOSE";
+  else if (isIdle) bannerPill = "IDLE (255)";
+  else if (!allWrittenMatch || dribBadSt) bannerPill = "MISMATCH";
+
+  return {
+    tripActive, effectiveTarget, mask,
+    bulkModeActual, dribModeActual, bulkPv, dribPv,
+    bulkCmdMatch, dribCmdMatch, bulkModeMatch, dribModeMatch,
+    allWrittenMatch, isIdle, dribBadSt, healthFault,
+    aCommand, aTarget, aPv, aligned, bannerPill
+  };
+}
+
 // =========================================================================
 // 2. SESSION VOCABULARY DATA (CHAPTERS 1–7)
 // =========================================================================
@@ -1016,7 +1138,7 @@ const VOCAB = [
   { term: "EM", full: "Equipment Module (7009 p436)", desc: "Team Coordinator (EM_TANK_CHARGE or EM_XFER_HDR) coordinating multiple CMs. DeltaV offers 7 EM algorithm types: FBD, SFC, Command-Driven, State-Driven, and 3 Phase variants." },
   { term: "CM", full: "Control Module (7016 p37–40)", desc: "Single-device module (CM_FEED_XV, CM_TANK_WT). Standard pattern wires module-level CAS_SP into DC1/CAS_IN_D and DC1/PV_D out to module-level PV." },
   { term: "Command-Driven EM", full: "Multi-Step Task EM (7009 p440)", desc: "Hierarchy contains COMMAND_00001, COMMAND_00002, … — each a multi-step SFC driven by A_COMMAND (with mandatory 255 = Idle)." },
-  { term: "State-Driven EM", full: "Items × States Table EM (7016 p140)", desc: "Used for valve headers & manifolds (EM_XFER_HDR). Configured in Control Studio as an Items × States table (Write parameter path + Readback parameter path per item) — no multi-step SFCs!" },
+  { term: "State-Driven EM", full: "Items × States Table EM (7016 p140)", desc: "Used for instant valve lineups & manifolds (EM_XFER_HDR, EM_2STAGE_VLV). Replaces graphical SFCs completely with an Items × States table (Write + Readback paths per item, plus '(not written)' skipped cells like Auto Mode) and folds Patterns 1, 3 & 4 into one grid!" },
   { term: "A_COMMAND / A_TARGET / A_PV", full: "Standard EM Parameters (7009 p462)", desc: "Used by BOTH Command-Driven and State-Driven EMs! A_COMMAND = requested command/state (255 = Idle); A_TARGET = currently executing; A_PV = completed/confirmed without error." },
   { term: "Items × States Table", full: "State-Driven Editor (7016 p140)", desc: "Items tab maps each row's module-level Write path (e.g., CM_HDR_XV102/CAS_SP.CV) and Readback path (CM_HDR_XV102/PV.CV); States tab sets '= Cascade/', '= OPEN', '= CLOSE' per state." },
   { term: "Bold vs. Dashed Wires", full: "On-Line Wire Rules (CONFIG p368)", desc: "In DeltaV On-Line, Bold wire = non-zero value; Dashed wire = FEEDBACK wire (source #N executes after destination #N, so value arrives NEXT scan!). Solid vs. dashed is NOT analog vs. discrete." },
@@ -2312,9 +2434,431 @@ function renderHeaderTab4Combo(vp, h) {
 }
 
 // =========================================================================
+// 4C. RENDERERS FOR MODULE 3: EM_2STAGE_VLV (STATE-DRIVEN 2-STAGE — 7016)
+// =========================================================================
+function renderTwoStageTab1(vp, ts) {
+  // Top Handshake Strip: A_COMMAND, A_TARGET, A_PV
+  const top = el("g", { class: "clickable", "data-id": "TS_HANDSHAKE" });
+  top.appendChild(el("rect", {
+    x: 22, y: 12, width: 896, height: 58, rx: 6,
+    fill: state.online ? (ts.healthFault ? "#fef2f2" : (ts.isIdle ? "#f8fafc" : "#eff6ff")) : "#f1f5f9",
+    stroke: state.selectedId === "TS_HANDSHAKE" ? "#0284c7" : (ts.healthFault && state.online ? "#dc2626" : "#64748b"),
+    "stroke-width": state.selectedId === "TS_HANDSHAKE" ? 3 : 1.6
+  }));
+  top.appendChild(el("text", { x: 36, y: 31, "font-size": 10.6, "font-weight": 800, fill: "#1e3a8a" },
+    "EM_2STAGE_VLV (STATE-DRIVEN — ZERO SFC STEPS OR TRANSITIONS!) — ITEMS × STATES TABLE BUNDLES PATTERNS 1, 3 & 4"));
+  top.appendChild(el("text", { x: 36, y: 53, "font-size": 11, fill: "#0f172a", "font-family": "ui-monospace, monospace", "font-weight": 700 },
+    `A_COMMAND ↓: ${ts.aCommand}   |   A_TARGET: ${ts.aTarget}   |   A_PV ↑: ${ts.aPv}   |   VLV_HEALTH_ALM: ${ts.healthFault ? "1 (FAULT)" : "0"}`));
+  vp.appendChild(top);
+
+  // Authentic Control Studio State-Driven EM Editor: Items Area + State Values Table (7016 p140)
+  const wx = 22, wy = 80, ww = 896, wh = 476;
+  vp.appendChild(el("rect", { x: wx, y: wy, width: ww, height: wh, rx: 3, fill: "#dfddd6", stroke: "#57554e", "stroke-width": 1.6 }));
+  vp.appendChild(el("rect", { x: wx + 1, y: wy + 1, width: ww - 2, height: 24, fill: "#2d5a88" }));
+  vp.appendChild(el("text", { x: wx + 12, y: wy + 17, "font-size": 10.8, "font-weight": 800, fill: "#ffffff", "font-family": "Tahoma, ui-monospace, sans-serif" },
+    "EM_2STAGE_VLV [State-Driven Editor — Items Area + State Values Table (7016 p140)] — Click any State column header!"));
+
+  // Folder Tabs
+  vp.appendChild(el("rect", { x: wx + 10, y: wy + 30, width: 215, height: 20, rx: 2, fill: "#ffffff", stroke: "#8c8980" }));
+  vp.appendChild(el("text", { x: wx + 117, y: wy + 44, "text-anchor": "middle", "font-size": 9.8, "font-weight": 800, fill: "#0f172a" }, "Items Area (Write → Readback)"));
+  vp.appendChild(el("rect", { x: wx + 229, y: wy + 30, width: 235, height: 20, rx: 2, fill: "#ffffff", stroke: "#8c8980" }));
+  vp.appendChild(el("text", { x: wx + 346, y: wy + 44, "text-anchor": "middle", "font-size": 9.8, "font-weight": 800, fill: "#1e3a8a" }, "State Values Table (Named Set)"));
+
+  const tx = wx + 10, ty = wy + 50, tw = ww - 20, th = 228;
+  vp.appendChild(el("rect", { x: tx, y: ty, width: tw, height: th, fill: "#ffffff", stroke: "#8c8980", "stroke-width": 1.2 }));
+
+  // Columns inside tw = 876:
+  // Item (96) | Write & Readback (224) | 5 States (5 x 90 = 450) | Live Readback (106)
+  const colX = [tx, tx + 96, tx + 320, tx + 410, tx + 500, tx + 590, tx + 680, tx + 770, tx + tw];
+
+  // Header Row
+  vp.appendChild(el("rect", { x: tx + 1, y: ty + 1, width: tw - 2, height: 40, fill: "#efeee9" }));
+  vp.appendChild(el("text", { x: colX[0] + 6, y: ty + 24, "font-size": 9.6, "font-weight": 800, fill: "#0f172a" }, "Item Name"));
+  vp.appendChild(el("text", { x: colX[1] + 6, y: ty + 16, "font-size": 9.3, "font-weight": 800, fill: "#0f172a" }, "Write Path (Module-Level)"));
+  vp.appendChild(el("text", { x: colX[1] + 6, y: ty + 32, "font-size": 9.0, "font-weight": 700, fill: "#475569" }, "Readback Path (A_PV Proof)"));
+
+  const stCols = [
+    { key: "Close",     id: "TS_ST_CLOSE",   lbl: "Close",     sub: "(1)" },
+    { key: "Dribble",   id: "TS_ST_DRIBBLE", lbl: "Dribble",   sub: "(2)" },
+    { key: "Bulk",      id: "TS_ST_BULK",    lbl: "Bulk",      sub: "(3)" },
+    { key: "Auto_Mode", id: "TS_ST_AUTO",    lbl: "Auto Mode", sub: "(4)" },
+    { key: "Idle",      id: "TS_ST_IDLE",    lbl: "Idle",      sub: "(255)" }
+  ];
+
+  stCols.forEach((sc, i) => {
+    const cx = colX[2 + i], cw = colX[3 + i] - cx;
+    const isAct = ts.effectiveTarget === sc.key;
+    const hdrG = el("g", { class: "clickable", "data-id": sc.id, "data-tscmd": sc.key });
+    hdrG.appendChild(el("rect", {
+      x: cx, y: ty, width: cw, height: 41,
+      fill: isAct ? (state.online ? (ts.isIdle ? "#e2e8f0" : (ts.allWrittenMatch ? "#bbf7d0" : "#fde68a")) : "#dbeafe") : "#efeee9",
+      stroke: isAct ? "#0284c7" : "#c7c4ba", "stroke-width": isAct ? 2 : 1
+    }));
+    hdrG.appendChild(el("text", { x: cx + cw / 2, y: ty + 16, "text-anchor": "middle", "font-size": 9.1, "font-weight": 800, fill: "#0f172a", "font-family": "ui-monospace, monospace" }, sc.lbl));
+    hdrG.appendChild(el("text", { x: cx + cw / 2, y: ty + 31, "text-anchor": "middle", "font-size": 8.6, "font-weight": 700, fill: isAct ? "#1e3a8a" : "#475569" },
+      isAct ? `● Active ${sc.sub}` : `Click ${sc.sub}`));
+    vp.appendChild(hdrG);
+  });
+
+  vp.appendChild(el("text", { x: colX[7] + 53, y: ty + 16, "text-anchor": "middle", "font-size": 9.3, "font-weight": 800, fill: "#0f172a" }, "On-Line"));
+  vp.appendChild(el("text", { x: colX[7] + 53, y: ty + 31, "text-anchor": "middle", "font-size": 9.0, "font-weight": 700, fill: "#475569" }, "Readback"));
+
+  const rows = [
+    {
+      item: "BULK_CMD", wr: "CM_BULK_XV/CAS_SP.CV", rb: "CM_BULK_XV/PV.CV",
+      cells: ["= CLOSE", "= CLOSE", "= OPEN", "(not written)", "(not written)"],
+      live: ts.bulkPv, ok: ts.bulkCmdMatch, skipped: ts.mask.bulkCmd === null, badSt: false
+    },
+    {
+      item: "DRIBBLE_CMD", wr: "CM_DRIB_XV/CAS_SP.CV", rb: "CM_DRIB_XV/PV.CV",
+      cells: ["= CLOSE", "= OPEN", "= OPEN", "(not written)", "(not written)"],
+      live: ts.dribPv + (ts.dribBadSt ? " ✕" : ""), ok: ts.dribCmdMatch, skipped: ts.mask.dribCmd === null, badSt: ts.dribBadSt
+    },
+    {
+      item: "BULK_MODE", wr: "CM_BULK_XV/MODE.TARGET", rb: "CM_BULK_XV/MODE.ACTUAL",
+      cells: ["= Cascade/", "= Cascade/", "= Cascade/", "= Auto/", "(not written)"],
+      live: ts.bulkModeActual, ok: ts.bulkModeMatch, skipped: ts.mask.bulkMode === null, badSt: false
+    },
+    {
+      item: "DRIBBLE_MODE", wr: "CM_DRIB_XV/MODE.TARGET", rb: "CM_DRIB_XV/MODE.ACTUAL",
+      cells: ["= Cascade/", "= Cascade/", "= Cascade/", "= Auto/", "(not written)"],
+      live: ts.dribModeActual, ok: ts.dribModeMatch, skipped: ts.mask.dribMode === null, badSt: false
+    }
+  ];
+
+  const actIdx = TS_STATES.indexOf(ts.effectiveTarget);
+  rows.forEach((r, idx) => {
+    const ry = ty + 41 + idx * 46;
+    const rowG = el("g", { class: "clickable", "data-id": "TS_STATE_TABLE" });
+    rowG.appendChild(el("rect", { x: tx + 1, y: ry, width: tw - 2, height: 46, fill: idx % 2 === 0 ? "#ffffff" : "#f8fafc" }));
+
+    const acx = colX[2 + actIdx], acw = colX[3 + actIdx] - acx;
+    rowG.appendChild(el("rect", {
+      x: acx, y: ry, width: acw, height: 46,
+      fill: !state.online ? "#eff6ff" : (r.skipped ? "#f1f5f9" : (r.ok ? "#dcfce7" : "#fee2e2"))
+    }));
+    rowG.appendChild(el("line", { x1: tx, y1: ry + 46, x2: tx + tw, y2: ry + 46, stroke: "#e2e8f0" }));
+
+    rowG.appendChild(el("text", { x: colX[0] + 6, y: ry + 26, "font-size": 9.3, "font-weight": 800, fill: "#0f172a", "font-family": "ui-monospace, monospace" }, r.item));
+    rowG.appendChild(el("text", { x: colX[1] + 6, y: ry + 18, "font-size": 8.9, "font-weight": 700, fill: "#0f172a", "font-family": "ui-monospace, monospace" }, r.wr));
+    rowG.appendChild(el("text", { x: colX[1] + 6, y: ry + 34, "font-size": 8.6, fill: "#475569", "font-family": "ui-monospace, monospace" }, r.rb));
+
+    r.cells.forEach((cVal, ci) => {
+      const cx = colX[2 + ci], cw = colX[3 + ci] - cx;
+      const isActCell = ci === actIdx;
+      const isSkip = cVal === "(not written)";
+      rowG.appendChild(el("text", {
+        x: cx + cw / 2, y: ry + 26, "text-anchor": "middle",
+        "font-size": isSkip ? 8.3 : 9.2,
+        "font-style": isSkip ? "italic" : "normal",
+        "font-weight": isActCell && !isSkip ? 800 : 600,
+        fill: isSkip ? "#64748b" : (isActCell && state.online ? (r.ok ? "#15803d" : "#b91c1c") : "#1e293b"),
+        "font-family": "ui-monospace, monospace"
+      }, cVal));
+    });
+
+    const rbText = !state.online ? "—" : (r.skipped ? `· ${r.live}` : `${r.ok ? "✓" : "✗"} ${r.live}`);
+    rowG.appendChild(el("text", {
+      x: colX[7] + 53, y: ry + 26, "text-anchor": "middle", "font-size": 9.3, "font-weight": 800,
+      fill: !state.online ? "#64748b" : (r.badSt ? "#dc2626" : (r.skipped ? "#475569" : (r.ok ? "#15803d" : "#dc2626"))),
+      "font-family": "ui-monospace, monospace"
+    }, rbText));
+
+    vp.appendChild(rowG);
+  });
+
+  colX.slice(1, -1).forEach(xPos => {
+    vp.appendChild(el("line", { x1: xPos, y1: ty, x2: xPos, y2: ty + th, stroke: "#cbd5e1" }));
+  });
+
+  // Bottom 4-Pattern Folding Breakdown Card (directly showing how the State Table bundles Patterns 1, 3, and 4!)
+  const bx = tx, by = ty + th + 12, bw = tw, bh = 176;
+  const mapCard = el("g", { class: "clickable", "data-id": "TS_PATTERN_MAP" });
+  mapCard.appendChild(el("rect", { x: bx, y: by, width: bw, height: bh, rx: 5, fill: "#f8fafc", stroke: "#64748b", "stroke-width": 1.4 }));
+  mapCard.appendChild(el("rect", { x: bx + 1, y: by + 1, width: bw - 2, height: 24, rx: 4, fill: "#0f172a" }));
+  mapCard.appendChild(el("text", { x: bx + 12, y: by + 17, "font-size": 10, "font-weight": 800, fill: "#f8fafc" },
+    "HOW THE 4 PATTERNS MAP INSIDE A STATE-DRIVEN EM (WHY STATE-DRIVEN USUALLY USES 2–3 PATTERNS, NOT 4):"));
+
+  const boxes = [
+    { x: bx + 10,  w: 204, col: "#0284c7", bg: "#eff6ff", title: "PATTERN 1 (In Table)", l1: "No SFC steps/transitions!", l2: "A_COMMAND picks 1 state", l3: "column & snaps all rows", l4: "at the exact same time." },
+    { x: bx + 224, w: 204, col: "#7c3aed", bg: "#f5f3ff", title: "PATTERN 3 (Folded In)", l1: "No XFR/CALC analog math!", l2: "Mode routing lives in", l3: "BULK_MODE / DRIB_MODE.", l4: "Auto Mode skips CAS_SP." },
+    { x: bx + 438, w: 204, col: "#0f766e", bg: "#f0fdfa", title: "PATTERN 4 (In Table)", l1: "Built into every row:", l2: "Write Path (CAS_SP.CV)", l3: "+ Readback (PV.CV) →", l4: "auto-confirms A_PV!" },
+    { x: bx + 652, w: 214, col: "#dc2626", bg: "#fef2f2", title: "PATTERN 2 (Tab 2 FBD!)", l1: "Stays on the FBD sheet:", l2: "Every-scan health check", l3: "(.ST >= GOOD / Mode) +", l4: "Interlock → Close (1)." }
+  ];
+  boxes.forEach(b => {
+    mapCard.appendChild(el("rect", { x: b.x, y: by + 34, width: b.w, height: 102, rx: 4, fill: b.bg, stroke: b.col, "stroke-width": 1.6 }));
+    mapCard.appendChild(el("rect", { x: b.x + 1, y: by + 35, width: b.w - 2, height: 20, rx: 3, fill: b.col }));
+    mapCard.appendChild(el("text", { x: b.x + b.w / 2, y: by + 49, "text-anchor": "middle", "font-size": 9.4, "font-weight": 800, fill: "#ffffff" }, b.title));
+    [b.l1, b.l2, b.l3, b.l4].forEach((ln, li) => {
+      mapCard.appendChild(el("text", { x: b.x + 8, y: by + 72 + li * 16, "font-size": 9.2, "font-weight": li === 0 ? 800 : 500, fill: "#1e293b" }, ln));
+    });
+  });
+
+  mapCard.appendChild(el("text", { x: bx + 12, y: by + 158, "font-size": 9.4, "font-weight": 700, fill: "#334155" },
+    "Course 7016 Note: Try clicking 'Auto Mode (4)' above — BULK_CMD & DRIBBLE_CMD show '(not written)' so valves hand back to operator AUTO without slamming shut!"));
+  vp.appendChild(mapCard);
+}
+
+function renderTwoStageTab2(vp, ts) {
+  // Strip A: Pattern 2 Every-Scan Health Watchdog
+  drawSectionStrip(vp, 25, 22, 890, 248, "STRIP A (PATTERN 2 — FBD SHEET): EVERY-SCAN VALVE HEALTH & MODE WATCHDOG", "#1e3a8a");
+
+  drawFlag(vp, { id: "TS_FLAG_BULK_MODE", x: 45, y: 66, w: 235, side: "left", label: "CM_BULK_XV/MODE.ACTUAL", sub: "Expr Ref (Matches target mode?)", liveText: ts.bulkModeActual, status: ts.bulkModeMatch ? "ok" : "bad" });
+  drawFlag(vp, { id: "TS_FLAG_DRIB_ST",   x: 45, y: 124, w: 235, side: "left", label: "CM_DRIB_XV/PV.ST", sub: "Expr Ref (Must be >= GOOD)", liveText: state.tsDribSt, status: ts.dribBadSt ? "bad" : "ok" });
+  drawFlag(vp, { id: "TS_FLAG_APV",       x: 45, y: 182, w: 235, side: "left", label: "^/A_PV != ^/A_COMMAND", sub: "Readback mismatch check", liveText: ts.allWrittenMatch ? "MATCH" : "MISMATCH", status: ts.allWrittenMatch ? "ok" : "bad" });
+
+  drawFbdBlock(vp, {
+    id: "TS_CND_HEALTH", x: 350, y: 78, w: 235, h: 136, cls: "CND", name: "CND_VLV_HEALTH", execNum: 1,
+    inputs: [],
+    outputs: [{ name: "OUT_D", dy: 74 }],
+    bodyLines: ["No input pins (FBR p415)", "Bad .ST OR Mode Wrong", "OR Readback Mismatch"],
+    status: ts.healthFault ? "bad" : "ok", liveBadge: ts.healthFault ? "True" : "False"
+  });
+
+  drawFlag(vp, { id: "TS_FLAG_HEALTH_ALM", x: 645, y: 135, w: 245, side: "right", label: "^/VLV_HEALTH_ALM", sub: "Wired OUT_D → Operator / Phase FAIL_MONITOR", liveText: ts.healthFault ? "True (1)" : "False (0)", status: ts.healthFault ? "bad" : "ok" });
+
+  drawWire(vp, [[280, 83], [315, 83], [315, 152], [350, 152]], { ref: true, label: "expr ref", labelPos: [315, 70] });
+  drawWire(vp, [[280, 141], [315, 141], [315, 152], [350, 152]], { ref: true });
+  drawWire(vp, [[280, 199], [315, 199], [315, 152], [350, 152]], { ref: true });
+  drawWire(vp, [[585, 152], [645, 152]], { active: ts.healthFault, fault: ts.healthFault });
+
+  // Strip B: Pattern 2 Tank Safety Interlock -> Forces A_COMMAND := 'em_2stage:Close'
+  drawSectionStrip(vp, 25, 296, 890, 224, "STRIP B (PATTERN 2 — FBD SHEET): TANK INTERLOCK FORCES SAFE STATE ('A_COMMAND := Close')", "#991b1b");
+
+  drawFlag(vp, { id: "TS_FLAG_TRIP_IN", x: 45, y: 374, w: 235, side: "left", label: "//CM_TANK_HIHI/PV.CV", sub: "Tank High-High Interlock", liveText: ts.tripActive ? "TRIP!" : "CLEAR", status: ts.tripActive ? "bad" : "ok" });
+
+  drawFbdBlock(vp, {
+    id: "TS_CND_TRIP", x: 350, y: 344, w: 200, h: 112, cls: "CND", name: "CND_TANK_TRIP", execNum: 2,
+    inputs: [], outputs: [{ name: "OUT_D", dy: 56 }],
+    bodyLines: ["Every-Scan Trip", "HIHI_TRIP = True"],
+    status: ts.tripActive ? "bad" : "normal", liveBadge: ts.tripActive ? "True" : "False"
+  });
+
+  drawFbdBlock(vp, {
+    id: "TS_ACT_CLOSE", x: 590, y: 344, w: 175, h: 112, cls: "ACT", name: "ACT_FORCE_CLOSE", execNum: 3,
+    inputs: [{ name: "IN_D", dy: 56 }], outputs: [],
+    bodyLines: ["IN_D only (FBR p400)", "^/A_COMMAND :=", "'em_2stage:Close'"],
+    status: ts.tripActive ? "bad" : "normal", liveBadge: ts.tripActive ? "ACTIVE" : "IDLE"
+  });
+
+  drawFlag(vp, { id: "TS_FLAG_CMD_OUT", x: 790, y: 383, w: 110, side: "right", label: "^/A_COMMAND", sub: "Forced Close", liveText: ts.aTarget, status: ts.tripActive ? "bad" : "ok" });
+
+  drawWire(vp, [[280, 391], [350, 391]], { ref: true, label: "expr ref", labelPos: [315, 376] });
+  drawWire(vp, [[550, 400], [590, 400]], { active: ts.tripActive, fault: ts.tripActive });
+  drawWire(vp, [[765, 400], [790, 400]], { ref: true });
+}
+
+function renderTwoStageTab3Combo(vp, ts) {
+  const showLens = Boolean(state.showComboLens);
+
+  vp.appendChild(el("rect", { x: 12, y: 10, width: 1396, height: 805, rx: 6, fill: "#dfe6ee", stroke: "#334155", "stroke-width": 2 }));
+  vp.appendChild(el("rect", { x: 12, y: 10, width: 1396, height: 32, rx: 5, fill: "#1e293b" }));
+  vp.appendChild(el("text", {
+    x: 26, y: 30, "font-size": 12, "font-weight": 800, fill: "#f8fafc", "font-family": "ui-monospace, monospace"
+  }, `[AREA_A / EM_2STAGE_VLV [State-Driven — ${state.online ? "A_COMMAND=" + ts.aCommand + " | A_PV=" + ts.aPv : "Off-Line"}] — Control Studio]`));
+
+  const lensBtn = el("g", { class: "clickable", "data-id": "TOGGLE_COMBO_LENS" });
+  lensBtn.appendChild(el("rect", { x: 1155, y: 15, width: 240, height: 22, rx: 4, fill: showLens ? "#0284c7" : "#334155", stroke: "#7dd3fc", "stroke-width": 1.2 }));
+  lensBtn.appendChild(el("text", { x: 1275, y: 30, "text-anchor": "middle", "font-size": 10.5, "font-weight": 800, fill: "#ffffff" },
+    showLens ? "🔍 4-Pattern Lens: ON (Click for Raw)" : "🔍 4-Pattern Lens: OFF (Raw Studio)"));
+  vp.appendChild(lensBtn);
+
+  // Far-Left Explorer Hierarchy Tree
+  vp.appendChild(el("rect", { x: 20, y: 50, width: 196, height: 756, rx: 3, fill: "#ffffff", stroke: "#64748b", "stroke-width": 1.4 }));
+  vp.appendChild(el("rect", { x: 21, y: 51, width: 194, height: 24, fill: "#e2e8f0" }));
+  vp.appendChild(el("text", { x: 28, y: 67, "font-size": 10.5, "font-weight": 800, fill: "#0f172a" }, "Explorer — EM_2STAGE_VLV"));
+
+  const tsTree = [
+    { id: "TS_HANDSHAKE",   txt: "▣ EM_2STAGE_VLV", y: 94, bold: true, col: "#0f172a" },
+    { id: "TS_STATE_TABLE", txt: "  ├─ ▦ Items × States", y: 118, bold: true, col: "#1e3a8a" },
+    { id: "TS_ST_CLOSE",   cmd: "Close",     txt: "  │   ├─ (1) Close",     y: 140, col: ts.effectiveTarget === "Close" ? "#15803d" : "#475569" },
+    { id: "TS_ST_DRIBBLE", cmd: "Dribble",   txt: "  │   ├─ (2) Dribble",   y: 160, col: ts.effectiveTarget === "Dribble" ? "#15803d" : "#475569" },
+    { id: "TS_ST_BULK",    cmd: "Bulk",      txt: "  │   ├─ (3) Bulk",      y: 180, col: ts.effectiveTarget === "Bulk" ? "#15803d" : "#475569" },
+    { id: "TS_ST_AUTO",    cmd: "Auto_Mode", txt: "  │   ├─ (4) Auto Mode", y: 200, col: ts.effectiveTarget === "Auto_Mode" ? "#15803d" : "#475569" },
+    { id: "TS_ST_IDLE",    cmd: "Idle",      txt: "  │   └─ (255) Idle",    y: 220, col: ts.effectiveTarget === "Idle" ? "#15803d" : "#475569" },
+    { id: "TS_CND_HEALTH",  txt: "  ├─ #1 CND_VLV_HEALTH", y: 250, col: "#334155" },
+    { id: "TS_CND_TRIP",    txt: "  ├─ #2 CND_TANK_TRIP",  y: 272, col: "#334155" },
+    { id: "TS_ACT_CLOSE",   txt: "  ├─ #3 ACT_FORCE_CLOSE",y: 294, col: "#334155" },
+    { id: "TS_STATE_TABLE", txt: "  ├─ □ CM_BULK_XV (CM)", y: 322, col: "#475569" },
+    { id: "TS_STATE_TABLE", txt: "  └─ □ CM_DRIB_XV (CM)", y: 344, col: "#475569" }
+  ];
+  tsTree.forEach(ti => {
+    const attrs = { class: "clickable", "data-id": ti.id };
+    if (ti.cmd) attrs["data-tscmd"] = ti.cmd;
+    const tg = el("g", attrs);
+    tg.appendChild(el("text", { x: 24, y: ti.y, "font-size": 9.4, "font-weight": ti.bold ? 800 : 600, fill: ti.col, "font-family": "ui-monospace, monospace" }, ti.txt));
+    vp.appendChild(tg);
+  });
+
+  // Watch Table bottom-left
+  vp.appendChild(el("line", { x1: 20, y1: 400, x2: 216, y2: 400, stroke: "#94a3b8" }));
+  vp.appendChild(el("rect", { x: 21, y: 401, width: 194, height: 22, fill: "#e2e8f0" }));
+  vp.appendChild(el("text", { x: 28, y: 416, "font-size": 10, "font-weight": 800, fill: "#0f172a" }, "Parameter | On-Line Value"));
+  const twRows = [
+    ["A_COMMAND", ts.aCommand],
+    ["A_TARGET",  ts.aTarget],
+    ["A_PV",      ts.aPv],
+    ["BULK_PV",   ts.bulkPv],
+    ["BULK_MODE", ts.bulkModeActual],
+    ["DRIB_PV",   ts.dribPv],
+    ["DRIB_MODE", ts.dribModeActual],
+    ["DRIB_ST",   state.tsDribSt],
+    ["TANK_TRIP", ts.tripActive ? "TRIP!" : "Clear"],
+    ["HEALTH_ALM",ts.healthFault ? "True (1)" : "False (0)"]
+  ];
+  twRows.forEach(([k, v], i) => {
+    const wy = 442 + i * 26;
+    vp.appendChild(el("text", { x: 26, y: wy, "font-size": 9.4, fill: "#334155", "font-family": "ui-monospace, monospace" }, k));
+    vp.appendChild(el("text", { x: 208, y: wy, "text-anchor": "end", "font-size": 9.4, "font-weight": 800, fill: "#0f172a", "font-family": "ui-monospace, monospace" }, v));
+  });
+
+  // Center MDI Window: Items × States Table (Patterns 1, 3 & 4 collapsed into ONE grid!)
+  vp.appendChild(el("rect", { x: 224, y: 50, width: 356, height: 756, rx: 3, fill: "#dfddd6", stroke: "#3b6ea5", "stroke-width": 1.8 }));
+  vp.appendChild(el("rect", { x: 225, y: 51, width: 354, height: 25, fill: "#2d5a88" }));
+  vp.appendChild(el("text", { x: 234, y: 68, "font-size": 10.2, "font-weight": 800, fill: "#ffffff", "font-family": "ui-monospace, monospace" },
+    `Items × States [${ts.aTarget}] — ZERO SFCs!`));
+
+  vp.appendChild(el("rect", { x: 232, y: 84, width: 340, height: 274, rx: 2, fill: "#ffffff", stroke: "#8c8980" }));
+  vp.appendChild(el("rect", { x: 233, y: 85, width: 338, height: 24, fill: "#efeee9" }));
+  vp.appendChild(el("text", { x: 240, y: 101, "font-size": 9.1, "font-weight": 800, fill: "#0f172a", "font-family": "ui-monospace, monospace" },
+    "Item          | Active Cell   | Readback"));
+
+  const mRows = [
+    ["BULK_CMD",     ts.mask.bulkCmd ? `= ${ts.mask.bulkCmd}` : "(not written)", ts.bulkPv, ts.bulkCmdMatch, ts.mask.bulkCmd === null],
+    ["DRIBBLE_CMD",  ts.mask.dribCmd ? `= ${ts.mask.dribCmd}` : "(not written)", ts.dribPv + (ts.dribBadSt ? " ✕" : ""), ts.dribCmdMatch, ts.mask.dribCmd === null],
+    ["BULK_MODE",    ts.mask.bulkMode ? `= ${ts.mask.bulkMode === "CAS" ? "Cascade/" : "Auto/"}` : "(not written)", ts.bulkModeActual, ts.bulkModeMatch, ts.mask.bulkMode === null],
+    ["DRIBBLE_MODE", ts.mask.dribMode ? `= ${ts.mask.dribMode === "CAS" ? "Cascade/" : "Auto/"}` : "(not written)", ts.dribModeActual, ts.dribModeMatch, ts.mask.dribMode === null]
+  ];
+  mRows.forEach(([it, cell, rb, ok, skip], idx) => {
+    const ry = 114 + idx * 58;
+    const rg = el("g", { class: "clickable", "data-id": "TS_STATE_TABLE" });
+    rg.appendChild(el("rect", {
+      x: 237, y: ry, width: 330, height: 50, rx: 3,
+      fill: !state.online ? "#f8fafc" : (skip ? "#f1f5f9" : (ok ? "#f0fdf4" : "#fef2f2")),
+      stroke: !state.online ? "#e2e8f0" : (skip ? "#cbd5e1" : (ok ? "#86efac" : "#fca5a5"))
+    }));
+    rg.appendChild(el("text", { x: 244, y: ry + 29, "font-size": 9.4, "font-weight": 800, fill: "#0f172a", "font-family": "ui-monospace, monospace" }, it));
+    rg.appendChild(el("text", { x: 405, y: ry + 29, "text-anchor": "middle", "font-size": 9.2, "font-weight": skip ? 500 : 700, "font-style": skip ? "italic" : "normal", fill: skip ? "#64748b" : "#1e3a8a", "font-family": "ui-monospace, monospace" }, cell));
+    rg.appendChild(el("text", { x: 560, y: ry + 29, "text-anchor": "end", "font-size": 9.3, "font-weight": 800, fill: !state.online ? "#475569" : (skip ? "#475569" : (ok ? "#15803d" : "#dc2626")), "font-family": "ui-monospace, monospace" },
+      !state.online ? "—" : (skip ? `· ${rb}` : `${ok ? "✓" : "✗"} ${rb}`)));
+    vp.appendChild(rg);
+  });
+
+  // Rule-of-Thumb comparison card below the table
+  vp.appendChild(el("rect", { x: 232, y: 374, width: 340, height: 420, rx: 4, fill: "#f8fafc", stroke: "#cbd5e1" }));
+  vp.appendChild(el("text", { x: 242, y: 398, "font-size": 10.2, "font-weight": 800, fill: "#0f172a" }, "WHY ONLY 2–3 PATTERNS HERE?"));
+  const notes = [
+    "• Pattern 1 (State Selection):",
+    "  NO SFC steps or transitions!",
+    "  A_COMMAND picks 1 table column.",
+    "",
+    "• Pattern 3 (Mode / Value Routing):",
+    "  Usually SKIPPED on discrete headers",
+    "  (no XFR / CALC weight math!) — mode",
+    "  writes live right in the table rows.",
+    "  Look at 'Auto Mode': leaves CAS_SP",
+    "  as (not written) while setting AUTO!",
+    "",
+    "• Pattern 4 (CM Cmd & Feedback):",
+    "  Built into every item row's Write",
+    "  Path + Readback Path → drives A_PV.",
+    "",
+    "• Pattern 2 (Watchdog & Interlock):",
+    "  Lives on the FBD sheet at right!"
+  ];
+  notes.forEach((ln, i) => {
+    vp.appendChild(el("text", { x: 242, y: 422 + i * 21, "font-size": 9.5, "font-weight": ln.startsWith("•") ? 800 : 500, fill: ln.startsWith("•") ? "#1e3a8a" : "#334155" }, ln));
+  });
+
+  // Right MDI Window: Continuous FBD Sheet (Pattern 2 ONLY — #1 → #3)
+  vp.appendChild(el("rect", { x: 588, y: 50, width: 812, height: 756, rx: 3, fill: "url(#grid)", stroke: "#3b6ea5", "stroke-width": 1.8 }));
+  vp.appendChild(el("rect", { x: 589, y: 51, width: 810, height: 25, fill: "#2d5a88" }));
+  vp.appendChild(el("text", { x: 600, y: 68, "font-size": 11, "font-weight": 800, fill: "#ffffff", "font-family": "ui-monospace, monospace" },
+    "FBD Sheet [Pattern 2 Only — Watchdog & Interlock Solved Continuously #1 → #3]"));
+
+  // Strip A inside Combo
+  drawFlag(vp, { id: "TS_FLAG_BULK_MODE", x: 606, y: 112, w: 200, h: 30, side: "left", label: "CM_BULK_XV/MODE.ACTUAL", sub: "", liveText: ts.bulkModeActual, status: ts.bulkModeMatch ? "ok" : "bad" });
+  drawFlag(vp, { id: "TS_FLAG_DRIB_ST",   x: 606, y: 156, w: 200, h: 30, side: "left", label: "CM_DRIB_XV/PV.ST", sub: "", liveText: state.tsDribSt, status: ts.dribBadSt ? "bad" : "ok" });
+  drawFlag(vp, { id: "TS_FLAG_APV",       x: 606, y: 200, w: 200, h: 30, side: "left", label: "^/A_PV != ^/A_COMMAND", sub: "", liveText: ts.allWrittenMatch ? "MATCH" : "FAIL", status: ts.allWrittenMatch ? "ok" : "bad" });
+
+  drawFbdBlock(vp, {
+    id: "TS_CND_HEALTH", x: 848, y: 112, w: 215, h: 122, cls: "CND", name: "CND_VLV_HEALTH", execNum: 1,
+    inputs: [], outputs: [{ name: "OUT_D", dy: 64 }],
+    bodyLines: ["Mode / .ST >= GOOD", "Readback Watchdog"],
+    status: ts.healthFault ? "bad" : "ok", liveBadge: ts.healthFault ? "True" : "False"
+  });
+  drawFlag(vp, { id: "TS_FLAG_HEALTH_ALM", x: 1120, y: 161, w: 255, h: 32, side: "right", label: "^/VLV_HEALTH_ALM", sub: "", liveText: ts.healthFault ? "True (1)" : "False (0)", status: ts.healthFault ? "bad" : "ok" });
+
+  drawWire(vp, [[806, 127], [826, 127], [826, 176], [848, 176]], { ref: true });
+  drawWire(vp, [[806, 171], [826, 171], [826, 176], [848, 176]], { ref: true });
+  drawWire(vp, [[806, 215], [826, 215], [826, 176], [848, 176]], { ref: true });
+  drawWire(vp, [[1063, 176], [1120, 176]], { active: ts.healthFault, fault: ts.healthFault });
+
+  // Strip B inside Combo
+  drawFlag(vp, { id: "TS_FLAG_TRIP_IN", x: 606, y: 344, w: 200, h: 32, side: "left", label: "//CM_TANK_HIHI/PV.CV", sub: "", liveText: ts.tripActive ? "TRIP!" : "CLEAR", status: ts.tripActive ? "bad" : "ok" });
+  drawFbdBlock(vp, {
+    id: "TS_CND_TRIP", x: 848, y: 314, w: 180, h: 98, cls: "CND", name: "CND_TANK_TRIP", execNum: 2,
+    inputs: [], outputs: [{ name: "OUT_D", dy: 48 }],
+    bodyLines: ["Safety Interlock"], status: ts.tripActive ? "bad" : "normal", liveBadge: ts.tripActive ? "True" : "False"
+  });
+  drawFbdBlock(vp, {
+    id: "TS_ACT_CLOSE", x: 1068, y: 314, w: 165, h: 98, cls: "ACT", name: "ACT_FORCE_CLOSE", execNum: 3,
+    inputs: [{ name: "IN_D", dy: 48 }], outputs: [],
+    bodyLines: ["A_COMMAND:=Close"], status: ts.tripActive ? "bad" : "normal", liveBadge: ts.tripActive ? "ACTIVE" : "IDLE"
+  });
+  drawFlag(vp, { id: "TS_FLAG_CMD_OUT", x: 1258, y: 348, w: 122, h: 30, side: "right", label: "^/A_COMMAND", sub: "", liveText: ts.aTarget, status: ts.tripActive ? "bad" : "ok" });
+
+  drawWire(vp, [[806, 360], [848, 360]], { ref: true });
+  drawWire(vp, [[1028, 362], [1068, 362]], { active: ts.tripActive, fault: ts.tripActive });
+  drawWire(vp, [[1233, 362], [1258, 362]], { ref: true });
+
+  // Subordinate CM Module Blocks sitting on the bottom of the FBD sheet (just like Course 7016 p137-138!)
+  vp.appendChild(el("rect", { x: 606, y: 486, width: 774, height: 292, rx: 5, fill: "#ffffff", stroke: "#94a3b8", "stroke-width": 1.4 }));
+  vp.appendChild(el("rect", { x: 607, y: 487, width: 772, height: 24, rx: 4, fill: "#e2e8f0" }));
+  vp.appendChild(el("text", { x: 618, y: 503, "font-size": 10, "font-weight": 800, fill: "#0f172a" },
+    "Subordinate Child Control Modules (Dragged into EM Class — 7016 pp. 137–138, 7017 p. 237)"));
+
+  const cmBoxes = [
+    { x: 626, tag: "CM_BULK_XV", cls: "NC_VALVE / DC1", cmd: ts.mask.bulkCmd || "(not written)", pv: ts.bulkPv, mode: ts.bulkModeActual, ok: ts.bulkCmdMatch && ts.bulkModeMatch },
+    { x: 1010, tag: "CM_DRIB_XV", cls: "NC_VALVE / DC1", cmd: ts.mask.dribCmd || "(not written)", pv: ts.dribPv + (ts.dribBadSt ? " [BAD ✕]" : ""), mode: ts.dribModeActual, ok: ts.dribCmdMatch && ts.dribModeMatch }
+  ];
+  cmBoxes.forEach(cm => {
+    const cg = el("g", { class: "clickable", "data-id": "TS_STATE_TABLE" });
+    cg.appendChild(el("rect", { x: cm.x, y: 528, width: 350, height: 226, rx: 4, fill: !state.online ? "#f8fafc" : (cm.ok ? "#f0fdf4" : "#fef2f2"), stroke: !state.online ? "#64748b" : (cm.ok ? "#16a34a" : "#dc2626"), "stroke-width": 1.8 }));
+    cg.appendChild(el("rect", { x: cm.x + 1, y: 529, width: 348, height: 26, rx: 3, fill: "#1e3a8a" }));
+    cg.appendChild(el("text", { x: cm.x + 175, y: 547, "text-anchor": "middle", "font-size": 11, "font-weight": 800, fill: "#ffffff", "font-family": "ui-monospace, monospace" }, `${cm.tag}  (${cm.cls})`));
+    const lines = [
+      `MODE.ACTUAL : ${cm.mode}`,
+      `CAS_SP.CV   : ${cm.cmd}`,
+      `PV.CV       : ${cm.pv}`,
+      `Internal CM : CAS_SP → DC1/CAS_IN_D`,
+      `Feedback    : DC1/PV_D → PV (7016 p37)`
+    ];
+    lines.forEach((ln, li) => {
+      cg.appendChild(el("text", { x: cm.x + 16, y: 582 + li * 30, "font-size": 10.5, "font-weight": li < 3 ? 800 : 500, fill: li < 3 ? "#0f172a" : "#475569", "font-family": "ui-monospace, monospace" }, ln));
+    });
+    vp.appendChild(cg);
+  });
+
+  if (showLens) {
+    const zones = [
+      { x: 226, y: 78, w: 352, h: 288, col: "#0284c7", bg: "rgba(2,132,199,0.07)", lbl: "PATTERNS 1 + 3 + 4 BUNDLED IN STATE TABLE" },
+      { x: 594, y: 84, w: 798, h: 376, col: "#dc2626", bg: "rgba(220,38,38,0.05)", lbl: "PATTERN 2: FBD WATCHDOG & INTERLOCK (#1–#3)" },
+      { x: 594, y: 476, w: 798, h: 312, col: "#0f766e", bg: "rgba(15,118,110,0.05)", lbl: "SUBORDINATE CMs (DRIVEN BY TABLE WRITE/READBACK)" }
+    ];
+    zones.forEach(z => {
+      vp.appendChild(el("rect", { x: z.x, y: z.y, width: z.w, height: z.h, rx: 6, fill: z.bg, stroke: z.col, "stroke-width": 2.4, "stroke-dasharray": "8,5", "pointer-events": "none" }));
+      const bw = z.lbl.length * 6.4 + 16;
+      vp.appendChild(el("rect", { x: z.x + z.w - bw - 8, y: z.y + 6, width: bw, height: 20, rx: 4, fill: z.col, "pointer-events": "none" }));
+      vp.appendChild(el("text", { x: z.x + z.w - bw / 2 - 8, y: z.y + 20, "text-anchor": "middle", "font-size": 9.6, "font-weight": 800, fill: "#fff", "pointer-events": "none" }, z.lbl));
+    });
+  }
+}
+
+// =========================================================================
 // 5. CONTEXTUAL INSPECTOR DATABASE (BOTH MODULES — VERIFIED FACTS)
 // =========================================================================
-function getInspectorInfo(id, d, h) {
+function getInspectorInfo(id, d, h, ts) {
   const map = {
     // --- MODULE 1: EM_TANK_CHARGE ---
     EPH_HANDSHAKE: {
@@ -2776,17 +3320,140 @@ function getInspectorInfo(id, d, h) {
         ]
       },
       live: [["Execution Order", "#2", "v-info"], ["ALIGN_ALM", h.failActive ? "True (1)" : "False (0)", h.failActive ? "v-bad" : "v-good"]]
+    },
+
+    // --- MODULE 3: EM_2STAGE_VLV (STATE-DRIVEN 2-STAGE — COURSE 7016) ---
+    TS_HANDSHAKE: {
+      type: "STATE-DRIVEN EM BOUNDARY (7009 p462, 7016 p140)",
+      title: "EM_2STAGE_VLV (A_COMMAND / A_TARGET / A_PV)",
+      role: "State-Driven Equipment Module controlling a 2-stage fill assembly (CM_BULK_XV + CM_DRIB_XV). Driven by A_COMMAND (Named Set with mandatory Idle = 255). Zero SFC steps or transitions: A_COMMAND snaps all written cells in the selected state column at once, and A_PV stays Idle (255) until every written row's Readback matches!",
+      paths: [
+        ["A_COMMAND", "Requested State: Close (1), Dribble (2), Bulk (3), Auto Mode (4), Idle (255)"],
+        ["A_TARGET", "State currently executing (forced to Close if Tank Interlock fires)"],
+        ["A_PV", "Confirmed State — matches A_COMMAND once all written Readbacks agree"]
+      ],
+      expr: `'//EM_2STAGE_VLV/A_COMMAND.CV' := 'em_2stage:Dribble';\n(* Upstream Unit Phase waits for: *)\n'//EM_2STAGE_VLV/A_PV.CV' = 'em_2stage:Dribble'`,
+      live: [["A_COMMAND", ts.aCommand, "v-info"], ["A_TARGET", ts.aTarget, "v-info"], ["A_PV", ts.aPv, ts.aligned ? "v-good" : "v-warn"]]
+    },
+    TS_STATE_TABLE: {
+      type: "COURSE 7016 STATE-DRIVEN EDITOR (NO SFCs!)",
+      title: "Items Area + State Values Table (7016 p140)",
+      role: "In Control Studio, a State-Driven EM replaces graphical SFCs completely with this fill-in-the-blanks table. Only MODULE-LEVEL paths are allowed (CAS_SP.CV → PV.CV, MODE.TARGET → MODE.ACTUAL). Unchecked cells show '(not written)' — e.g., Auto Mode writes '= Auto/' to MODE.TARGET while leaving BULK_CMD & DRIBBLE_CMD untouched so valves hand back to the operator without slamming shut!",
+      paths: [
+        ["BULK_CMD / DRIBBLE_CMD", "Write: CM_*/CAS_SP.CV → Readback: CM_*/PV.CV (module-level only!)"],
+        ["BULK_MODE / DRIBBLE_MODE", "Write: CM_*/MODE.TARGET → Readback: CM_*/MODE.ACTUAL"],
+        ["(not written) cells", "Skipped by that state — neither written nor checked for A_PV"]
+      ],
+      expr: `(* State Table bundles Patterns 1, 3 & 4 into one grid — zero SFCs! *)\nClose     -> BULK=CLOSE, DRIB=CLOSE, MODES=Cascade/\nDribble   -> BULK=CLOSE, DRIB=OPEN,  MODES=Cascade/\nBulk      -> BULK=OPEN,  DRIB=OPEN,  MODES=Cascade/\nAuto Mode -> BULK=(not written), DRIB=(not written), MODES=Auto/\nIdle(255) -> All cells (not written)`,
+      live: [
+        ["Active State", ts.aTarget, "v-info"],
+        ["BULK PV / Mode", `${ts.bulkPv} (${ts.bulkModeActual})`, ts.bulkCmdMatch && ts.bulkModeMatch ? "v-good" : "v-bad"],
+        ["DRIB PV / Mode", `${ts.dribPv} (${ts.dribModeActual})`, ts.dribCmdMatch && ts.dribModeMatch ? "v-good" : "v-bad"],
+        ["A_PV Confirmed", ts.aPv, ts.aligned ? "v-good" : "v-warn"]
+      ]
+    },
+    TS_PATTERN_MAP: {
+      type: "4-PATTERN ARCHITECTURE MAP",
+      title: "Why State-Driven EMs Usually Use 2–3 Patterns (Not 4)",
+      role: "Command-Driven EMs usually use all 4 patterns (or 3 when purely discrete without XFR/CALC math). State-Driven EMs usually only use 2 or 3: the State Table collapses Pattern 1 (column select), Pattern 3 (MODE.TARGET rows — no XFR/CALC math), and Pattern 4 (Write + Readback → A_PV) into ONE grid, leaving only Pattern 2 (health watchdog & safety interlock) on the FBD sheet!",
+      paths: [
+        ["Core 2 Always Present", "Pattern 1 (State Table selection) + Pattern 4 (Write/Readback → A_PV)"],
+        ["3rd Pattern (Common)", "Pattern 2 on FBD sheet: Watchdog (.ST / Mode) + Safe-Close Interlock"],
+        ["Pattern 3 (Usually Skipped)", "No XFR/CALC numeric math on discrete valves — just MODE.TARGET rows"]
+      ],
+      expr: `(* Quick Rule of Thumb (Course 7016): *)\nTimed Order (open -> wait -> close -> agitate) => Command-Driven (SFC)\nInstant Lineup (Close / Dribble / Bulk / Auto) => State-Driven (Items × States)`,
+      live: [["Algorithm", "State-Driven (2–3 Patterns)", "v-info"], ["SFC Steps/Trans", "ZERO (Replaced by Table)", "v-good"]]
+    },
+    TS_ST_CLOSE: {
+      type: "STATE COLUMN (1) — EM_2STAGE_VLV",
+      title: "State 1: Close",
+      role: "Commands both CM_BULK_XV and CM_DRIB_XV into CAS mode and writes 'vlvnc-sp:CLOSE' to both CAS_SP.CV paths simultaneously. A_PV updates to Close once both valves confirm CAS and PV = CLOSED.",
+      paths: [["A_COMMAND := Close", "Writes CAS + CLOSE to both valves at once"]],
+      expr: `BULK_CMD := 'vlvnc-sp:CLOSE';  DRIBBLE_CMD := 'vlvnc-sp:CLOSE';\nBULK_MODE := CAS;              DRIBBLE_MODE := CAS;`,
+      live: [["Active?", ts.effectiveTarget === "Close" ? "YES" : "No", ts.effectiveTarget === "Close" ? "v-good" : "v-info"], ["A_PV", ts.aPv, ts.aligned ? "v-good" : "v-warn"]]
+    },
+    TS_ST_DRIBBLE: {
+      type: "STATE COLUMN (2) — EM_2STAGE_VLV",
+      title: "State 2: Dribble (Fine Trim)",
+      role: "Snaps Bulk closed and Dribble open simultaneously in CAS mode for slow, accurate final-weight trimming — zero SFC steps or transitions needed!",
+      paths: [["BULK_CMD", "= CLOSE"], ["DRIBBLE_CMD", "= OPEN"], ["BULK_MODE / DRIBBLE_MODE", "= Cascade/"]],
+      expr: `BULK_CMD := 'vlvnc-sp:CLOSE';  DRIBBLE_CMD := 'vlvnc-sp:OPEN';\nBULK_MODE := CAS;              DRIBBLE_MODE := CAS;`,
+      live: [["Active?", ts.effectiveTarget === "Dribble" ? "YES" : "No", ts.effectiveTarget === "Dribble" ? "v-good" : "v-info"], ["A_PV", ts.aPv, ts.aligned ? "v-good" : "v-warn"]]
+    },
+    TS_ST_BULK: {
+      type: "STATE COLUMN (3) — EM_2STAGE_VLV",
+      title: "State 3: Bulk (Fast Fill)",
+      role: "Opens both Bulk and Dribble valves simultaneously in CAS mode for maximum flow rate. If an operator leaves CM_BULK_XV in AUTO, BULK_MODE and BULK_CMD readbacks both fail and A_PV drops to Idle (255).",
+      paths: [["BULK_CMD / DRIBBLE_CMD", "= OPEN / = OPEN"], ["BULK_MODE / DRIBBLE_MODE", "= Cascade/"]],
+      expr: `BULK_CMD := 'vlvnc-sp:OPEN';   DRIBBLE_CMD := 'vlvnc-sp:OPEN';\nBULK_MODE := CAS;              DRIBBLE_MODE := CAS;`,
+      live: [["Active?", ts.effectiveTarget === "Bulk" ? "YES" : "No", ts.effectiveTarget === "Bulk" ? "v-good" : "v-info"], ["A_PV", ts.aPv, ts.aligned ? "v-good" : "v-warn"]]
+    },
+    TS_ST_AUTO: {
+      type: "STATE COLUMN (4) — '(not written)' DEMO!",
+      title: "State 4: Auto Mode (Release to Operator — 7016 p166)",
+      role: "Just like Course 7016's BLENDER_OUTLET 'Auto Mode' state: writes '= Auto/' to BULK_MODE and DRIBBLE_MODE while leaving BULK_CMD and DRIBBLE_CMD '(not written)'! That returns DC1 control to the operator faceplate without moving the valves.",
+      paths: [["BULK_CMD / DRIBBLE_CMD", "(not written) — skipped! Valves hold current state"], ["BULK_MODE / DRIBBLE_MODE", "= Auto/ (hands control back to operator)"]],
+      expr: `(* Only MODE rows are written; CAS_SP rows are unchecked / skipped! *)\nBULK_MODE := AUTO;   DRIBBLE_MODE := AUTO;\n(* A_PV confirms 'Auto Mode' as soon as both MODE.ACTUAL = AUTO *)`,
+      live: [["Active?", ts.effectiveTarget === "Auto_Mode" ? "YES" : "No", ts.effectiveTarget === "Auto_Mode" ? "v-good" : "v-info"], ["Valves Held At", `Bulk=${ts.bulkPv}, Drib=${ts.dribPv}`, "v-info"]]
+    },
+    TS_ST_IDLE: {
+      type: "STATE COLUMN (255) — MANDATORY IDLE",
+      title: "State 255: Idle (Mandatory Named Set Entry — 7009 p437)",
+      role: "Every Command-Driven and State-Driven EM Named Set MUST include entry 255 (Idle/Undefined). In Idle (255), all table cells are '(not written)' — the EM takes no action and holds A_PV at Idle (255).",
+      paths: [["255 = Idle", "Mandatory Named Set entry in DeltaV Explorer"]],
+      expr: `(* All items skipped when A_COMMAND = 255 (Idle) *)`,
+      live: [["A_COMMAND", ts.aCommand, "v-info"], ["A_PV", ts.aPv, "v-info"]]
+    },
+    TS_CND_HEALTH: {
+      type: "PATTERN 2 (FBD SHEET) — #1 WATCHDOG (FBR p413)",
+      title: "CND_VLV_HEALTH — Every-Scan Mode, Status & Readback Watchdog",
+      role: "Lives on the State-Driven EM's FBD sheet and solves every Scan. Catches a valve dropped out of CAS, a Bad feedback signal (.ST < GOOD), or an unaligned state (A_PV != A_COMMAND). (Note: in Course 7016 p202, FAIL_MONITOR is a native composite on Unit Phases; inside an EM, engineers place watchdog CND/CALC logic on the FBD sheet and surface the fault up to the Phase's FAIL_MONITOR!)",
+      paths: [
+        ["OUT_D", "CND has OUT_D pin ONLY (zero input pins — FBR p415)"],
+        [".ST >= GOOD", "Must test >= GOOD so GoodCascade (192..255) is included (CONFIG p81)"]
+      ],
+      expr: `('//CM_DRIB_XV/PV.ST' < GOOD)\nOR ('^/A_PV.CV' != '^/A_COMMAND.CV' AND '^/A_COMMAND.CV' != 'em_2stage:Idle')`,
+      csExpr: {
+        winTitle: "CND_VLV_HEALTH: Expression [On-Line]",
+        tree: [
+          { indent: 0, ok: ts.healthFault, text: "OR  (Pattern 2 Every-Scan Watchdog)" },
+          { indent: 1, ok: ts.dribBadSt, text: "'//CM_DRIB_XV/PV.ST' < GOOD" },
+          { indent: 1, ok: !ts.isIdle && !ts.allWrittenMatch, text: "'^/A_PV.CV' != '^/A_COMMAND.CV'" }
+        ],
+        watch: [
+          ["//CM_DRIB_XV/PV.ST", state.tsDribSt === "GOOD" ? "GoodCascade (192)" : "Bad (0)", state.tsDribSt === "GOOD" ? "GoodCascade" : "Bad"],
+          ["//CM_BULK_XV/MODE.ACTUAL", ts.bulkModeActual, "Good"],
+          ["^/A_PV.CV", ts.aPv, "Good"]
+        ]
+      },
+      live: [["Execution Order", "#1", "v-info"], ["VLV_HEALTH_ALM", ts.healthFault ? "True (1)" : "False (0)", ts.healthFault ? "v-bad" : "v-good"]]
+    },
+    TS_CND_TRIP: {
+      type: "PATTERN 2 (FBD SHEET) — #2 SAFETY INTERLOCK",
+      title: "CND_TANK_TRIP — Every-Scan Safe-State Trip",
+      role: "Even though EM_2STAGE_VLV has no SFCs, its FBD sheet still runs Pattern 2 continuously every Scan. If the tank high-high level trips, CND_TANK_TRIP (#2) fires ACT_FORCE_CLOSE (#3) immediately!",
+      paths: [["//CM_TANK_HIHI/PV.CV", "Upstream tank high-high interlock flag"]],
+      expr: `'//CM_TANK_HIHI/PV.CV' = True`,
+      live: [["Execution Order", "#2", "v-info"], ["OUT_D", ts.tripActive ? "True (1)" : "False (0)", ts.tripActive ? "v-bad" : "v-good"]]
+    },
+    TS_ACT_CLOSE: {
+      type: "PATTERN 2 (FBD SHEET) — #3 SAFE-CLOSE ACTION",
+      title: "ACT_FORCE_CLOSE — Forces A_COMMAND := Close",
+      role: "Has IN_D input pin ONLY (zero output pins — FBR p400). While IN_D is True, writes 'em_2stage:Close' to ^/A_COMMAND every Scan so the State Table immediately closes both Bulk and Dribble valves!",
+      paths: [["IN_D", "Driven by CND_TANK_TRIP (#2)"], ["^/A_COMMAND.CV", "Forced to 'em_2stage:Close'"]],
+      expr: `'^/A_COMMAND.CV' := 'em_2stage:Close';`,
+      live: [["Execution Order", "#3", "v-info"], ["Active?", ts.tripActive ? "ACTIVE (Forcing Close)" : "IDLE", ts.tripActive ? "v-bad" : "v-good"]]
     }
   };
 
   if (map[id]) return map[id];
   return {
     type: "CONTROL STUDIO PARAMETER REFERENCE (PDS p1)",
-    title: id.replace(/^FLAG_/, ""),
+    title: id.replace(/^TS_FLAG_|^FLAG_/, ""),
     role: "Rectangular Control Studio parameter reference box with a hollow square connection pin (or study-aid expression reference target when linked by a dotted gray line).",
     paths: [["Solid/Bold Wire", "Real FBD pin connection (Bold = non-zero On-Line, CONFIG p368)"], ["Dotted Gray Line", "Study-aid pointer showing what a CND/ACT expression reads or writes"]],
     expr: `(* Click any function block, SFC step/transition, or State column to inspect its expression *)`,
-    live: [["Active Module", state.module === "charge" ? "EM_TANK_CHARGE" : "EM_XFER_HDR", "v-info"]]
+    live: [["Active Module", state.module === "charge" ? "EM_TANK_CHARGE" : (state.module === "header" ? "EM_XFER_HDR" : "EM_2STAGE_VLV"), "v-info"]]
   };
 }
 
@@ -2814,6 +3481,7 @@ function rebuildTabs() {
 function render() {
   const d = computeChargeDerived();
   const h = computeHeaderDerived();
+  const ts = computeTwoStageDerived();
 
   // Header module indicator & sim bars
   document.getElementById("moduleSelect").value = state.module;
@@ -2822,6 +3490,7 @@ function render() {
     : "Algorithm: State-Driven";
   document.getElementById("simBarCharge").classList.toggle("hidden", state.module !== "charge");
   document.getElementById("simBarHeader").classList.toggle("hidden", state.module !== "header");
+  document.getElementById("simBarTwoStage").classList.toggle("hidden", state.module !== "twostage");
 
   const vp = document.getElementById("viewport");
   vp.innerHTML = "";
@@ -2859,7 +3528,7 @@ function render() {
     else if (state.tab === "p3") renderPattern3(vp, d);
     else if (state.tab === "p4") renderPattern4(vp, d);
     else if (state.tab === "p5") renderPattern5Combo(vp, d);
-  } else {
+  } else if (state.module === "header") {
     // Module 2: EM_XFER_HDR
     const hPill = document.getElementById("hdrStatusPill");
     hPill.textContent = h.bannerPill;
@@ -2891,11 +3560,50 @@ function render() {
     else if (state.tab === "h2") renderHeaderTab2(vp, h);
     else if (state.tab === "h3") renderHeaderTab3(vp, h);
     else if (state.tab === "h4") renderHeaderTab4Combo(vp, h);
+  } else {
+    // Module 3: EM_2STAGE_VLV (State-Driven 2-Stage Valve — Course 7016)
+    const tsPill = document.getElementById("tsStatusPill");
+    tsPill.textContent = ts.bannerPill;
+    tsPill.className = "state-pill " + (ts.aligned ? "state-ALIGNED" : (ts.isIdle ? "state-IDLE" : "state-FAILED"));
+
+    document.querySelectorAll(".ts-cmd-btn").forEach(b => {
+      b.classList.toggle("selected-cmd", b.dataset.tsstate === state.tsCmdState);
+    });
+    document.getElementById("selTsBulkMode").value = state.tsBulkMode;
+    const btnBulkStuck = document.getElementById("btnTsBulkStuck");
+    btnBulkStuck.textContent = state.tsBulkStuck ? "Bulk XV: STUCK OPEN!" : "Bulk XV: Normal";
+    btnBulkStuck.className = state.tsBulkStuck ? "sim-btn active-toggle" : "sim-btn";
+
+    const btnDribSt = document.getElementById("btnTsDribSt");
+    btnDribSt.textContent = `.ST: ${state.tsDribSt}`;
+    btnDribSt.className = state.tsDribSt === "BAD" ? "sim-btn active-toggle" : "sim-btn";
+
+    const btnTrip = document.getElementById("btnTsInterlock");
+    btnTrip.textContent = state.tsInterlock ? "Tank Trip: TRIPPED!" : "Tank Trip: Clear";
+    btnTrip.className = state.tsInterlock ? "sim-btn active-toggle" : "sim-btn";
+
+    const banner = document.getElementById("diagBanner");
+    let lvl = ts.aligned ? "ok" : (ts.isIdle && !ts.dribBadSt ? "info" : "alert");
+    banner.className = "diag-banner" + (lvl !== "info" ? " " + lvl : "");
+    let defaultTsMsg = ts.tripActive
+      ? `PATTERN 2 INTERLOCK TRIP! ACT_FORCE_CLOSE wrote A_COMMAND := Close so both Bulk and Dribble valves shut immediately.`
+      : ts.isIdle
+        ? `IDLE (255): Mandatory Named Set 255 state writes nothing — all cells '(not written)'. Click Close, Dribble, Bulk, or Auto Mode!`
+        : ts.aligned
+          ? `ALIGNED (${ts.aTarget}): A_PV = ${ts.aPv}. Notice zero SFC steps — Items × States table bundled Patterns 1, 3 & 4!`
+          : `MISMATCH / HEALTH FAULT (A_PV = Idle): Check red cells in Tab 1 or Pattern 2 CND_VLV_HEALTH on Tab 2!`;
+    document.getElementById("diagText").textContent = state.notice || defaultTsMsg;
+    document.getElementById("diagMetrics").textContent =
+      `A_COMMAND: ${ts.aCommand} | A_PV: ${ts.aPv} | Bulk: ${ts.bulkPv} (${ts.bulkModeActual}) | Drib: ${ts.dribPv} (${state.tsDribSt})`;
+
+    if (state.tab === "ts1") renderTwoStageTab1(vp, ts);
+    else if (state.tab === "ts2") renderTwoStageTab2(vp, ts);
+    else if (state.tab === "ts3") renderTwoStageTab3Combo(vp, ts);
   }
 
   applyTransform();
 
-  const info = getInspectorInfo(state.selectedId, d, h);
+  const info = getInspectorInfo(state.selectedId, d, h, ts);
   document.getElementById("inspType").textContent = info.type;
   document.getElementById("inspTitle").textContent = info.title;
   document.getElementById("inspRole").textContent = info.role;
@@ -2963,7 +3671,9 @@ function fitToView() {
   const wrap = document.getElementById("canvasWrap");
   const w = wrap.clientWidth || 900;
   const h = wrap.clientHeight || 600;
-  const isCombo = (state.module === "charge" && state.tab === "p5") || (state.module === "header" && state.tab === "h4");
+  const isCombo = (state.module === "charge" && state.tab === "p5") ||
+                  (state.module === "header" && state.tab === "h4") ||
+                  (state.module === "twostage" && state.tab === "ts3");
   const contentW = isCombo ? 1420 : 940;
   const contentH = isCombo ? 825 : 575;
   const scale = Math.min((w - 24) / contentW, (h - 24) / contentH, 1.15);
@@ -2982,9 +3692,12 @@ document.getElementById("moduleSelect").addEventListener("change", (e) => {
   if (state.module === "charge") {
     state.tab = "p1";
     state.selectedId = STEPS[state.stepIdx];
-  } else {
+  } else if (state.module === "header") {
     state.tab = "h1";
     state.selectedId = "HDR_DEVICE_MASK";
+  } else {
+    state.tab = "ts1";
+    state.selectedId = "TS_STATE_TABLE";
   }
   rebuildTabs();
   render();
@@ -3018,6 +3731,10 @@ document.getElementById("schematic").addEventListener("click", (e) => {
     if (cmdState) {
       state.hdrCmdState = cmdState;
       state.notice = "";
+    }
+    const tsCmd = target.getAttribute("data-tscmd");
+    if (tsCmd) {
+      applyTwoStageCommand(tsCmd);
     }
     render();
   }
@@ -3201,6 +3918,73 @@ document.getElementById("btnHdrReset").addEventListener("click", () => {
   state.hdrPress = 2.5;
   state.selectedId = "HDR_DEVICE_MASK";
   state.notice = "Reset EM_XFER_HDR to HEADER_CLOSED with all valves in CAS and 2.5 bar line pressure.";
+  render();
+});
+
+// --- Module 3 Controls (EM_2STAGE_VLV — State-Driven 2-Stage Valve) ---
+function applyTwoStageCommand(nextState) {
+  // Capture current physical valve positions before switching to Auto_Mode or Idle (where CAS_SP is not written!)
+  const prev = computeTwoStageDerived();
+  state.tsLastBulkPv = prev.bulkPv;
+  state.tsLastDribPv = prev.dribPv;
+  state.tsCmdState = nextState;
+  state.notice = nextState === "Auto_Mode"
+    ? "Commanded Auto Mode (4): BULK_MODE & DRIBBLE_MODE wrote '= Auto/' while BULK_CMD & DRIBBLE_CMD stayed '(not written)' — valves held their positions while returning to operator AUTO!"
+    : "";
+}
+
+document.querySelectorAll(".ts-cmd-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const st = btn.dataset.tsstate;
+    applyTwoStageCommand(st);
+    const idMap = { Close: "TS_ST_CLOSE", Dribble: "TS_ST_DRIBBLE", Bulk: "TS_ST_BULK", Auto_Mode: "TS_ST_AUTO", Idle: "TS_ST_IDLE" };
+    state.selectedId = idMap[st] || "TS_STATE_TABLE";
+    render();
+  });
+});
+
+document.getElementById("selTsBulkMode").addEventListener("change", (e) => {
+  state.tsBulkMode = e.target.value;
+  state.notice = state.tsBulkMode === "AUTO"
+    ? "CM_BULK_XV placed in AUTO (operator control — FBR p427)! In Close/Dribble/Bulk states, BULK_MODE fails readback ('AUTO != Cascade/'), A_PV drops to Idle, and Pattern 2 CND_VLV_HEALTH trips!"
+    : "CM_BULK_XV returned to CAS.";
+  render();
+});
+
+document.getElementById("btnTsBulkStuck").addEventListener("click", () => {
+  state.tsBulkStuck = !state.tsBulkStuck;
+  state.notice = state.tsBulkStuck
+    ? "Simulated CM_BULK_XV STUCK OPEN! In Close or Dribble, BULK_CMD readback fails ('= CLOSE' vs '✗ OPEN') and A_PV drops to Idle!"
+    : "CM_BULK_XV stroke restored to Normal.";
+  render();
+});
+
+document.getElementById("btnTsDribSt").addEventListener("click", () => {
+  state.tsDribSt = state.tsDribSt === "GOOD" ? "BAD" : "GOOD";
+  state.notice = state.tsDribSt === "BAD"
+    ? "Simulated CM_DRIB_XV/PV.ST = BAD (Red ✕)! Pattern 2 CND_VLV_HEALTH trips immediately on the FBD sheet!"
+    : "CM_DRIB_XV/PV.ST restored to GOOD.";
+  render();
+});
+
+document.getElementById("btnTsInterlock").addEventListener("click", () => {
+  state.tsInterlock = !state.tsInterlock;
+  state.notice = state.tsInterlock
+    ? "TANK INTERLOCK TRIPPED (Pattern 2 FBD)! CND_TANK_TRIP (#2) → ACT_FORCE_CLOSE (#3) forced A_COMMAND := Close!"
+    : "Tank Interlock cleared.";
+  render();
+});
+
+document.getElementById("btnTsReset").addEventListener("click", () => {
+  state.tsCmdState = "Close";
+  state.tsBulkMode = "CAS";
+  state.tsBulkStuck = false;
+  state.tsDribSt = "GOOD";
+  state.tsInterlock = false;
+  state.tsLastBulkPv = "CLOSED";
+  state.tsLastDribPv = "CLOSED";
+  state.selectedId = "TS_STATE_TABLE";
+  state.notice = "Reset EM_2STAGE_VLV to Close (1) with both valves in CAS and GOOD status.";
   render();
 });
 

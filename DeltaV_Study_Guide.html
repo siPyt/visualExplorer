@@ -389,9 +389,9 @@
   <h1>Reading &amp; Troubleshooting DeltaV Control Studio</h1>
   <p class="subtitle">Complete in-depth native DeltaV lessons, pin-by-pin Control Studio schematics, real-plant engineering nuances, and step-by-step interactive workshops paired with <strong>Visual Explorer</strong>.</p>
   <div class="meta-strip">
-    <span class="meta-pill">Edition: v2.1 (Verified vs. Official Emerson Docs)</span>
+    <span class="meta-pill">Edition: v2.2 (Verified vs. Official Emerson Docs)</span>
     <span class="meta-pill">Strictly Native DeltaV Control Studio</span>
-    <span class="meta-pill">Modules: EM_TANK_CHARGE &amp; EM_XFER_HDR</span>
+    <span class="meta-pill">Modules: EM_TANK_CHARGE • EM_XFER_HDR • EM_2STAGE_VLV</span>
     <span class="meta-pill">Launch Lab App: type "run" in terminal</span>
   </div>
 </div>
@@ -421,8 +421,8 @@
     <strong>Ch. 5–6:</strong> Phase Hold/Restart, Golden Tare Math &amp; 60s Triage
   </div>
   <div class="roadmap-item done">
-    <span class="tag done">Complete + Lab</span><br />
-    <strong>Ch. 7:</strong> State-Driven EMs (Items × States Table, A_COMMAND &amp; A_PV)
+    <span class="tag done">Complete + 2 Labs</span><br />
+    <strong>Ch. 7:</strong> State-Driven EMs (Items × States, 4-Pattern Folding &amp; 2-Stage Valve)
   </div>
   <div class="roadmap-item next">
     <span class="tag next">Up Next (Phases 3–5)</span><br />
@@ -650,7 +650,91 @@
   When creating an Equipment Module Class in DeltaV Explorer, the Algorithm dropdown displays <strong>7 items</strong> (<em>7009</em> p. 436): the <strong>4 core algorithms</strong> above plus 3 phase-hybrid options (<em>Phase Algorithm</em>, <em>Phase with command-driven run logic</em>, and <em>Phase with state-driven run logic</em>). Focus on the core 4 first—<strong>Command-Driven</strong> and <strong>State-Driven</strong> power the vast majority of plant Equipment Modules.
 </div>
 
-<h3>2.3 Visual Key: What Control Studio Actually Draws On-Line &amp; Off-Line</h3>
+<h3>2.3 Deep Dive: Which of the 4 Patterns Each EM Algorithm Actually Uses</h3>
+<p><strong>Yes — both Command-Driven and State-Driven Equipment Modules <em>can</em> hold all four patterns</strong>, because Control Studio gives both algorithms the same continuous Function Block Diagram (<code>FBD</code>) workspace (<code>CND</code>, <code>ACT</code>, <code>CALC</code>, <code>XFR</code>) alongside their command or state logic. In real plants, however, <strong>Command-Driven EMs usually use all 4 patterns (occasionally 3)</strong>, while <strong>State-Driven EMs usually only use 2 or 3</strong>:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="width:24%;">Pattern Inside the EM</th>
+      <th style="width:38%;">1. Command-Driven EM <em>(Usually 4, drops to 3)</em></th>
+      <th style="width:38%;">2. State-Driven EM <em>(Usually 2 or 3)</em></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Pattern 1: Command / State Flow</strong></td>
+      <td><strong>Always used</strong> — Multi-step <code>SFC</code> per command (<code>S0_IDLE → S10 → S20 → S30 → Termination</code>).</td>
+      <td><strong>Always used</strong> — <strong>No graphical SFC!</strong> Uses a Named Set <code>Items × States</code> table where <code>A_COMMAND</code> snaps all written cells in a column at once.</td>
+    </tr>
+    <tr>
+      <td><strong>Pattern 2: Permissives &amp; Interlocks</strong></td>
+      <td><strong>Almost always used</strong> — Pre-start <code>CND</code> gates plus every-Scan safety trips and health watchdogs feeding the Phase's <code>FAIL_MONITOR</code>.</td>
+      <td><strong>Usually used (often lighter)</strong> — Lives on the FBD sheet: checks valve health/modes (<code>.ST &gt;= GOOD</code>, <code>MODE.ACTUAL</code>) or forces a safe <code>Close</code> state on a tank trip; minimal on simple headers.</td>
+    </tr>
+    <tr>
+      <td><strong>Pattern 3: Mode &amp; Setpoint Routing</strong></td>
+      <td><strong>Used when numbers are involved</strong> — <code>XFR</code> / <code>CALC</code> setpoint math plus <code>CAS</code> mode requests. Skipped on pure on/off discrete sequences.</td>
+      <td><strong>Usually skipped on FBD</strong> — Discrete valve manifolds have no weight/flow math; <code>MODE.TARGET</code> writes (like <code>= Cascade/</code> or <code>= Auto/</code>) fold straight into rows of the State Table!</td>
+    </tr>
+    <tr>
+      <td><strong>Pattern 4: CM Command &amp; Feedback</strong></td>
+      <td><strong>Always used</strong> — Writes module-level <code>CAS_SP.CV</code> (→ <code>DC1/CAS_IN_D</code>) and waits on <code>PV.CV</code> (<code>DC1/PV_D</code>) feedback before advancing steps.</td>
+      <td><strong>Always used (built into table!)</strong> — Each row pairs a Write path (<code>CAS_SP.CV</code>) with a Readback path (<code>PV.CV</code>) to confirm <code>A_PV</code> automatically.</td>
+    </tr>
+  </tbody>
+</table>
+
+<ul>
+  <li><strong>Why Command-Driven EMs Usually Use All 4 (and Drop to 3 Without Analog Math):</strong> Because a Command-Driven EM coordinates timed stages (such as charging 500 kg of solvent in <code>EM_TANK_CHARGE</code>), Patterns <strong>1</strong> (multi-step SFC), <strong>2</strong> (pre-start permissives + every-Scan interlocks/watchdogs), and <strong>4</strong> (<code>CAS_SP</code>/<code>PV</code> CM handshakes) are virtually guaranteed. It uses <strong>all 4</strong> whenever numeric targets are routed (<code>XFR1</code> choosing Recipe vs. Local weight + <code>CALC1</code> computing remaining mass), and drops to <strong>3</strong> on pure on/off sequences—for example, a dust-collector startup EM that opens an isolation damper, waits for <code>PV.CV = OPEN</code>, delays 3 seconds, and starts a blower motor with zero numeric setpoints.</li>
+  <li><strong>Why State-Driven EMs Usually Use 2 or 3 Patterns:</strong> A State-Driven EM snaps equipment into an instant lineup (such as a manifold or 2-stage fill valve). Its <strong>Core 2</strong> (Patterns <strong>1</strong> and <strong>4</strong>) are always present right inside the <code>Items × States</code> table. Adding every-Scan FBD health checks (catching a valve left in <code>AUTO</code>, <code>OS</code>, or <code>Bad .ST</code>) and a safe-close trip brings it to <strong>3 patterns</strong>. <strong>Pattern 3's FBD analog routing is usually absent</strong> because discrete valves only need <code>MODE.TARGET</code> rows inside the table; you only see numeric Pattern 3 logic in a State-Driven EM when states also push preset analog outputs (e.g., a jacket header writing <code>0%</code>, <code>40%</code>, or <code>100%</code> to a control valve).</li>
+</ul>
+
+<div class="diagram-box">
+  <svg viewBox="0 0 690 218" width="100%" height="206" xmlns="http://www.w3.org/2000/svg">
+    <rect width="690" height="218" fill="#f8fafc" stroke="#cbd5e1" rx="5"/>
+    <!-- Left Column: Command-Driven EM (4 Patterns) -->
+    <rect x="12" y="12" width="328" height="194" rx="4" fill="#ffffff" stroke="#1e3a8a" stroke-width="1.5"/>
+    <rect x="13" y="13" width="326" height="22" rx="3" fill="#1e3a8a"/>
+    <text x="176" y="28" text-anchor="middle" fill="#ffffff" font-size="9.2" font-weight="800" font-family="Consolas, monospace">COMMAND-DRIVEN EM (Usually 4 Patterns — EM_TANK_CHARGE)</text>
+
+    <rect x="22" y="43" width="308" height="34" rx="3" fill="#eff6ff" stroke="#0284c7"/>
+    <text x="30" y="57" fill="#0369a1" font-size="8.4" font-weight="800">Pattern 1: Multi-Step SFC (COMMAND_00001)</text>
+    <text x="30" y="70" fill="#1e293b" font-size="8.0" font-family="Consolas, monospace">S0_IDLE ──┼──&gt; S10 ──┼──&gt; S20 ──┼──&gt; S30 ══╧══</text>
+
+    <rect x="22" y="83" width="308" height="34" rx="3" fill="#fef2f2" stroke="#dc2626"/>
+    <text x="30" y="97" fill="#991b1b" font-size="8.4" font-weight="800">Pattern 2: Start Permissives &amp; Trips (FBD)</text>
+    <text x="30" y="110" fill="#1e293b" font-size="8.0" font-family="Consolas, monospace">CND1 (Permissive) + CND2/ACT1 (Trip) + Watchdog</text>
+
+    <rect x="22" y="123" width="308" height="34" rx="3" fill="#f5f3ff" stroke="#7c3aed"/>
+    <text x="30" y="137" fill="#5b21b6" font-size="8.4" font-weight="800">Pattern 3: Value &amp; Mode Routing (FBD — if analog)</text>
+    <text x="30" y="150" fill="#1e293b" font-size="8.0" font-family="Consolas, monospace">XFR1 (#1) ──&gt; CALC1 (#2) ──&gt; CND3 (#3) + CAS req</text>
+
+    <rect x="22" y="163" width="308" height="34" rx="3" fill="#f0fdfa" stroke="#0f766e"/>
+    <text x="30" y="177" fill="#115e59" font-size="8.4" font-weight="800">Pattern 4: CM Command &amp; Feedback (Paired)</text>
+    <text x="30" y="190" fill="#1e293b" font-size="8.0" font-family="Consolas, monospace">CAS_SP.CV out &lt;══ paired ══&gt; PV.CV in + CND4/5</text>
+
+    <!-- Right Column: State-Driven EM (2-3 Patterns) -->
+    <rect x="350" y="12" width="328" height="194" rx="4" fill="#ffffff" stroke="#0f766e" stroke-width="1.5"/>
+    <rect x="351" y="13" width="326" height="22" rx="3" fill="#0f766e"/>
+    <text x="514" y="28" text-anchor="middle" fill="#ffffff" font-size="9.2" font-weight="800" font-family="Consolas, monospace">STATE-DRIVEN EM (Usually 2–3 Patterns — 7016 Table)</text>
+
+    <rect x="360" y="43" width="308" height="106" rx="3" fill="#eff6ff" stroke="#0284c7" stroke-width="1.4"/>
+    <text x="368" y="58" fill="#0369a1" font-size="8.5" font-weight="800">ITEMS × STATES TABLE (Bundles Patterns 1 + 3 + 4!)</text>
+    <text x="368" y="74" fill="#1e293b" font-size="8.0" font-family="Consolas, monospace">• Pattern 1: NO SFCs — A_COMMAND picks 1 column</text>
+    <text x="368" y="89" fill="#1e293b" font-size="8.0" font-family="Consolas, monospace">  (Close / Dribble / Bulk / Auto Mode / Idle 255)</text>
+    <text x="368" y="106" fill="#5b21b6" font-size="8.0" font-family="Consolas, monospace">• Pattern 3: MODE.TARGET rows (no XFR/CALC math!)</text>
+    <text x="368" y="123" fill="#115e59" font-size="8.0" font-family="Consolas, monospace">• Pattern 4: Built-in Write (CAS_SP) + Readback</text>
+    <text x="368" y="138" fill="#115e59" font-size="8.0" font-family="Consolas, monospace">  (PV.CV) per row → confirms A_PV automatically!</text>
+
+    <rect x="360" y="157" width="308" height="40" rx="3" fill="#fef2f2" stroke="#dc2626"/>
+    <text x="368" y="172" fill="#991b1b" font-size="8.4" font-weight="800">Pattern 2: Lives on the FBD Sheet (Always Scanning)</text>
+    <text x="368" y="187" fill="#1e293b" font-size="8.0" font-family="Consolas, monospace">Health Watchdog (Mode/.ST) + Trip → A_COMMAND:=Close</text>
+  </svg>
+  <div class="diagram-caption">Figure 2.1: Control Studio Sheet Comparison — Command-Driven EMs separate all 4 patterns (or 3 if purely discrete), while State-Driven EMs collapse Patterns 1, 3, and 4 into one Items × States table and keep Pattern 2 on the FBD sheet.</div>
+</div>
+
+<h3>2.4 Visual Key: What Control Studio Actually Draws On-Line &amp; Off-Line</h3>
 <ol>
   <li><strong>Function Block Stencils &amp; Pin Reality (<em>FBR</em> pp. 179, 400, 413, 453):</strong> Rectangular box with block class above, header bar with tag (<code>CND1</code>), hollow square pins (<code>□</code>), and bottom-right execution badge (<code>#1</code>, <code>#2</code>). Know these exact pin layouts cold:
     <ul>
@@ -1160,7 +1244,12 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
 <!-- =====================================================================
      CHAPTER 7: STATE-DRIVEN EQUIPMENT MODULES (EM_XFER_HDR)
      ===================================================================== -->
-<h2 class="page-break">Chapter 7: State-Driven Equipment Modules — EM_XFER_HDR</h2>
+<h2 class="page-break">Chapter 7: State-Driven Equipment Modules — EM_XFER_HDR &amp; EM_2STAGE_VLV</h2>
+
+<div class="callout warn">
+  <div class="callout-title">Critical Myth-Buster: ZERO Graphical SFC Steps or Transitions in a State-Driven EM!</div>
+  Older lecture slides (including Emerson Course <em>7016</em> p. 125) loosely describe State-Driven EMs as <em>"single step or value"</em> logic, which misleads many engineers into picturing a 1-step graphical SFC chart per state. <strong>In actual Control Studio (<em>7016</em> pp. 139–140), when you open a State-Driven EM there are NO graphical SFC charts, NO Step boxes, and NO Transition crossbars at all.</strong> Control Studio replaces SFCs completely with a spreadsheet-style <strong>Items Area + State Values Table</strong> alongside the module's continuous <code>FBD</code> wire sheet!
+</div>
 
 <h3>7.1 How a Real State-Driven EM Is Configured in Control Studio (Items × States Table)</h3>
 <p>Consider a solvent transfer header (<code>EM_XFER_HDR</code>) sitting upstream of Tank A and Tank B with four child Control Modules: <code>CM_HDR_XV101</code> (Tank A inlet valve), <code>CM_HDR_XV102</code> (Tank B inlet valve), <code>CM_HDR_XV103</code> (CIP drain valve), and <code>CM_XFER_PMP</code> (transfer pump), plus line pressure transmitter <code>CM_HDR_PT</code>.</p>
@@ -1262,8 +1351,140 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
   </div>
 </div>
 
+<h3 class="page-break">7.3 How the 4 Patterns Fit Inside a State-Driven EM (The "3-in-1 Table" Insight)</h3>
+<p>Once you see the real <code>Items × States</code> editor, State-Driven EMs become effortless to read—because <strong>DeltaV's State Table bundles three of the four EM patterns into a single grid</strong>, leaving only safety/health checks on the FBD sheet:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="width:24%;">EM Pattern (Job)</th>
+      <th style="width:37%;">How Command-Driven Does It (<code>EM_TANK_CHARGE</code>)</th>
+      <th style="width:39%;">How State-Driven Does It (Course 7016)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>1. State / Step Coordination</strong></td>
+      <td>Multi-step <strong><code>SFC</code></strong> chart (<code>Steps</code> + <code>Transitions</code> + <code>Termination</code>).</td>
+      <td><strong>No SFC!</strong> <code>A_COMMAND</code> selects a column in the <strong>State Values Table</strong> and writes every checked row at once.</td>
+    </tr>
+    <tr>
+      <td><strong>2. Permissives &amp; Interlocks</strong></td>
+      <td><code>CND</code> / <code>ACT</code> / <code>CALC</code> blocks on the FBD sheet (surfacing faults to the owning Phase's <code>FAIL_MONITOR</code>).</td>
+      <td>Lives on the <strong>FBD sheet</strong> — every-Scan <code>CND</code>/<code>CALC</code> health watchdogs (catching <code>Bad .ST</code> or wrong CM modes) + safety interlocks forcing <code>A_COMMAND := Close</code>.</td>
+    </tr>
+    <tr>
+      <td><strong>3. Mode &amp; Value Routing</strong></td>
+      <td><code>XFR</code> / <code>CALC</code> / <code>ACT</code> blocks on the FBD sheet.</td>
+      <td>Folded straight into <strong>rows of the State Table</strong> (such as <code>MODE.TARGET</code> rows setting <code>= Cascade/</code> or <code>= Auto/</code>, or states pushing preset analog setpoints).</td>
+    </tr>
+    <tr>
+      <td><strong>4. CM Command &amp; Feedback</strong></td>
+      <td>Explicit <code>CAS_SP.CV</code> writes in SFC actions paired with manual <code>PV.CV</code> <code>CND</code> checks.</td>
+      <td>Built automatically into each row's <strong>Write Path</strong> (<code>CAS_SP.CV</code>) and <strong>Readback Path</strong> (<code>PV.CV</code>), confirming match status on <code>A_PV</code>!</td>
+    </tr>
+  </tbody>
+</table>
+
 <div class="callout">
-  <div class="callout-title">7.3 Honesty Note: What the Emerson Manuals Verify vs. Leave Unspecified</div>
+  <div class="callout-title">Native Verification Note: Where Does <code>FAIL_MONITOR</code> Actually Live?</div>
+  In Course <em>7016</em> (pp. 70, 202), <code>FAIL_MONITOR</code> is a native composite block automatically built into <strong>Unit Phases</strong> (when non-zero, it sends the Phase to <em>Holding</em>). Inside an <strong>Equipment Module</strong>, engineers build equivalent every-Scan watchdog blocks (<code>CND</code> / <code>CALC</code>) directly on the EM's <strong>FBD sheet</strong> to flag a stuck valve, wrong mode, or <code>Bad .ST</code>—and the upstream Unit Phase's <code>FAIL_MONITOR</code> monitors that EM alarm!
+</div>
+
+<h3>7.4 Course 7016 Case Study: 2-Stage Valve State-Driven EM (<code>EM_2STAGE_VLV</code>) &amp; <code>(not written)</code> Cells</h3>
+<p>Consider a 2-stage fill valve assembly (<code>CM_BULK_XV</code> + <code>CM_DRIB_XV</code>) modeled as a State-Driven EM with a Named Set of <code>Close = 1</code>, <code>Dribble = 2</code>, <code>Bulk = 3</code>, <code>Auto Mode = 4</code>, and mandatory <code>Idle = 255</code>. Look closely at two critical Control Studio rules demonstrated in this table (<em>7016</em> pp. 140, 166):</p>
+<ol>
+  <li><strong>Module-Level Paths Only:</strong> Every row's Write and Readback path must point to a <em>module-level</em> CM parameter (<code>CM_BULK_XV/CAS_SP.CV</code> → <code>CM_BULK_XV/PV.CV</code>, never deep internal pins directly). Inside the CM, <code>CAS_SP</code> wires to <code>DC1/CAS_IN_D</code> and <code>DC1/PV_D</code> wires out to <code>PV</code>.</li>
+  <li><strong>Skipped / <code>(not written)</code> Cells:</strong> Unchecked cells in a state column are left untouched! In <strong><code>Auto Mode (4)</code></strong>, the EM writes <code>= Auto/</code> to both <code>MODE.TARGET</code> rows while leaving <code>BULK_CMD</code> and <code>DRIBBLE_CMD</code> as <strong><code>(not written)</code></strong>—cleanly returning both valves to the operator faceplate without slamming them shut! Meanwhile, <strong><code>Idle (255)</code></strong> leaves every cell <code>(not written)</code>.</li>
+</ol>
+
+<table>
+  <thead>
+    <tr>
+      <th>Item Name</th>
+      <th>Write Path → Readback Path (Module-Level)</th>
+      <th>1: Close</th>
+      <th>2: Dribble</th>
+      <th>3: Bulk</th>
+      <th>4: Auto Mode</th>
+      <th>255: Idle</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong><code>BULK_CMD</code></strong></td>
+      <td><code>CM_BULK_XV/CAS_SP.CV</code> → <code>PV.CV</code></td>
+      <td><code>= CLOSE</code></td>
+      <td><code>= CLOSE</code></td>
+      <td><code>= OPEN</code></td>
+      <td><em>(not written)</em></td>
+      <td><em>(not written)</em></td>
+    </tr>
+    <tr>
+      <td><strong><code>DRIBBLE_CMD</code></strong></td>
+      <td><code>CM_DRIB_XV/CAS_SP.CV</code> → <code>PV.CV</code></td>
+      <td><code>= CLOSE</code></td>
+      <td><code>= OPEN</code></td>
+      <td><code>= OPEN</code></td>
+      <td><em>(not written)</em></td>
+      <td><em>(not written)</em></td>
+    </tr>
+    <tr>
+      <td><strong><code>BULK_MODE</code></strong></td>
+      <td><code>CM_BULK_XV/MODE.TARGET</code> → <code>MODE.ACTUAL</code></td>
+      <td><code>= Cascade/</code></td>
+      <td><code>= Cascade/</code></td>
+      <td><code>= Cascade/</code></td>
+      <td><code>= Auto/</code></td>
+      <td><em>(not written)</em></td>
+    </tr>
+    <tr>
+      <td><strong><code>DRIBBLE_MODE</code></strong></td>
+      <td><code>CM_DRIB_XV/MODE.TARGET</code> → <code>MODE.ACTUAL</code></td>
+      <td><code>= Cascade/</code></td>
+      <td><code>= Cascade/</code></td>
+      <td><code>= Cascade/</code></td>
+      <td><code>= Auto/</code></td>
+      <td><em>(not written)</em></td>
+    </tr>
+  </tbody>
+</table>
+
+<p style="font-size:10.5px; color:#475569;"><em>Course 7016 Cross-Reference:</em> In Emerson's actual Course <em>7016</em> labs, <code>BLENDER_COLOR</code> (pp. 126–133) builds a 2-stage valve using a <strong>Command-Driven</strong> EM (<code>EM-vlvnc-2stage</code>), while <code>BLENDER_OUTLET</code> (pp. 134–140, 164–166) builds a 2-valve manifold using a <strong>State-Driven</strong> EM (<code>EM_Outlet_State</code>) with this exact <code>Items × States</code> table and <code>Auto Mode</code> release pattern! <code>EM_2STAGE_VLV</code> in Visual Explorer combines both lessons so you can test <code>Dribble</code>/<code>Bulk</code> alongside <code>Auto Mode</code> <code>(not written)</code> cells live.</p>
+
+<div class="callout good">
+  <div class="callout-title">Quick Rule of Thumb for Reading Course 7016 &amp; Real-Plant EMs</div>
+  <ul style="margin:4px 0 0;">
+    <li><strong>Timed order required?</strong> (<em>open valve → wait for weight → close valve → start agitator</em>) → DeltaV uses <strong>Command-Driven</strong>, which <em>does</em> have multi-step <code>SFC</code>s and usually uses all 4 patterns (3 if purely discrete).</li>
+    <li><strong>Instant simultaneous lineup?</strong> (<em>Close, Dribble, Bulk, Route_Tank_A, Auto Mode</em>) → DeltaV uses <strong>State-Driven</strong>, which has <strong>zero <code>SFC</code>s</strong>—just the <strong>Items &amp; State Table</strong> (bundling Patterns 1, 3, and 4) plus the <strong>FBD sheet</strong> (where subordinate CMs and Pattern 2 health/interlock blocks live).</li>
+  </ul>
+</div>
+
+<!-- WORKSHOP 8 -->
+<div class="workshop">
+  <div class="workshop-head">
+    <span class="ws-title">Workshop 8: 4-Pattern Folding &amp; 2-Stage Valve State Table Lab in EM_2STAGE_VLV</span>
+    <span class="ws-badge">Hands-On Lab • 6 Min</span>
+  </div>
+  <div class="workshop-body">
+    <div class="workshop-setup">
+      <strong>Setup:</strong> In <strong>Visual Explorer</strong>, switch the top-left module dropdown to <code>EM_2STAGE_VLV (State-Driven 2-Stage — 7016)</code>, make sure <strong>On-Line</strong> is selected, and click <strong>Reset 2-Stage</strong>.
+    </div>
+    <ol>
+      <li><strong>Lab A — Snap Alignment (<code>Bulk</code> → <code>Dribble</code>) With Zero SFCs:</strong> On Tab <strong>1. Items &amp; State Table</strong>, click the <strong>Bulk (3)</strong> column header (or sim button). Watch both <code>BULK_CMD</code> and <code>DRIBBLE_CMD</code> snap to <code>= OPEN</code> simultaneously and <code>A_PV</code> confirm <code>Bulk</code>. Next click <strong>Dribble (2)</strong>—watch <code>BULK_CMD</code> shut while <code>DRIBBLE_CMD</code> stays open, with zero SFC steps or transitions!</li>
+      <li><strong>Lab B — Witness <code>(not written)</code> Cells in <code>Auto Mode (4)</code>:</strong> While still in <strong>Dribble (2)</strong> (<code>Bulk = CLOSED</code>, <code>Drib = OPEN</code>), click <strong>Auto Mode (4)</strong>.
+        <br/><em>Observe:</em> Both <code>BULK_MODE</code> and <code>DRIBBLE_MODE</code> write <code>= Auto/</code>, while <code>BULK_CMD</code> and <code>DRIBBLE_CMD</code> display gray italic <strong><code>(not written)</code></strong>! Notice the On-Line Readback column: <code>CM_DRIB_XV</code> stays <code>OPEN</code> (it was <em>not</em> slammed shut!) and <code>A_PV</code> confirms <code>Auto Mode</code> because DeltaV skips readback checks on unchecked cells. Now click <strong>Idle (255)</strong> to see why every DeltaV EM Named Set reserves <code>255</code> as a do-nothing Idle state.</li>
+      <li><strong>Lab C — Pattern 2 FBD Watchdog &amp; Safe-Close Trip:</strong> Click <strong>Bulk (3)</strong> so both valves are open in <code>CAS</code>. Toggle <strong>CM_DRIB_XV .ST: GOOD</strong> → <strong>BAD</strong> and switch to Tab <strong>2. Watchdog &amp; Trip</strong>: watch <code>CND_VLV_HEALTH (#1)</code> detect <code>'//CM_DRIB_XV/PV.ST' &lt; GOOD</code> and turn <code>VLV_HEALTH_ALM = True</code> (click <code>CND_VLV_HEALTH</code> to inspect its On-Line Expression Tree!). Restore <code>.ST: GOOD</code>, then click <strong>Tank Trip: Clear</strong> → <strong>TRIPPED!</strong> and watch <code>CND_TANK_TRIP (#2) → ACT_FORCE_CLOSE (#3)</code> write <code>A_COMMAND := Close</code> on every Scan!</li>
+      <li><strong>Lab D — Compare the 4-Pattern Lens Side-by-Side:</strong> Click <strong>Reset 2-Stage</strong>, switch to Tab <strong>3. Full Control Studio</strong>, and click <strong>🔍 4-Pattern Lens</strong> in the top-right titlebar. Observe how <strong>Patterns 1, 3, and 4 collapse into ONE State Table box</strong> while only <strong>Pattern 2</strong> sits on the FBD sheet—then switch the top-left module picker back to <code>EM_TANK_CHARGE</code> Tab <strong>5. Full Control Studio</strong> with the 4-Pattern Lens ON to see the contrast between a 4-Pattern Command-Driven EM and a 2–3 Pattern State-Driven EM!</li>
+    </ol>
+    <div class="workshop-takeaway">
+      <strong>What You Are Supposed to Learn From This Workshop:</strong> State-Driven EMs are dramatically faster to read than SFCs once you recognize the "3-in-1 Table" pattern: check the <code>Items × States</code> table for column writes, <code>(not written)</code> skipped cells, and <code>A_PV</code> readbacks (Patterns 1, 3 &amp; 4), then scan the smaller FBD sheet for Pattern 2 health watchdogs and safe-close interlocks!
+    </div>
+  </div>
+</div>
+
+<div class="callout">
+  <div class="callout-title">7.5 Honesty Note: What the Emerson Manuals Verify vs. Leave Unspecified</div>
   Every rule taught above is verified in our 12 official Emerson PDFs (see <code>DELTAV_VERIFIED_FACTS.md</code>). For total transparency, four minor UI details are <em>not</em> specified in those manuals so we never claim them as rules: (1) what the optional <code>MONITOR</code> item inside a Command-Driven EM hierarchy contains; (2) exact On-Line watch string formatting for <code>MODE</code> (the state table displays <code>= Cascade/</code>); (3) the undocumented rule governing when the tiny calculator icon appears next to an active SFC transition; and (4) minor color/font differences across DeltaV versions.
 </div>
 
@@ -1278,10 +1499,10 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
   </thead>
   <tbody>
     <tr><td><code>Unit Phase ("EPH")</code></td><td>Phase Class / Unit Phase <em>(7016 p70)</em></td><td><strong>The Recipe Boss.</strong> ISA-88 calls this an <code>EPH</code>; DeltaV Explorer calls it a Phase Class / Unit Phase with <code>RUN_LOGIC</code>, <code>HOLD_LOGIC</code>, <code>RESTART_LOGIC</code>, <code>STOP_LOGIC</code>, <code>ABORT_LOGIC</code>, and <code>FAIL_MONITOR</code>.</td></tr>
-    <tr><td><code>EM</code></td><td>Equipment Module <em>(7009 p436)</em></td><td><strong>The Team Coordinator</strong> (<code>EM_TANK_CHARGE</code>, <code>EM_XFER_HDR</code>). Coordinates multiple CMs; 7 algorithm types exist in DeltaV Explorer.</td></tr>
+    <tr><td><code>EM</code></td><td>Equipment Module <em>(7009 p436)</em></td><td><strong>The Team Coordinator</strong> (<code>EM_TANK_CHARGE</code>, <code>EM_XFER_HDR</code>, <code>EM_2STAGE_VLV</code>). Coordinates multiple CMs; 7 algorithm types exist in DeltaV Explorer.</td></tr>
     <tr><td><code>CM</code></td><td>Control Module <em>(7016 p37–40)</em></td><td><strong>Single-Device Controller</strong> (<code>CM_FEED_XV</code>, <code>CM_TANK_WT</code>). Standard wiring links module <code>CAS_SP</code> → <code>DC1/CAS_IN_D</code> and <code>DC1/PV_D</code> → <code>PV</code>.</td></tr>
     <tr><td><code>A_COMMAND / A_TARGET / A_PV</code></td><td>Standard EM Params <em>(7009 p462)</em></td><td>Used on <strong>both</strong> Command-Driven and State-Driven EMs: <code>A_COMMAND</code> requests command/state (<code>255 = Idle</code>), <code>A_TARGET</code> shows executing, and <code>A_PV</code> confirms completion without error.</td></tr>
-    <tr><td><code>Items × States</code></td><td>State-Driven Table <em>(7016 p140)</em></td><td>Real Control Studio editor for State-Driven EMs (no SFCs!): maps each item's module-level Write path and Readback path to state cells (<code>= Cascade/</code>, <code>= OPEN</code>, <code>= CLOSE</code>).</td></tr>
+    <tr><td><code>Items × States</code> &amp; <code>(not written)</code></td><td>State-Driven Table <em>(7016 p140)</em></td><td>Real Control Studio editor for State-Driven EMs (<strong>zero SFCs!</strong>): maps module-level Write &amp; Readback paths to state cells (<code>= Cascade/</code>, <code>= Auto/</code>, <code>= OPEN</code>, <code>= CLOSE</code>) and leaves unchecked cells <code>(not written)</code> so states like <code>Auto Mode</code> can release valves without moving them.</td></tr>
     <tr><td><code>Bold / Dashed Wire</code></td><td>On-Line Wire Rules <em>(CONFIG p368)</em></td><td><strong>Bold</strong> = wire carrying a non-zero value; <strong>Dashed</strong> = <strong>feedback wire</strong> (source <code>#N</code> &gt; destination <code>#N</code>, arrives next scan). Solid vs. dashed is <em>not</em> analog vs. discrete!</td></tr>
     <tr><td><code>SFC</code> / <code>[P]</code> / <code>[N]</code></td><td>Sequential Function Chart <em>(7009-8)</em></td><td>Double box = Initial Step; green border + elapsed seconds under every step On-Line; Termination bar (<code>═╧═</code>) at end. <code>[P]</code> = 1st scan only; <code>[N]</code> = every active scan and retains written value after step ends.</td></tr>
     <tr><td><code>CND &amp; TIME_DURATION</code></td><td>Condition Block <em>(FBR p413)</em></td><td><strong><code>OUT_D</code> output pin ONLY (zero input pins; <code>:=</code> illegal).</strong> Sets <code>OUT_D = True</code> after expression stays True for <code>TIME_DURATION</code> seconds.</td></tr>
@@ -1306,6 +1527,8 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
   <li>What pins actually exist on a <code>CND</code> block versus an <code>ACT</code> block in Control Studio?</li>
   <li>What do you actually see in Control Studio when you open a <strong>State-Driven</strong> EM like <code>EM_XFER_HDR</code>, and what parameter confirms all readbacks matched?</li>
   <li>In <code>EM_XFER_HDR</code>, you set <code>A_COMMAND := ROUTE_TANK_A</code>, <code>XV101</code> opens, yet <code>CM_XFER_PMP</code> stays <code>STOPPED</code> and <code>A_PV</code> remains <code>Idle</code>. Name the two fastest places to look!</li>
+  <li>Why do State-Driven EMs usually only use <strong>2 or 3</strong> of the 4 patterns—and how does the <code>Items × States</code> table collapse Patterns 1, 3, and 4 into one grid?</li>
+  <li>In <code>EM_2STAGE_VLV</code>, why are <code>BULK_CMD</code> and <code>DRIBBLE_CMD</code> left as <strong><code>(not written)</code></strong> inside the <code>Auto Mode (4)</code> column instead of writing <code>= CLOSE</code>?</li>
 </ol>
 
 <div class="callout good">
@@ -1317,12 +1540,14 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
   <p style="margin-bottom:4px;"><strong>5.</strong> <strong>800 kg gross (200 kg overfill!)</strong> — overwriting <code>START_WT.CV := 300</code> erases the 200 kg already added and adds another full 500 kg on top of 300 kg.</p>
   <p style="margin-bottom:4px;"><strong>6.</strong> <code>CND</code> has <strong><code>OUT_D</code> only</strong> (zero input pins; reads operands inside its expression); <code>ACT</code> has <strong><code>IN_D</code> only</strong> (zero output pins; writes directly via <code>:=</code> every scan while <code>IN_D = True</code>).</p>
   <p style="margin-bottom:4px;"><strong>7.</strong> An <strong><code>Items × States</code> table</strong> (module-level Write &amp; Readback parameter paths per item, <em>7016</em> p. 140—no SFCs!), driven by <code>A_COMMAND</code> and confirmed when <code>A_PV</code> updates from <code>Idle (255)</code> to the requested state.</p>
-  <p style="margin:0;"><strong>8.</strong> Check the <strong><code>Items | States</code> table</strong> (Tab 1) and <strong><code>CND_PATH_OK</code></strong> (Tab 2): an opposing valve (like Tank B's <code>CM_HDR_XV102</code>) is failing to prove <code>PV.CV = CLOSED</code> (or left in <code>AUTO</code>), holding <code>CND_PATH_OK = False</code> to prevent cross-contamination!</p>
+  <p style="margin-bottom:4px;"><strong>8.</strong> Check the <strong><code>Items | States</code> table</strong> (Tab 1) and <strong><code>CND_PATH_OK</code></strong> (Tab 2): an opposing valve (like Tank B's <code>CM_HDR_XV102</code>) is failing to prove <code>PV.CV = CLOSED</code> (or left in <code>AUTO</code>), holding <code>CND_PATH_OK = False</code> to prevent cross-contamination!</p>
+  <p style="margin-bottom:4px;"><strong>9.</strong> Discrete State-Driven EMs skip <code>XFR</code>/<code>CALC</code> analog math (Pattern 3), folding <code>MODE.TARGET</code> writes straight into table rows alongside Pattern 1 (state column select) and Pattern 4 (Write + Readback → <code>A_PV</code>). Only Pattern 2 (every-Scan health watchdogs and safe-close interlocks) stays on the FBD sheet.</p>
+  <p style="margin:0;"><strong>10.</strong> Leaving <code>BULK_CMD</code> and <code>DRIBBLE_CMD</code> unchecked (<code>(not written)</code>) lets <code>Auto Mode</code> hand both valves back to operator faceplate control (<code>MODE.TARGET := AUTO</code>) <em>without</em> moving or slamming the valves—and DeltaV skips readback checks on unchecked cells so <code>A_PV</code> confirms <code>Auto Mode</code> immediately!</p>
 </div>
 
 <div class="footer-note">
   <span>Emerson DeltaV Control Studio — Complete Study Textbook &amp; Workshop Manual</span>
-  <span>Edition v2.1 (Verified vs. Official Emerson Docs • Chapters 1–7 + 7 Labs) • Paired with Visual Explorer</span>
+  <span>Edition v2.2 (Verified vs. Official Emerson Docs • Chapters 1–7 + 8 Labs • 3 Modules) • Paired with Visual Explorer</span>
 </div>
 
 </body>
