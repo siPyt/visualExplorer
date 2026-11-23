@@ -426,7 +426,7 @@
   </div>
   <div class="roadmap-item done">
     <span class="tag done">Complete + 4 Labs</span><br />
-    <strong>Ch. 8–12:</strong> PID/BKCAL, Cascade/CTLSL, Tracking/ISEL, Real Plant <code>3WT-0001-NEUT</code> &amp; DeltaV Live / Alarms / Download / Modern I/O
+    <strong>Ch. 8–12:</strong> PID/BKCAL, Cascade/CTLSL, Tracking/ISEL, Real Plant <code>3WT-0001-NEUT</code> &amp; Live Logic Triage / Download Traps
   </div>
 </div>
 
@@ -2432,59 +2432,19 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
 </div>
 
 <!-- =====================================================================
-     CHAPTER 12: DELTAV LIVE HMI DIAGNOSTICS, ALARMS, DOWNLOAD SAFETY & MODERN I/O
+     CHAPTER 12: CONTROL STUDIO LIVE SAFETY — HMI-TO-LOGIC TRIAGE & MODULE TRAPS
      ===================================================================== -->
-<h2 class="page-break">Chapter 12: DeltaV Live HMI Diagnostics, Alarms, Download Safety &amp; Modern Plant I/O</h2>
-<p>Control Studio never exists in isolation: every live plant loop talks upward to <strong>DeltaV Live</strong> (the modern HTML/vector HMI standard from v14.3+, replacing legacy DeltaV Operate), posts alarms through the controller's <code>ALARMS[1-5]</code> engine, gets saved/downloaded by engineers, and connects downward to modern <strong>CHARMs</strong>, <strong>EIOC</strong>, or <strong>VIM</strong> I/O. Mastering these four blind spots completes the end-to-end plant picture.</p>
+<h2 class="page-break">Chapter 12: Control Studio Live Safety — HMI-to-Logic Triage, Partial Downloads &amp; Module Traps</h2>
+<p style="margin-bottom:6px;">Our focus stays 100% on <strong>reading, editing, and troubleshooting Control Studio logic</strong>. Two practical blind spots sit right on the boundary of every live Control Studio sheet: (1) translating an operator's <strong>DeltaV Live</strong> status icon straight to the exact Control Studio parameter causing it, and (2) avoiding silent logic/setpoint traps when downloading or executing modules online.</p>
 
-<h3>12.1 DeltaV Live (Standard HMI — v14.3+): Terminology, Data Paths &amp; GEM Status Icons</h3>
-<p>Older manuals and long-time engineers still use legacy <em>DeltaV Operate</em> terms (Dynamos, Pictures, VBA). On modern <strong>DeltaV Live</strong> workstations (ProfessionalPLUS, Operator Stations, and Remote Client sessions — <em>Getting Started 2022</em> pp. 91–98; <em>DeltaV Live Training</em> pp. 4, 16, 46, 75), here is the exact translation and how Live ties straight back into Control Studio:</p>
-
-<table>
+<h3 style="margin-top:8px;">12.1 Translating DeltaV Live GEM Icons Straight to Control Studio Parameters (<em>Live Training</em> pp. 46, 51, 63)</h3>
+<p style="margin-bottom:6px;">On modern <strong>DeltaV Live</strong> HMIs, reusable equipment graphics (<strong>GEMs</strong>) and faceplates (<strong>Contextual Displays</strong>) read your Control Studio parameters via <code>DLSYS[Gem.ModName + "/MODE.ACTUAL"]</code> and <code>DLSYS[Dsp.Tag + "/PID1/SP.CV"]</code>. When an operator reports a status icon on a High-Performance GEM, jump straight to the exact Control Studio parameter behind it—and watch which higher-priority icons <strong>mask</strong> lower ones:</p>
+<table style="margin:6px 0 8px;">
   <thead>
     <tr>
-      <th style="width:24%;">DeltaV Live Term (Standard)</th>
-      <th style="width:20%;">Legacy Operate Term</th>
-      <th>What Engineers Need to Know</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><strong><code>Graphics Studio</code> &amp; <code>DeltaV Live</code></strong></td>
-      <td>Operate Configure / Run</td>
-      <td>Graphics Studio &amp; DeltaV Live can run <strong>side-by-side</strong> simultaneously (and multiple Graphics Studio windows can stay open at once!). All graphics live in a central SQL database on the ProPlus.</td>
-    </tr>
-    <tr>
-      <td><strong><code>GEM</code> (Graphical Element)</strong></td>
-      <td>Dynamo</td>
-      <td>Class-based (just like Module Classes!). Editing a <strong>GEM Class</strong> propagates to all <strong>Linked GEMs</strong> (while <strong>Unlinked GEMs</strong> act like classless modules). Paths use <code>DLSYS[Gem.ModName + "/DC1/SP_D.CV"]</code>.</td>
-    </tr>
-    <tr>
-      <td><strong><code>Contextual Displays</code></strong></td>
-      <td>Faceplates / Detail / Popups</td>
-      <td>Shared display whose content adapts to the clicked tag via <code>Dsp.Tag</code>: e.g., <code>DLSYS[Dsp.Tag + "/PID1/SP.CV"]</code> or module-level <code>DLSYS[Dsp.Tag + "/MODE.ACTUAL"]</code> (see Ch. 2.5!).</td>
-    </tr>
-    <tr>
-      <td><strong><code>Functions</code> (<code>F_...</code>) &amp; <code>Standards</code> (<code>S_...</code>)</strong></td>
-      <td>Lookup Tables / Global Vars</td>
-      <td>Reusable library animations (converting numbers/booleans to colors/images) &amp; system-wide color/font standards (plus <strong>Themes</strong>). Custom logic uses <strong>TypeScript</strong> (replacing legacy VBA).</td>
-    </tr>
-    <tr>
-      <td><strong><code>Publishing</code> (Targeted)</strong></td>
-      <td>Workstation Download</td>
-      <td>Updates individual displays without locking the Operator Station! <strong>Manual Refresh Rule:</strong> already-open displays stay unchanged until the operator clicks <strong>Refresh Configuration</strong> (<em>Getting Started 2022</em> p. 127).</td>
-    </tr>
-  </tbody>
-</table>
-
-<h4>The 7 High-Performance GEM Status Icons &amp; Exact Masking Priority (<em>DeltaV Live Training</em> p. 46)</h4>
-<p>When an operator calls you because a tiny status icon appeared on a pump, valve, or PID <strong>High-Performance GEM</strong> in DeltaV Live, here is the exact Control Studio parameter behind every icon—and which higher-severity icons <strong>hide</strong> lower ones:</p>
-<table>
-  <thead>
-    <tr>
-      <th style="width:20%;">DeltaV Live GEM Icon</th>
-      <th style="width:42%;">Exact Control Studio Parameter Condition</th>
-      <th>Masking / 2:00 AM Triage Meaning</th>
+      <th style="width:19%;">DeltaV Live Icon</th>
+      <th style="width:44%;">Exact Control Studio Parameter Condition</th>
+      <th>Masking &amp; 2:00 AM Logic Triage</th>
     </tr>
   </thead>
   <tbody>
@@ -2496,12 +2456,12 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
     <tr>
       <td><strong>Not Running</strong></td>
       <td><code>MSTATUS</code> = <code>Out of Service</code>, <code>Breakpoint Set</code>, or <code>Not Running</code></td>
-      <td><strong>Top priority mask:</strong> hides both <em>Bad IO</em> and <em>Simulate Active</em> icons! Check module execution state first.</td>
+      <td><strong>Top mask:</strong> hides both <em>Bad IO</em> and <em>Simulate Active</em>! Check module execution state first.</td>
     </tr>
     <tr>
       <td><strong>Bad IO</strong></td>
       <td><code>BLOCK_ERR</code> has <code>Out of Service</code>, <code>Readback Failed</code>, <code>Output/Input Failure</code>, or <code>Other Error</code></td>
-      <td>Hidden if <em>Not Running</em> is active; <strong>hides <em>Simulate Active</em></strong>! Check <code>AI</code>/<code>AO</code>/<code>DC</code> channel health &amp; yellow <code>?</code>.</td>
+      <td>Hidden if <em>Not Running</em> is active; <strong>hides <em>Simulate Active</em></strong>! Check yellow <code>?</code> on <code>AI</code>/<code>AO</code>/<code>DC</code>.</td>
     </tr>
     <tr>
       <td><strong>Simulate Active</strong></td>
@@ -2516,7 +2476,7 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
     <tr>
       <td><strong>Interlock Bypassed</strong></td>
       <td><code>BYPASSED</code> parameter is active</td>
-      <td>An interlock or sentinel check has been bypassed—verify safety permit!</td>
+      <td>An interlock or sentinel check has been bypassed in logic.</td>
     </tr>
     <tr>
       <td><strong>Interlocked</strong></td>
@@ -2526,30 +2486,14 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
   </tbody>
 </table>
 
-<div class="callout danger">
-  <div class="callout-title">Two Critical DeltaV Live Engineer Warnings (<em>Live Training</em> p. 22 • <em>Getting Started 2022</em> p. 93)</div>
-  <ol style="margin:2px 0 0;">
-    <li><strong><code>Quick Online View</code> Is LIVE — NOT Simulated!</strong> Testing a graphic via Graphics Studio's <em>Review → Quick Online View</em> connects straight to live controllers (though faceplates don't open). Any setpoint or button write you click in Quick Online View <strong>changes the real running plant!</strong></li>
-    <li><strong>SQL Backup/Restore vs. XML Export/Import:</strong> DeltaV Live Administration's <em>Backup/Restore Database</em> is for disaster recovery <strong>only on the exact same DeltaV version AND hotfix bundle</strong> (e.g., <code>v14.3 WS_06</code> → <code>v14.3 WS_06</code>). Moving displays across systems or versions MUST use <strong>XML Export/Import</strong>, or a SQL restore will overwrite Emerson's updated built-in library items!</li>
-  </ol>
-</div>
-
-<h3>12.2 DeltaV Alarms, 4-Step Ranking &amp; Workstation Consolidation (<em>Course</em> pp. 277–293)</h3>
-<ul>
-  <li><strong>Priorities &amp; Timestamps:</strong> DeltaV supports up to 12 alarm priority levels (numeric <strong><code>4</code></strong> lowest to <strong><code>15</code></strong> highest) plus log-only <strong><code>LOG (3)</code></strong>. Defaults are <strong><code>CRITICAL (15)</code></strong>, <strong><code>WARNING (11)</code></strong>, <strong><code>ADVISORY (7)</code></strong>, and <strong><code>LOG (3)</code></strong>—all <strong>time-stamped inside the controller</strong> (not the workstation!).</li>
-  <li><strong>Exact 4-Tier Alarm Banner Ranking Tie-Breaker:</strong> When deciding which alarms sit on top of the Alarm Banner, DeltaV sorts strictly by: <strong>(1) Unacknowledged</strong> beats Acknowledged → <strong>(2) Active</strong> beats Inactive → <strong>(3) Higher numeric priority</strong> → <strong>(4) Newer timestamp</strong> beats older.</li>
-  <li><strong>Key Module Alarm Parameters (<code>ALARMS[1-5]</code>):</strong> Every module exposes <code>ALARMS[1]</code> as its highest-priority active alarm. Useful fields: <code>CUALM</code> (current alarm), <code>LAALM</code> (latched alarm — same as <code>CV</code>), <code>NALM</code> (new unacknowledged), <code>ENAB</code>, <code>OPSUP</code> (operator suppressed), <code>SUPTMO</code>/<code>SUPTMR</code> (suppression timeout/timer), plus module-wide <strong><code>ALARMS.F_MACK</code></strong> (writing <code>1</code> acknowledges all module alarms and auto-resets to <code>0</code>) and <strong><code>ALARMS.F_ENAB</code></strong> (<code>0</code> disables all module alarms).</li>
-  <li><strong>"Why Can't This Operator See Area X's Alarms?" (Workstation Consolidation):</strong> An alarm appears on a workstation's banner <strong>only</strong> for the <em>intersection</em> of: <strong>(A)</strong> Plant Areas assigned to that workstation's <em>Alarms &amp; Events</em> subsystem <strong>AND (B)</strong> Plant Areas where the logged-in user (<code>THISUSER</code>) has any attribute security <strong>write keys</strong>! Also remember <strong><code>AREA_A</code></strong> is a permanent system area (never deletable, though renameable) and must stay assigned to Alarms &amp; Events so system-wide logins and downloads are logged (<em>Getting Started 2022</em> pp. 47–48).</li>
-</ul>
-
-<h3 style="margin-top:8px;">12.3 Download, Upload, Cold Restart &amp; Dynamic Reference Traps (<em>Course</em> pp. 272–273, 317–319 • <em>Tips</em> pp. 4, 40)</h3>
-<p style="margin-bottom:6px;">Before clicking <strong>Download</strong> on a live module in Control Studio or DeltaV Explorer, watch these three silent traps:</p>
+<h3 style="margin-top:8px;">12.2 Control Studio Live-Editing &amp; Execution Traps (<em>Course</em> pp. 272–273, 285–290, 317–319 • <em>Tips</em> p. 40)</h3>
+<p style="margin-bottom:6px;">Before clicking <strong>Download</strong> on a live module—or writing dynamic references and alarm checks in ST—know these five Control Studio runtime behaviors:</p>
 
 <table style="margin:6px 0 8px;">
   <thead>
     <tr>
-      <th style="width:31%;">Partial Download Behavior Setting<br/><em>(Module Properties)</em></th>
-      <th style="width:21%;">DB: CAS / 500<br/>Live: AUTO / 555</th>
+      <th style="width:32%;">Partial Download Behavior Setting<br/><em>(Module Properties)</em></th>
+      <th style="width:20%;">DB: CAS / 500<br/>Live: AUTO / 555</th>
       <th>Result After Partial Download</th>
     </tr>
   </thead>
@@ -2557,12 +2501,12 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
     <tr>
       <td><strong><code>Preserve critical block values</code></strong></td>
       <td>Mode = <code>AUTO</code><br/>SP = <code>500</code> ⚠️</td>
-      <td>Keeps live <code>Mode</code> (critical block param), but <strong>OVERWRITES user-defined <code>SP</code></strong> back to the database default!</td>
+      <td>Keeps live <code>Mode</code> (critical block param), but <strong>OVERWRITES user-defined <code>SP</code></strong> back to the offline database default!</td>
     </tr>
     <tr>
       <td><strong><code>Preserve user-defined and critical block values</code></strong></td>
       <td>Mode = <code>AUTO</code><br/>SP = <code>555</code> ✓</td>
-      <td>Safest for live process edits: keeps <strong>both</strong> live <code>Mode</code> and live operator/tuning <code>SP</code> values intact!</td>
+      <td>Safest for live logic edits: keeps <strong>both</strong> live <code>Mode</code> and live operator/tuning <code>SP</code> values intact!</td>
     </tr>
     <tr>
       <td><strong><code>Use configured values</code></strong></td>
@@ -2572,44 +2516,12 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
   </tbody>
 </table>
 
-<ul style="margin-top:4px;margin-bottom:8px;">
+<ul style="margin-top:4px;margin-bottom:0;">
   <li><strong>Upload-Before-Download "Select None" Trap:</strong> Clicking <strong>OK</strong> on the Download Upload prompt uploads <strong>zero parameters by default</strong> (internal housekeeping only)—explicitly check parameters if you want online tuning/SP edits saved back to the database!</li>
-  <li><strong>Cold Restart NVM Persistence Requires TWO Checkboxes:</strong> To survive a controller Cold Restart in NVM (instead of resetting to Default), check <strong>BOTH</strong> the parameter-level <em>Restore parameter value after restart</em> <strong>AND</strong> the module-level <em>Restore parameter values after restart</em>!</li>
-  <li><strong>Dynamic Reference CPU-Killer Rule (<em>Tips</em> p. 40):</strong> Never build more than <strong>3 simultaneous Dynamic References</strong> in one action (can tank Controller Free Time to ~0%—stagger in groups of 3!), and beware cross-controller dynamic refs if comms drop. <em>(Tip: Control Studio's 4-session limit is controlled by registry key <code>MaxMdeApp</code>.)</em></li>
+  <li><strong>Cold Restart NVM Persistence Requires TWO Checkboxes:</strong> To keep an operating setpoint across a controller Cold Restart (instead of resetting to Default), check <strong>BOTH</strong> the parameter-level <em>Restore parameter value after restart</em> <strong>AND</strong> the module-level <em>Restore parameter values after restart</em>!</li>
+  <li><strong>Dynamic Reference CPU-Killer Rule (<em>Tips</em> p. 40):</strong> Never build more than <strong>3 simultaneous Dynamic References</strong> in a single SFC step/action—resolving paths can tank Controller Free Time to ~0% (stagger larger sets in groups of 3!), and beware cross-controller dynamic refs if a remote controller drops comms.</li>
+  <li><strong>Reading Module Alarms in Control Studio Logic (<code>ALARMS[1]</code>):</strong> Every module exposes <code>ALARMS[1]</code> as its highest-priority active alarm (numeric priority <code>4..15</code>, defaults <code>CRITICAL=15</code>, <code>WARNING=11</code>, <code>ADVISORY=7</code>, <code>LOG=3</code>). In expressions or On-Line watches: <code>CUALM</code> = current alarm, <code>LAALM</code> = latched alarm (same as <code>CV</code>), <code>NALM</code> = unacknowledged, <code>OPSUP</code> = suppressed, and writing <code>1</code> to <code>ALARMS.F_MACK</code> acknowledges all alarms on the module (auto-resets to <code>0</code>).</li>
 </ul>
-
-<h3 style="margin-top:8px;">12.4 Modern Plant I/O Architecture (<code>CHARMs</code>, <code>EIOC</code>, <code>VIM</code>) &amp; DST Licensing (<em>Planning</em> pp. 30–33, 61–67 • <em>VIM</em> pp. 1–15)</h3>
-<table style="margin:6px 0;">
-  <thead>
-    <tr>
-      <th style="width:19%;">I/O Architecture</th>
-      <th style="width:24%;">How DeltaV Sees It</th>
-      <th>Key Capacities, Scan Behavior &amp; Engineer Gotchas</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><strong><code>CHARMs</code> / <code>CIOC</code></strong><br/><em>(Electronic Marshalling)</em></td>
-      <td><code>CIOC</code> under <em>I/O Network</em>; S-series only (<code>SD Plus</code>/<code>SX</code>+)</td>
-      <td>Up to <strong>8 baseplates × 12 = 96 CHARMs/CIOC</strong>; <strong>50 ms</strong> update (300 ms terminal-to-terminal at 100 ms scan). One CHARM binds to 1 controller, but <strong>1 CIOC splits across up to 4 controllers</strong>; values read via controller (not direct HMI).</td>
-    </tr>
-    <tr>
-      <td><strong><code>EIOC</code></strong><br/><em>(Ethernet I/O Card)</em></td>
-      <td>Standalone node under <em>I/O Network</em> (not assigned to controller)</td>
-      <td>Native <strong>Modbus TCP/IP</strong>, <strong>EtherNet/IP</strong>, &amp; <strong>IEC 61850 MMS</strong> that <strong>runs Control Modules on-card</strong>! Max <strong>26 <code>PID</code>s</strong>, 4 State Transition, 4 Step Sequence, 256 <code>DCC</code>, &amp; 256 <code>EDC</code>—<strong>does NOT support standard <code>DC</code>!</strong></td>
-    </tr>
-    <tr>
-      <td><strong><code>VIM</code> / <code>VIMNet</code></strong><br/><em>(Virtual I/O Module)</em></td>
-      <td>Auto-sensed as <strong>4 Serial Cards</strong> (slots <code>57–60</code> / <code>61–64</code>)</td>
-      <td>Modbus TCP / EtherNet/IP bridge to PLCs/MCCs/scales (128 datasets × 100 16-bit regs; floats take 2 regs → max 50/dataset). <strong>Traps:</strong> DeltaV regs are <strong>1-based</strong> (<code>R1..R100</code>) vs. PLC <strong>0-based</strong>; <strong>Special Data 1 (<code>0..3</code>)</strong> swaps 32-bit float bytes!</td>
-    </tr>
-    <tr>
-      <td><strong>DST Licensing</strong><br/><em>(Device Signal Tags)</em></td>
-      <td>System-wide pool on ProPlus (<code>Licensing Properties</code>)</td>
-      <td>Every signal-bearing I/O channel or serial dataset uses <strong>at most ONE DST</strong> regardless of how many modules reference it. Cost hierarchy: <strong><code>AO &gt; AI &gt; DO &gt; DI</code></strong> (higher-tier DSTs substitute downward!).</td>
-    </tr>
-  </tbody>
-</table>
 
 <!-- =====================================================================
      FUNCTION BLOCK DEEP-DIVE FIELD GUIDE (ALL ACTIVE BLOCKS)
@@ -2810,10 +2722,10 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
     <tr><td><code>PCSD Shell &amp; &lt;Ignored&gt; Stubs</code></td><td>32-Device EM Template <em>(Ch. 11)</em></td><td>Real-plant library shell (<code>_EM_CMD32_140</code>, e.g., <code>3WT-0001-NEUT</code>) featuring zero-wire Main FBD sheets, boilerplate <code>S0000–S0020/S9900</code> SFC framing around <code>S0100</code> process logic, and unused <code>&lt;Ignored&gt;</code> slots masked off by <code>SM_xx = False</code>.</td></tr>
     <tr><td><code>SENTINEL vs. HOLD_MONITOR</code></td><td>PCSD <code>MONITOR</code> Watchdogs <em>(Ch. 11)</em></td><td>Inside <code>MONITOR</code>: <code>SENTINEL_MONITOR</code> (<code>SM_AT1/2</code>) watches subordinate <em>device</em> failures; <code>HOLD_MONITOR</code> (<code>HM_AT1/2</code>) watches <em>process</em> failure conditions (like <code>TMR1</code> 90-min timeout) and trips <code>COMMAND_00000 (HOLD)</code>.</td></tr>
     <tr><td><code>ACQ_REL</code> &amp; <code>HOLD_REQ</code></td><td>Shared Device Arbitration <em>(Ch. 11)</em></td><td>Manages EM ownership (<code>OWNER_ID</code>) and acquiring/releasing Shared CMs. Setting <code>HOLD_REQ = True</code> (e.g., in <code>OFF</code>) releases mode locks so operators can control equipment manually.</td></tr>
-    <tr><td><code>DeltaV Live</code> &amp; <code>GEM</code></td><td>Modern HMI &amp; Graphical Element <em>(Ch. 12.1)</em></td><td>Standard v14.3+ operator HMI (replaces DeltaV Operate). Class-based <strong>GEMs</strong> replace Dynamos; <strong>Contextual Displays</strong> replace Faceplates/Details; data paths use <code>DLSYS[Gem.ModName + "/..."]</code>; <strong>Quick Online View</strong> writes LIVE to controllers!</td></tr>
-    <tr><td><code>ALARMS[1]</code> &amp; Consolidation</td><td>Alarm Summary &amp; Area Filtering <em>(Ch. 12.2)</em></td><td><code>ALARMS[1]</code> shows the highest-priority active module alarm (ranked: Unack → Active → Priority <code>4..15</code> → Newest). Banner shows only Workstation Areas ∩ User Write-Key Areas.</td></tr>
-    <tr><td><code>Partial Download</code> &amp; <code>Default Name</code></td><td>Download &amp; Class Rename Safety <em>(Ch. 2.5, 12.3)</em></td><td><code>Preserve user-defined and critical block values</code> prevents wiping live SP/Mode; Download Upload defaults to <code>Select None</code>; renaming a Class parameter requires clicking <code>Default Name</code> on the Class's Parameters tab.</td></tr>
-    <tr><td><code>CHARMs</code> / <code>EIOC</code> / <code>VIM</code> / <code>DST</code></td><td>Modern I/O &amp; Licensing <em>(Ch. 12.4)</em></td><td><strong>CHARMs (CIOC)</strong> = 96-ch electronic marshalling (50 ms); <strong>EIOC</strong> = native Ethernet I/O running modules on-card (no <code>DC</code> block — uses <code>DCC/EDC</code>); <strong>VIM</strong> = 4 virtual serial cards (1-based vs. 0-based PLC regs); <strong>DST</strong> cost order <code>AO &gt; AI &gt; DO &gt; DI</code>.</td></tr>
+    <tr><td><code>GEM Status Icons</code></td><td>DeltaV Live → Control Studio Map <em>(Ch. 12.1)</em></td><td>DeltaV Live GEMs bind via <code>DLSYS[Gem.ModName + "/..."]</code>. Status icon priority: <em>Not Running</em> (<code>MSTATUS</code>) masks <em>Bad IO</em> (<code>BLOCK_ERR</code>), which masks <em>Simulate Active</em> (<code>SIMULATE</code>).</td></tr>
+    <tr><td><code>ALARMS[1]</code> &amp; <code>BFI</code></td><td>Alarm Params &amp; First-Out <em>(Ch. 3.2, 12.2)</em></td><td><code>ALARMS[1]</code> exposes highest-priority active module alarm (<code>CUALM</code>, <code>LAALM</code>, <code>NALM</code>, <code>OPSUP</code>, <code>ALARMS.F_MACK</code>). <code>BFI</code> (Boolean Fan Input) latches first-out interlock trips on motor/valve FBD sheets.</td></tr>
+    <tr><td><code>Partial Download</code> &amp; <code>Default Name</code></td><td>Download &amp; Class Rename Safety <em>(Ch. 2.5, 12.2)</em></td><td><code>Preserve user-defined and critical block values</code> keeps live SP &amp; Mode; Download Upload defaults to <code>Select None</code>; renaming a Class parameter requires clicking <code>Default Name</code> on the Class's Parameters tab.</td></tr>
+    <tr><td><code>STATE_MASKS</code> &amp; <code>BETA/GAMMA</code></td><td><code>DC</code> &amp; <code>PID</code> Block Internals <em>(Ch. 3.2, 8.1)</em></td><td><code>DC</code> <code>STATE_MASKS</code>: Empty=<code>0</code>, Check=<code>1</code>, Light-gray stippled=<em>don't care</em>. <code>PID</code> <code>STRUCTURE</code>/<code>BETA</code>/<code>GAMMA</code> prevent SP kick; nonlinear gain <code>KNL</code> applies to P+I only (not D).</td></tr>
   </tbody>
 </table>
 
@@ -2840,7 +2752,7 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
   <li>How do you force a <code>PID</code> block to slam a control valve to <code>0%</code> on a safety trip—even if an operator has the PID in <code>MAN</code>—and what mode must the PID be in to edit <code>CONTROL_OPTS</code>?</li>
   <li>On your plant's real <code>3WT-0001-NEUT</code> PCSD Main FBD sheet, why are there <strong>zero wires</strong>—and why don't the 13 greyed-out <code>DEV20–DEV32</code> blocks showing <code>FAILURE = True</code> trip the Equipment Module?</li>
   <li>Inside <code>3WT-0001-NEUT/MONITOR</code>, what is the difference between <code>SENTINEL_MONITOR</code> (<code>SM_AT1/2</code>) and <code>HOLD_MONITOR</code> (<code>HM_AT1/2</code>), and which step inside a PCSD Run SFC holds the actual process work?</li>
-  <li>On a <strong>DeltaV Live</strong> High-Performance GEM, a block has both <code>SIMULATE</code> turned ON and <code>MSTATUS = Not Running</code>. Which status icon does the operator see—and why must an engineer be careful when testing buttons inside Graphics Studio's <em>Quick Online View</em>?</li>
+  <li>On a <strong>DeltaV Live</strong> High-Performance GEM, a block has both <code>SIMULATE</code> turned ON and <code>MSTATUS = Not Running</code>. Which status icon does the operator see—and which Control Studio parameter drives each of those two icons?</li>
   <li>You edit a module whose online <code>Mode = AUTO</code> and <code>SP = 555</code> (database defaults are <code>CAS</code> / <code>500</code>), click Download, click <strong>OK</strong> on the Upload dialog without checking any boxes, and have Partial Download set to <em>Preserve critical block values</em>. What happens to <code>Mode</code> and <code>SP</code>?</li>
   <li>You rename a parameter inside a Module Class, yet DeltaV Explorer still displays the old Parameter Shortcut name; meanwhile, on another loop, a newly replaced Fisher DVC positioner throws <code>Bad ConfigErr</code> and won't control. What is the 10-second fix for each?</li>
 </ol>
@@ -2865,7 +2777,7 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
   <p style="margin-bottom:4px;"><strong>16.</strong> Wire the trip into <code>PID1/TRK_IN_D</code> with <code>TRK_VAL = 0.0%</code> and enable both <code>Track Enable</code> and <code>Track in Manual</code> in <code>CONTROL_OPTS</code> (forcing <code>MODE.ACTUAL = LO</code> — <em>FBR</em> p. 234). <code>CONTROL_OPTS</code> can only be changed while the PID is in <strong><code>OOS</code></strong> mode!</p>
   <p style="margin-bottom:4px;"><strong>17.</strong> PCSD templates park all 32 shared device blocks, tuning parameters, <code>ACQ_REL</code>, and <code>CND1–3</code> unwired on the Main FBD sheet and drive/read them inside SFC step expressions and <code>MONITOR</code>. <code>DEV20–DEV32</code> are unbound <code>&lt;Ignored&gt;</code> template stubs whose sentinel masks (<code>SM_18–SM_32</code>) are set <code>False</code> inside <code>MONITOR</code>, so they never trip the EM.</p>
   <p style="margin-bottom:4px;"><strong>18.</strong> <code>SENTINEL_MONITOR</code> watches subordinate <strong>device failures</strong> (<code>SM_01–SM_17 = True</code>), while <code>HOLD_MONITOR</code> watches <strong>process failure conditions</strong> (<code>HM_01 = True</code>, e.g., <code>TMR1</code> 90-min timeout). Inside any PCSD Run SFC, <code>S0000/S0010/S0020</code> and <code>S9900</code> are boilerplate startup/cleanup—<strong><code>S0100</code></strong> (and <code>S0100R</code>/<code>S0200</code>) holds the actual process work!</p>
-  <p style="margin-bottom:4px;"><strong>19.</strong> Only <strong><code>Not Running</code></strong> appears—in DeltaV Live, <em>Not Running</em> masks both <em>Bad IO</em> and <em>Simulate Active</em> (<em>Live Training</em> p. 46)! And <strong>Quick Online View is LIVE, not simulated</strong>—any write hits the real controller (p. 22)!</p>
+  <p style="margin-bottom:4px;"><strong>19.</strong> Only <strong><code>Not Running</code></strong> appears—in DeltaV Live, <em>Not Running</em> (driven by <code>MSTATUS</code>) masks both <em>Bad IO</em> (<code>BLOCK_ERR</code>) and <em>Simulate Active</em> (<code>SIMULATE</code>) (<em>Live Training</em> p. 46)!</p>
   <p style="margin-bottom:4px;"><strong>20.</strong> Clicking OK on Upload without selecting parameters uploads <strong>nothing</strong> (<code>Select None</code> by default!). Then <em>Preserve critical block values</em> keeps live <code>Mode = AUTO</code>, but <strong>overwrites user-defined <code>SP</code> from <code>555</code> back down to <code>500</code></strong>! (Use <em>Preserve user-defined and critical block values</em> to keep both!)</p>
   <p style="margin:0;"><strong>21.</strong> For the Class rename: open Module Configuration → <strong>Parameters</strong> tab at the <strong>class level</strong>, select the renamed parameter, and click <strong><code>Default Name</code></strong> (<em>Tips</em> p. 23). For the Fisher DVC: open AMS and change the DVC's Input Range units from <strong><code>4–20 mA</code></strong> to <strong><code>%</code></strong> (<em>Tips</em> pp. 50–52)!</p>
 </div>

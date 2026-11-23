@@ -43,11 +43,11 @@ HOW THIS WORKSPACE OPERATES (SYNCED ACROSS MACHINES)
    - Mode 4: On-Line Tree (6 live presets + 9 live sliders/selectors incl. 3WT-0001)
 
 3. Textbook & Lab Manual (DeltaV_Study_Guide.html -> DeltaV_Study_Guide.pdf, v3.3):
-   Full in-depth native DeltaV handbook: Chapters 1–12 (incl. Section 2.5 Unwired
-   Parameter Boxes, Section 3.2 DC LO vs. OOS, and NEW Ch. 12: DeltaV Live HMI
-   Diagnostics, Alarms, Download Safety & Modern Plant I/O), 7-Block FBR Field
-   Guide (XFR, CALC, CND, ACT, DC, AI, RET & AT), 12 Visual Explorer Workshops,
-   and 21-Question Mastery Exam. Rebuild anytime via: .\build-pdf.ps1
+   Full in-depth native Control Studio logic handbook: Chapters 1–12 (incl.
+   Section 2.5 Unwired Parameter Boxes, Section 3.2 DC LO vs. OOS, and tight
+   1-page Ch. 12: HMI-to-Logic Triage, Partial Downloads & Module Traps),
+   7-Block FBR Field Guide, 12 Visual Explorer Workshops, and 21-Question
+   Mastery Exam. Rebuild anytime via: .\build-pdf.ps1
 
 4. Verified Truth Source (DELTAV_VERIFIED_FACTS.md + pdf reference/ + additionalPDFs/):
    Every Control Studio & DeltaV Live fact cited by exact PDF + page number
@@ -122,31 +122,21 @@ HOW THIS WORKSPACE OPERATES (SYNCED ACROSS MACHINES)
          TRK_VAL=50% contrast, 3WT-0001-NEUT AT/OPR_CMD_MASK/A_TIME checks, and
          all new Expression Forge drills.
 
-[DONE] v3.3 — 14 Additional Manuals Audited (additionalPDFs/) & Blind Spots Plugged
-       - Indexed and evaluated all 14 PDFs in additionalPDFs/, keeping DeltaV Live
-         (v14.3+) as the HMI standard and filtering out legacy Operate/Batch bloat.
-       - Added Sections 8–12 to DELTAV_VERIFIED_FACTS.md and NEW Chapter 12 +
-         targeted callouts (Ch. 2.5.1, 3.2, 8.1, App. A & B Q19–Q21) to Study Guide:
-         * DeltaV Live (837038695 + Feb 2022 Getting Started 684095348): Live vs.
-           Operate nomenclature, DLSYS[Gem.ModName + "..."] & Dsp.Tag paths, all
-           7 High-Performance GEM Status Icons & masking priority, Quick Online
-           View LIVE-write warning, Refresh Configuration manual update rule, and
-           SQL Backup/Restore hotfix trap vs. XML Export/Import.
-         * Alarms (782854867): Priorities 4..15 + LOG(3), exact 4-tier Alarm
-           Ranking tie-breaker, ALARMS[1-5] & ALARMS.F_MACK, Workstation Alarm
-           Consolidation (Workstation Areas ∩ User Write-Key Areas), AREA_A rule.
-         * Download / Upload / Restart & Class Traps (782854867 + Users Exchange
-           256307806): Partial Download 3-mode truth table, Upload "Select None"
-           trap, 2-checkbox Cold Restart NVM persistence, Class Parameter Rename
-           "Default Name" fix, Dynamic Ref <=3 CPU-killer rule, MaxMdeApp tweak.
-         * PID & DC Internals (406981499 + 782854867 + 256307806): STRUCTURE /
-           BETA / GAMMA SP anti-kick, Nonlinear Gain KNL (P+I only, not D — pH!),
-           AI L_TYPE=Indirect, HART_FIELD_VAL re-range trap, Fisher DVC 4-20mA
-           Bad ConfigErr trap, DC STATE_MASKS 4-symbol decoder & BFI first-out.
-         * Modern Plant I/O (Planning 2015 409873456 + VIMnet 235392189): CHARMs
-           (CIOC 96ch, 50ms, up to 4 controllers), EIOC (runs modules on-card,
-           max 26 PIDs, uses DCC/EDC not DC), VIM (4 virtual serial cards, 1-based
-           vs. 0-based PLC regs, Special Data 1 byte-swapping), DST AO>AI>DO>DI.
+[DONE] v3.3 — 14 Additional Manuals Audited (additionalPDFs/) — Prime Directive Kept!
+       - Audited all 14 PDFs in additionalPDFs/; archived broader platform facts
+         (DeltaV Live admin, CHARMs/EIOC/VIM, DSTs) in DELTAV_VERIFIED_FACTS.md
+         (Sections 8–12), while keeping Study Guide & Visual Explorer strictly
+         focused on CONTROL STUDIO LOGIC (zero hardware/admin/Operate bloat!):
+         * Ch. 2.5.1: Class Parameter Rename "Default Name" fix, Promoted Params,
+           and DLSYS[Gem.ModName + "..."] DeltaV Live module-level link.
+         * Ch. 3.2: DC STATE_MASKS 4-symbol decoder & BFI first-out interlock block.
+         * Ch. 8.1: PID STRUCTURE/BETA/GAMMA anti-kick, Nonlinear Gain KNL (P+I
+           only, not D — pH!), AI L_TYPE=Indirect, HART re-range & DVC Bad ConfigErr.
+         * Tight 1-page Ch. 12 (Control Studio Live Safety): 7 DeltaV Live GEM
+           Status Icons -> exact Control Studio parameter map (MSTATUS/BLOCK_ERR/
+           SIMULATE masking), Partial Download 3-mode truth table, Upload "Select
+           None" trap, 2-checkbox Cold Restart NVM rule, Dynamic Ref <=3 CPU rule,
+           and ALARMS[1] expression fields (CUALM/LAALM/NALM/OPSUP/F_MACK).
 
 ================================================================================
 2. WHERE WE ARE RIGHT NOW
