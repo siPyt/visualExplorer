@@ -744,7 +744,13 @@
       <li><strong><code>CALC</code> (Calculation/Logic):</strong> Pins <code>IN1..IN16</code> and <code>OUT1..OUT16</code> (no underscores).</li>
     </ul>
   </li>
-  <li><strong>Rectangular Parameter Reference Boxes (<em>PDS</em> p. 1):</strong> Control Studio draws module/external parameter boxes as <strong>rectangles</strong> with a hollow square pin (<code>□</code>). <em>(In Visual Explorer, dotted gray lines into <code>CND</code> or out of <code>ACT</code> are study-aid pointers showing what the expression reads/writes; real Control Studio draws no wire there.)</em></li>
+  <li><strong>Rectangular Parameter Reference Boxes — Left-In / Right-Out Flow (<em>PDS</em> p. 1):</strong> Control Studio draws external and module-level parameters on the <strong>Main Diagram</strong> (also called the <strong>Diagram View</strong> or <strong>FBD Sheet</strong>—your working "canvas") as rectangular boxes with a tiny hollow square pin (<code>□</code>).
+    <ul>
+      <li><strong>Left Side = Inputs Coming INTO the Diagram:</strong> The hollow square pin sits on the <strong>right edge</strong> (<code>[ Parameter □ ] ───►</code>), feeding live values from other modules (<code>CM_TANK_WT/AI1/OUT</code>) or module parameters (<code>^/RECIPE_WT.CV</code>) <em>into</em> the function blocks.</li>
+      <li><strong>Right Side = Outputs LEAVING the Diagram:</strong> The hollow square pin sits on the <strong>left edge</strong> (<code>───► [ □ Parameter ]</code>), sending calculated results <em>out</em> of the function blocks to module parameters read by the SFC (<code>^/PERM_READY.CV</code>, <code>^/VALVE_SHUT_OK.CV</code>) or out to child Control Modules (<code>CM_FEED_XV/DC1/MODE.TARGET</code>).</li>
+      <li><strong>Dotted Gray Lines vs. Solid Green / Black Arrows:</strong> Both connect to the <em>exact same</em> Parameter Reference boxes! <strong>Solid arrows</strong> are real hardwired FBD connections to actual block pins (such as <code>XFR1/IN_2</code>, <code>CALC1/IN2</code>, <code>ACT2/IN_D</code>, or <code>CND1/OUT_D</code>): in real Control Studio On-Line, non-zero wires appear <strong>bold black</strong> and zero/False wires appear <strong>thin black</strong> (Visual Explorer tints active bold wires <strong>green</strong> and tripped wires <strong>red</strong> as a study aid). <strong>Faint dotted gray lines</strong> (no arrowhead) into <code>CND</code> or out of <code>ACT</code> are <strong>Visual Explorer instructional pointers only</strong>—real Control Studio draws no wire there because <code>CND</code> has zero input pins and <code>ACT</code> has zero output pins!</li>
+    </ul>
+  </li>
   <li><strong>Solid vs. Bold vs. Dashed Wires (<em>CONFIG</em> p. 368 — Critical!):</strong> In DeltaV, solid vs. dashed does <strong>NOT</strong> mean analog vs. discrete! All normal forward wires are solid; On-Line, a wire turns <strong>Bold</strong> when carrying a <strong>non-zero</strong> value, and a wire is drawn <strong>Dashed</strong> <em>only</em> when it is a <strong>feedback wire</strong> (source block executes after destination block → arrives next scan).</li>
   <li><strong>On-Line Status Icons (<em>CONFIG</em> p. 368, <em>PDS</em> p. 3):</strong> White value boxes sit beside pins On-Line. A red <strong><code>✕</code></strong> marks <strong>Bad</strong> status (<code>.ST &lt;= 63</code>), a blue <strong><code>?</code></strong> marks <strong>Uncertain</strong> status (<code>64..127</code>), and a yellow highlighted <strong><code>?</code></strong> indicates non-zero <code>BLOCK_ERR</code>.</li>
   <li><strong>SFC Elements &amp; Action Qualifiers (<em>7009-8</em> pp. 4–24, <em>PDS</em> p. 5):</strong> Double-bordered Initial Step (<code>S0_IDLE</code>), bright green border on the active step On-Line, <strong>elapsed seconds printed under every step</strong>, Transition cross (<code>┼</code>) with <code>True</code> / <code>False</code> underneath, and a Termination bar (<code>═╧═</code>) at the bottom. Key qualifiers: <code>[P]</code> (Pulse — runs on first scan of the step only) and <code>[N]</code> (Non-stored — runs every scan while active; <strong>in DeltaV, <code>[N]</code> <code>:=</code> assignments keep their written value after the step ends!</strong>).</li>
@@ -1387,6 +1393,17 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
 </table>
 
 <div class="callout">
+  <div class="callout-title">Plain-English Breakdown: What Does "<code>MODE.TARGET</code> Writes Fold Into Rows of the State Table" Mean?</div>
+  <p style="margin-bottom:6px;">Think of a valve's <strong><code>MODE</code></strong> as <strong>who is holding the steering wheel</strong>: <strong><code>CAS</code> (Cascade)</strong> means the Equipment Module holds the steering wheel (obeying <code>CAS_SP.CV</code>), while <strong><code>AUTO</code></strong> means the Operator holds the steering wheel (ignoring <code>CAS_SP.CV</code>). Switching who holds the wheel is <strong>Pattern 3 (Mode Routing)</strong>.</p>
+  <ul style="margin:0 0 6px;">
+    <li><strong>Command-Driven way (<code>EM_TANK_CHARGE</code>):</strong> You must write explicit code inside an SFC action or <code>ACT</code> block (<code>'//CM_FEED_XV/MODE.TARGET' := CAS;</code>) and separately build a <code>CND</code> or transition check to verify <code>MODE.ACTUAL = CAS</code>.</li>
+    <li><strong>State-Driven way ("folded into rows"):</strong> You write <strong>zero <code>ACT</code> blocks and zero SFC actions</strong> for mode switching. Instead, you simply add a regular row to the <code>Items × States</code> table whose Write path is <code>MODE.TARGET</code> and Readback path is <code>MODE.ACTUAL</code> (such as <code>BULK_MODE</code> right below the <code>BULK_CMD</code> row).</li>
+    <li><strong>Decoding Control Studio's <code>= Cascade/</code> and <code>= Auto/</code> cell syntax (<em>7016</em> p. 140):</strong> The leading <strong><code>=</code></strong> means <em>"write this value to the Write path <strong>and</strong> verify the Readback path matches it before confirming <code>A_PV</code>,"</em> while <strong><code>Cascade/</code></strong> and <strong><code>Auto/</code></strong> are how Control Studio displays mode values (<code>CAS</code> / <code>AUTO</code>) inside a State Table cell.</li>
+    <li><strong>Why this is so powerful on the plant floor:</strong> In <code>Bulk (3)</code>, row <code>BULK_MODE</code> writes <code>= Cascade/</code> and automatically checks <code>MODE.ACTUAL = CAS</code>—if an operator leaves the valve in <code>AUTO</code>, that row fails readback and drops <code>A_PV</code> to <code>Idle (255)</code> with zero extra FBD logic! Conversely, in <code>Auto Mode (4)</code>, row <code>BULK_MODE</code> writes <code>= Auto/</code> while <code>BULK_CMD</code> stays <code>(not written)</code>, handing the steering wheel back to the operator <em>without</em> moving or slamming the valve.</li>
+  </ul>
+</div>
+
+<div class="callout">
   <div class="callout-title">Native Verification Note: Where Does <code>FAIL_MONITOR</code> Actually Live?</div>
   In Course <em>7016</em> (pp. 70, 202), <code>FAIL_MONITOR</code> is a native composite block automatically built into <strong>Unit Phases</strong> (when non-zero, it sends the Phase to <em>Holding</em>). Inside an <strong>Equipment Module</strong>, engineers build equivalent every-Scan watchdog blocks (<code>CND</code> / <code>CALC</code>) directly on the EM's <strong>FBD sheet</strong> to flag a stuck valve, wrong mode, or <code>Bad .ST</code>—and the upstream Unit Phase's <code>FAIL_MONITOR</code> monitors that EM alarm!
 </div>
@@ -1489,6 +1506,169 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
 </div>
 
 <!-- =====================================================================
+     FUNCTION BLOCK DEEP-DIVE FIELD GUIDE (ALL 6 ACTIVE BLOCKS)
+     ===================================================================== -->
+<h2 class="page-break">Field Guide: Function Block Deep-Dive — The 6 Active Blocks in Our Modules</h2>
+<p>Every rule, pin name, mode list, status trap, and failure code below is verified directly against Emerson's official <strong><em>DeltaV Function Block Reference</em> (FBR)</strong>. Use this section as your pin-by-pin desk manual whenever you double-click a block in Control Studio or <strong>Visual Explorer</strong>.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="width:13%;">Block</th>
+      <th style="width:24%;">Exact Pins</th>
+      <th style="width:18%;">Target Modes</th>
+      <th style="width:23%;">Status (<code>.ST</code>) Behavior</th>
+      <th style="width:22%;">Used In Visual Explorer</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong><code>XFR</code></strong><br/><em>FBR p453</em></td>
+      <td>In: <code>IN_1</code>, <code>IN_2</code>, <code>SELECTOR</code><br/>Out: <code>OUT</code></td>
+      <td><strong>None</strong> (always active)</td>
+      <td><strong>Auto worse-status</strong> of selected input <strong>AND <code>SELECTOR</code></strong>!</td>
+      <td><code>XFR1</code> (<code>EM_TANK_CHARGE</code> Tab 3)</td>
+    </tr>
+    <tr>
+      <td><strong><code>CALC</code></strong><br/><em>FBR p179</em></td>
+      <td>In: <code>IN1..IN16</code><br/>Out: <code>OUT1..OUT16</code></td>
+      <td><strong>None</strong></td>
+      <td><strong>Defaults to <code>GOOD (128)</code>!</strong> Must copy <code>.ST</code> manually!</td>
+      <td><code>CALC1</code> (<code>EM_TANK_CHARGE</code>), <code>CALC_PV_STATE</code></td>
+    </tr>
+    <tr>
+      <td><strong><code>CND</code></strong><br/><em>FBR p413</em></td>
+      <td>In: <strong>NONE</strong> (expr refs)<br/>Out: <code>OUT_D</code> only</td>
+      <td><strong>None</strong></td>
+      <td>Normally <code>GoodNonCascade</code>; unresolved ref → <code>Bad: Config Error</code></td>
+      <td><code>CND1..5</code>, <code>CND_PATH_OK</code>, <code>CND_VLV_HEALTH</code></td>
+    </tr>
+    <tr>
+      <td><strong><code>ACT</code></strong><br/><em>FBR p400</em></td>
+      <td>In: <code>IN_D</code> only<br/>Out: <strong>NONE</strong> (<code>:=</code> refs)</td>
+      <td><strong>None</strong></td>
+      <td><strong>IGNORES <code>IN_D.ST</code>!</strong> Fires whenever <code>IN_D.CV = 1</code>!</td>
+      <td><code>ACT1..2</code>, <code>ACT_PMP_GATE</code>, <code>ACT_FORCE_CLOSE</code></td>
+    </tr>
+    <tr>
+      <td><strong><code>DC</code></strong><br/><em>FBR p417</em></td>
+      <td><code>CAS_IN_D</code>, <code>SHUTDOWN_D</code>, <code>PERMISSIVE_D</code>, <code>INTERLOCK_D</code>, <code>TRK_IN_D</code> → <code>OUT_D</code></td>
+      <td><strong><code>AUTO</code>, <code>CAS</code> only</strong><br/>(NO <code>MAN</code>! Drops to <code>LO</code>)</td>
+      <td>Tracks I/O &amp; field confirm <code>FV_D</code>; sets <code>FAIL</code> / <code>FAIL_ACTIVE</code></td>
+      <td><code>DC1</code> inside every valve &amp; motor CM</td>
+    </tr>
+    <tr>
+      <td><strong><code>AI</code></strong><br/><em>FBR p92</em></td>
+      <td>I/O channel (<code>IO_IN</code>) or <code>SIMULATE_IN</code> → <code>OUT</code></td>
+      <td><strong><code>OOS</code>, <code>MAN</code>, <code>AUTO</code></strong><br/>(+ <code>IMan</code> actual)</td>
+      <td>Hardware/HART/range (&lt;-20.1% or &gt;116.6%) sets <code>OUT.ST = BAD</code></td>
+      <td><code>AI1</code> inside <code>CM_TANK_WT</code> &amp; <code>CM_HDR_PT</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>FB-1. <code>XFR</code> — Transfer Function Block (e.g., <code>XFR1</code> • <em>FBR pp. 453–455</em>)</h3>
+<p><strong>Plain-English Job:</strong> A bumpless 2-input analog selector switch with a built-in linear ramp timer. <em>(Remember: there is <strong>no <code>"BSEL"</code> block</strong> in Emerson DeltaV—<code>XFR</code> is the real block used to choose between two analog sources such as Recipe Weight vs. Local Weight, or Sensor A vs. Sensor B!)</em></p>
+
+<div class="diagram-box">
+  <svg viewBox="0 0 690 154" width="100%" height="146" xmlns="http://www.w3.org/2000/svg">
+    <rect width="690" height="154" fill="url(#g_p1)" rx="4"/>
+    <!-- Left Inputs -->
+    <rect x="16" y="20" width="170" height="24" fill="#f1f5f9" stroke="#64748b"/>
+    <text x="23" y="35" font-size="8.0" font-weight="700" font-family="Consolas, monospace">RECIPE_WT (500.0 kg)</text>
+    <rect x="16" y="64" width="170" height="24" fill="#f1f5f9" stroke="#64748b"/>
+    <text x="23" y="79" font-size="8.0" font-weight="700" font-family="Consolas, monospace">LOCAL_WT (250.0 kg)</text>
+    <rect x="16" y="108" width="170" height="24" fill="#fef3c7" stroke="#d97706"/>
+    <text x="23" y="123" font-size="8.0" font-weight="700" fill="#92400e" font-family="Consolas, monospace">USE_LOCAL (0=IN_1, 1=IN_2)</text>
+
+    <!-- Wires into XFR1 -->
+    <line x1="186" y1="32" x2="246" y2="32" stroke="#16a34a" stroke-width="2.5"/>
+    <line x1="186" y1="76" x2="246" y2="76" stroke="#64748b" stroke-width="1.6"/>
+    <line x1="186" y1="120" x2="246" y2="120" stroke="#d97706" stroke-width="2.0"/>
+
+    <!-- XFR1 Block -->
+    <rect x="246" y="12" width="225" height="128" rx="3" fill="#ffffff" stroke="#1e3a8a" stroke-width="1.8"/>
+    <rect x="247" y="13" width="223" height="18" fill="#dbeafe"/>
+    <text x="358" y="26" text-anchor="middle" fill="#1e3a8a" font-size="9.0" font-weight="800" font-family="Consolas, monospace">XFR1 (Transfer — FBR p453)</text>
+    <text x="255" y="42" fill="#0f172a" font-size="8.0" font-weight="700" font-family="Consolas, monospace">□ IN_1</text>
+    <text x="255" y="80" fill="#0f172a" font-size="8.0" font-weight="700" font-family="Consolas, monospace">□ IN_2</text>
+    <text x="255" y="122" fill="#92400e" font-size="8.0" font-weight="700" font-family="Consolas, monospace">□ SELECTOR</text>
+    <text x="462" y="76" text-anchor="end" fill="#0f172a" font-size="8.0" font-weight="700" font-family="Consolas, monospace">OUT □</text>
+    <!-- Internal Behavior Box -->
+    <rect x="315" y="42" width="112" height="72" rx="3" fill="#f8fafc" stroke="#94a3b8"/>
+    <text x="371" y="57" text-anchor="middle" fill="#1e293b" font-size="7.6" font-weight="700">0 → IN_1 | 1 → IN_2</text>
+    <text x="371" y="72" text-anchor="middle" fill="#0369a1" font-size="7.6" font-weight="800">Ramp: BAL_TIME (s)</text>
+    <text x="371" y="86" text-anchor="middle" fill="#475569" font-size="7.2">(0s = instant snap)</text>
+    <text x="371" y="103" text-anchor="middle" fill="#b91c1c" font-size="7.2" font-weight="700">OUT.ST = worse(IN, SEL)</text>
+    <rect x="444" y="120" width="22" height="15" rx="2" fill="#e2e8f0"/>
+    <text x="455" y="131" text-anchor="middle" font-size="8.2" font-weight="800" font-family="Consolas, monospace">#1</text>
+
+    <!-- Output Wire & Box -->
+    <line x1="471" y1="73" x2="520" y2="73" stroke="#16a34a" stroke-width="2.6"/>
+    <rect x="520" y="57" width="154" height="32" fill="#dcfce7" stroke="#16a34a"/>
+    <text x="528" y="71" font-size="8.0" font-weight="800" fill="#14532d" font-family="Consolas, monospace">^/TARGET_WT.CV</text>
+    <text x="528" y="83" font-size="7.5" fill="#166534" font-family="Consolas, monospace">500.0 kg → CALC1/IN1</text>
+  </svg>
+  <div class="diagram-caption">Figure F1: Transfer (XFR1) Block Internals — Note exact underscore pin names (IN_1, IN_2), BAL_TIME linear ramp, and automatic worse-status propagation from BOTH the selected input and SELECTOR.</div>
+</div>
+
+<ul>
+  <li><strong>Exact Selection Logic:</strong> <code>SELECTOR = False (0)</code> routes <strong><code>IN_1</code></strong> to <code>OUT</code>; <code>SELECTOR = True (1)</code> routes <strong><code>IN_2</code></strong> to <code>OUT</code>.</li>
+  <li><strong><code>BAL_TIME</code> (Balance / Ramp Time, seconds):</strong> Controls how smoothly <code>OUT</code> transitions when <code>SELECTOR</code> flips. With <strong><code>BAL_TIME = 0</code></strong> (used on <code>XFR1</code> for discrete batch target weights), <code>OUT</code> snaps instantaneously. With <strong><code>BAL_TIME &gt; 0</code></strong> (e.g., <code>15 s</code> on a flow setpoint or temperature sensor switchover), <code>XFR</code> ramps linearly over 15 seconds so you don't shock a downstream PID loop!</li>
+  <li><strong>2:00 AM Plant Gotcha (Status Propagation):</strong> Per <em>FBR</em> p. 454, <code>OUT.ST</code> automatically becomes the <strong>worse status of the selected input AND <code>SELECTOR</code></strong>. If <code>SELECTOR</code> comes from a broken upstream block (<code>Bad</code> status), <code>XFR1/OUT.ST</code> turns <strong>Bad (Red ✕)</strong> even though <code>IN_1</code> and <code>IN_2</code> are both healthy! Also notice the spelling trap: <code>XFR</code> uses underscores (<code>IN_1</code>, <code>IN_2</code>), while <code>CALC</code> does <em>not</em> (<code>IN1</code>, <code>IN2</code>).</li>
+</ul>
+
+<h3>FB-2. <code>CALC</code> — Calculation / Logic Block (e.g., <code>CALC1</code> • <em>FBR pp. 179–182</em>)</h3>
+<ul>
+  <li><strong>Pins &amp; Shorthand:</strong> Extensible <code>IN1..IN16</code> and <code>OUT1..OUT16</code> (default 2 in / 2 out, <strong>no underscores</strong>). Inside the expression, writing <code>IN1</code> or <code>OUT1</code> automatically means <code>IN1.CV</code> / <code>OUT1.CV</code>. Supports full Structured Text (<code>IF...THEN...ELSE...ENDIF;</code>, temporary variables, <code>expt()</code>, trig/log math).</li>
+  <li><strong>Three 2:00 AM Gotchas:</strong>
+    <ol>
+      <li><strong>Outputs Default to <code>GOOD (128)</code>:</strong> Unlike <code>XFR</code>, <code>CALC</code> does <em>not</em> auto-propagate input status! If <code>IN2.ST</code> (scale weight) goes <code>BAD</code>, <code>OUT1.ST</code> stays <code>GOOD</code> unless you explicitly write <code>'OUT1.ST' := 'IN2.ST';</code>!</li>
+      <li><strong>Divide-by-Zero &amp; Overflow:</strong> Dividing by zero or exceeding float limits (<code>±3.40282e38</code>) forces <code>OUT.ST = BAD</code> and sets <code>Configuration Error</code> in <code>BLOCK_ERR</code> (yellow <code>?</code> On-Line!).</li>
+      <li><strong><code>ALGO_OPTS = AbortOnReadErrors</code>:</strong> When enabled, if an external reference read fails, <code>CALC</code> aborts that scan rather than computing garbage from a stale value.</li>
+    </ol>
+  </li>
+</ul>
+
+<h3>FB-3. <code>CND</code> — Condition Block (e.g., <code>CND1..5</code>, <code>CND_VLV_HEALTH</code> • <em>FBR pp. 413–415</em>)</h3>
+<ul>
+  <li><strong>Pins &amp; Expression Rule:</strong> <strong><code>OUT_D</code> output pin ONLY (zero input pins!)</strong>. Operands are referenced inside a single-line expression; assignment <code>:=</code> is <strong>illegal</strong> (<em>CONFIG</em> p. 62).</li>
+  <li><strong>Built-In On-Delay Timer (<code>TIME_DURATION</code>):</strong> <code>OUT_D</code> and <code>PRE_OUT_D</code> set <code>True (1)</code> <em>only after</em> the expression stays continuously <code>True</code> for longer than <strong><code>TIME_DURATION</code></strong> seconds (e.g., <code>10 s</code> on <code>CND5</code> valve mismatch, <code>8 s</code> on <code>CND_ALIGN_ALM</code>). If the condition flickers <code>False</code> for even 1 scan, the timer resets to zero!</li>
+  <li><strong>2:00 AM Plant Gotcha (<code>DISABLE</code> vs. <code>PRE_OUT_D</code>):</strong> Engineers sometimes bypass a nuisance <code>CND</code> block by setting <strong><code>DISABLE = True</code></strong>. That holds <code>OUT_D = False</code>, <strong>yet <code>PRE_OUT_D</code> still evaluates and turns <code>True</code>!</strong> Always check <code>DISABLE</code> and <code>PRE_OUT_D</code> if a condition looks True in the Expression Tree while <code>OUT_D</code> stays stuck at <code>0</code>! Also, any unresolved reference sets <code>OUT_D.ST = Bad: Configuration Error</code> and blocks the expression from ever becoming True.</li>
+</ul>
+
+<h3>FB-4. <code>ACT</code> — Action Block (e.g., <code>ACT1..2</code>, <code>ACT_PMP_GATE</code>, <code>ACT_FORCE_CLOSE</code> • <em>FBR pp. 400–401</em>)</h3>
+<ul>
+  <li><strong>Pins &amp; Execution:</strong> <strong><code>IN_D</code> input pin ONLY (zero output pins!)</strong>. Requires <code>:=</code> to write directly to external/internal paths. Executes <strong>every single scan while <code>IN_D = True (1)</code></strong> (not just once on a rising edge!); when <code>IN_D</code> goes <code>False</code>, the target keeps the last value written.</li>
+  <li><strong>2:00 AM Plant Gotcha (Status Is IGNORED!):</strong> Per <em>FBR</em> p. 401: <em>"The status of <code>IN_D</code> does not impact the evaluation of the expression. The expression is evaluated whenever <code>IN_D</code> is True (1)."</em> Even if <code>IN_D</code> has a Red <code>✕</code> (<code>BAD</code> status), if its <code>.CV</code> is <code>1</code>, <strong><code>ACT</code> still fires every scan!</strong> Never rely on <code>ACT</code> to reject a Bad input—guard <code>.ST &gt;= GOOD</code> upstream in <code>CND</code> or <code>CALC</code>!</li>
+</ul>
+
+<h3>FB-5. <code>DC</code> — Device Control Block (<code>DC1</code> inside every Valve/Motor CM • <em>FBR pp. 417–427</em>)</h3>
+<ul>
+  <li><strong>Modes (The #1 Discrete Trap):</strong> Supports <strong>ONLY <code>AUTO</code> (operator faceplate) and <code>CAS</code> (copies <code>CAS_IN_D</code>)</strong> as selectable target modes — <strong>NO <code>MAN</code> mode!</strong> Actual mode drops automatically to <strong><code>LO</code> (Local Override)</strong> whenever <code>TRK_IN_D = True</code>, <code>SHUTDOWN_D = True</code>, <code>INTERLOCK_D = False</code> (interlock enabled), <code>PERMISSIVE_D = False</code> (while passive), or <code>DC_STATE = Locked</code>.</li>
+  <li><strong>Built-In Confirm Timers &amp; <code>FAIL</code> Codes:</strong> Built-in timers (<code>CFM_PASS_TIME</code>, <code>CFM_ACT1_TIME</code>, <code>CFM_ACT2_TIME</code>, <code>CRACK_TIME</code>, <code>DELAY_TIME</code>, <code>TRIP_TIME</code>) compare <code>DC_STATE</code> against field feedback <code>FV_D</code>. On timeout, <code>DC</code> writes a non-zero integer into <strong><code>FAIL</code></strong> (e.g., <code>1 = Passive Confirm Time</code>) and sets <strong><code>FAIL_ACTIVE = True</code></strong>.</li>
+  <li><strong>Hardware Personality (<code>DEVICE_OPTS</code>, <em>FBR</em> p. 422):</strong>
+    <ul>
+      <li><em>Pneumatic Valve:</em> Keeps <code>OUT_D</code> energized even in <code>Failed Active 1</code> so spring-return air valves don't hammer.</li>
+      <li><em>Motor:</em> With <code>Trip</code> / <code>Reset Required</code> enabled, drops <code>OUT_D</code> straight back to <code>Passive</code> (de-energized) on trip or confirm failure.</li>
+      <li><em>Motorized Valve (MOV):</em> With <code>Passive when Confirmed</code> enabled, de-energizes the drive coil once the limit switch confirms travel complete.</li>
+    </ul>
+  </li>
+</ul>
+
+<h3>FB-6. <code>AI</code> — Analog Input Block (<code>AI1</code> inside <code>CM_TANK_WT</code> &amp; <code>CM_HDR_PT</code> • <em>FBR pp. 92–99</em>)</h3>
+<ul>
+  <li><strong>Signal Pipeline:</strong> Hardware I/O (<code>IO_IN</code> / <code>CHANNEL</code>) → <code>FIELD_VAL</code> (%) → <code>L_TYPE</code> scaling (<code>Direct</code>, <code>Indirect</code>, <code>Indirect Square Root</code> using <code>OUT_SCALE</code>) → <code>LOW_CUT</code> (zero-clamps tiny noise below threshold) → <strong><code>PV_FTIME</code></strong> (first-order filter time constant in seconds for a 63% step change; <code>0</code> = raw unfiltered) → <code>PV</code> → <strong><code>OUT</code></strong> (value + status).</li>
+  <li><strong>Modes:</strong> Supports <strong><code>OOS</code></strong>, <strong><code>MAN</code></strong> (operator can manually type a fixed <code>OUT</code> value!), and <strong><code>AUTO</code></strong> (normal live sensor reading), plus <code>IMan</code> actual. <em>Notice the contrast: <code>AI</code> HAS <code>MAN</code> mode, whereas discrete <code>DC</code> does NOT!</em></li>
+  <li><strong>2:00 AM Plant Gotchas:</strong>
+    <ol>
+      <li><strong>Raw Channel Bad Limits:</strong> If the field signal goes outside <code>-20.12%</code> to <code>116.6%</code> (e.g., broken 4–20 mA wire at 0 mA = <code>-25%</code>), the I/O card automatically flags <code>OUT.ST = BAD</code> (Red <code>✕</code>), tripping <code>EM_TANK_CHARGE</code>'s <code>CND2</code> interlock!</li>
+      <li><strong>Left-On <code>SIMULATE</code> Trap:</strong> Turning on <code>SIMULATE</code> lets an engineer inject fake tank weight during testing—and sets <code>Simulate Active</code> in <code>BLOCK_ERR</code> (showing a <strong>yellow highlighted <code>?</code></strong> On-Line!). Always look for yellow <code>?</code> if a tank weight refuses to move during a live run!</li>
+    </ol>
+  </li>
+</ul>
+
+<!-- =====================================================================
      APPENDIX A: MASTER PLAIN-ENGLISH DELTAV DICTIONARY
      ===================================================================== -->
 <h2 class="page-break">Appendix A: Complete Plain-English DeltaV Master Dictionary</h2>
@@ -1529,6 +1709,8 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
   <li>In <code>EM_XFER_HDR</code>, you set <code>A_COMMAND := ROUTE_TANK_A</code>, <code>XV101</code> opens, yet <code>CM_XFER_PMP</code> stays <code>STOPPED</code> and <code>A_PV</code> remains <code>Idle</code>. Name the two fastest places to look!</li>
   <li>Why do State-Driven EMs usually only use <strong>2 or 3</strong> of the 4 patterns—and how does the <code>Items × States</code> table collapse Patterns 1, 3, and 4 into one grid?</li>
   <li>In <code>EM_2STAGE_VLV</code>, why are <code>BULK_CMD</code> and <code>DRIBBLE_CMD</code> left as <strong><code>(not written)</code></strong> inside the <code>Auto Mode (4)</code> column instead of writing <code>= CLOSE</code>?</li>
+  <li>On <code>XFR1</code> (Transfer block), both <code>IN_1</code> and <code>IN_2</code> have <code>Good</code> status, yet <code>XFR1/OUT.ST</code> suddenly turns <code>Bad</code> (Red <code>✕</code>). What is the hidden cause—and what does <code>BAL_TIME</code> do when <code>SELECTOR</code> flips?</li>
+  <li>During 2:00 AM troubleshooting, a <code>CND</code> block's Expression Tree shows all green <code>✓</code>, yet its <code>OUT_D</code> stays stuck at <code>0</code>; meanwhile, on another sheet, an <code>ACT</code> block keeps firing even though its <code>IN_D</code> wire shows a Red <code>✕</code> (Bad status). Explain both behaviors from the Emerson FBR!</li>
 </ol>
 
 <div class="callout good">
@@ -1542,7 +1724,9 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
   <p style="margin-bottom:4px;"><strong>7.</strong> An <strong><code>Items × States</code> table</strong> (module-level Write &amp; Readback parameter paths per item, <em>7016</em> p. 140—no SFCs!), driven by <code>A_COMMAND</code> and confirmed when <code>A_PV</code> updates from <code>Idle (255)</code> to the requested state.</p>
   <p style="margin-bottom:4px;"><strong>8.</strong> Check the <strong><code>Items | States</code> table</strong> (Tab 1) and <strong><code>CND_PATH_OK</code></strong> (Tab 2): an opposing valve (like Tank B's <code>CM_HDR_XV102</code>) is failing to prove <code>PV.CV = CLOSED</code> (or left in <code>AUTO</code>), holding <code>CND_PATH_OK = False</code> to prevent cross-contamination!</p>
   <p style="margin-bottom:4px;"><strong>9.</strong> Discrete State-Driven EMs skip <code>XFR</code>/<code>CALC</code> analog math (Pattern 3), folding <code>MODE.TARGET</code> writes straight into table rows alongside Pattern 1 (state column select) and Pattern 4 (Write + Readback → <code>A_PV</code>). Only Pattern 2 (every-Scan health watchdogs and safe-close interlocks) stays on the FBD sheet.</p>
-  <p style="margin:0;"><strong>10.</strong> Leaving <code>BULK_CMD</code> and <code>DRIBBLE_CMD</code> unchecked (<code>(not written)</code>) lets <code>Auto Mode</code> hand both valves back to operator faceplate control (<code>MODE.TARGET := AUTO</code>) <em>without</em> moving or slamming the valves—and DeltaV skips readback checks on unchecked cells so <code>A_PV</code> confirms <code>Auto Mode</code> immediately!</p>
+  <p style="margin-bottom:4px;"><strong>10.</strong> Leaving <code>BULK_CMD</code> and <code>DRIBBLE_CMD</code> unchecked (<code>(not written)</code>) lets <code>Auto Mode</code> hand both valves back to operator faceplate control (<code>MODE.TARGET := AUTO</code>) <em>without</em> moving or slamming the valves—and DeltaV skips readback checks on unchecked cells so <code>A_PV</code> confirms <code>Auto Mode</code> immediately!</p>
+  <p style="margin-bottom:4px;"><strong>11.</strong> <code>XFR</code> sets <code>OUT.ST</code> to the <strong>worse status of the selected input AND <code>SELECTOR</code></strong> (<em>FBR</em> p. 454), so a <code>Bad</code> <code>SELECTOR</code> forces <code>OUT.ST = Bad</code>! <code>BAL_TIME</code> (seconds) linearly ramps <code>OUT</code> from the old input to the newly selected input (<code>0</code> = instant snap).</p>
+  <p style="margin:0;"><strong>12.</strong> On <code>CND</code>, either <strong><code>DISABLE = True</code></strong> is bypassing <code>OUT_D</code> (check <code>PRE_OUT_D</code>, which still reads True!) or <strong><code>TIME_DURATION</code></strong> hasn't finished counting (<em>FBR</em> p. 414). On <code>ACT</code>, DeltaV completely <strong>ignores <code>IN_D.ST</code></strong>—it fires every scan whenever <code>IN_D.CV = 1</code> regardless of Bad status (<em>FBR</em> p. 401)!</p>
 </div>
 
 <div class="footer-note">
