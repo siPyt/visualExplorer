@@ -756,6 +756,17 @@
   <li><strong>SFC Elements &amp; Action Qualifiers (<em>7009-8</em> pp. 4–24, <em>PDS</em> p. 5):</strong> Double-bordered Initial Step (<code>S0_IDLE</code>), bright green border on the active step On-Line, <strong>elapsed seconds printed under every step</strong>, Transition cross (<code>┼</code>) with <code>True</code> / <code>False</code> underneath, and a Termination bar (<code>═╧═</code>) at the bottom. Key qualifiers: <code>[P]</code> (Pulse — runs on first scan of the step only) and <code>[N]</code> (Non-stored — runs every scan while active; <strong>in DeltaV, <code>[N]</code> <code>:=</code> assignments keep their written value after the step ends!</strong>).</li>
 </ol>
 
+<div class="callout">
+  <div class="callout-title">Real-Plant Sighting: Why You See Unwired Parameter Boxes on the Left Side of Live Diagrams</div>
+  <p style="margin-bottom:5px;">Because <code>CND</code> and <code>ACT</code> expressions can fetch external paths like <code>'//CM_FEED_XV/PV.CV'</code> directly without any wire or diagram box, a real Control Studio sheet will often show a <code>CND</code> block with nothing wired to its left—that block is <em>not</em> disconnected (just double-click it to read its expression). Conversely, in real plants you will <em>also</em> see rectangular Parameter Reference boxes parked along the left side of the Main Diagram with <strong>no wires coming off them</strong>. That is completely intentional—and stems from three native DeltaV practices (<em>7017</em> pp. 243–244):</p>
+  <ul style="margin:0 0 5px;">
+    <li><strong>1. Module-Level Internal Reference Shortcuts (e.g., <code>MODE → DC1/MODE</code>):</strong> Because <code>MODE</code> has no wireable pin on a <code>DC</code> or <code>PID</code> block, engineers drop an Input Parameter named <code>MODE</code> onto the left side of a Control Module as an <em>Internal Reference</em> pointing to <code>DC1/MODE</code> (or <code>PID1/MODE</code>) with zero wires. That exposes <code>MODE</code> cleanly at the module level so State-Driven EM tables (<em>7016</em> p. 140) and faceplates can access it.</li>
+    <li><strong>2. Module Variables &amp; Recipe Inputs Used in Expressions:</strong> Parameters such as <code>RECIPE_WT</code>, <code>START_WT</code>, or <code>PRECLOSE_LEAD</code> are dropped onto the diagram so they exist on the module interface for upstream Phases/operators <em>and</em> display live On-Line value boxes right on the sheet—even though only SFC steps, <code>CND</code>s, or <code>ACT</code>s read/write them via expressions.</li>
+    <li><strong>3. External Reference Aliases:</strong> An unwired <em>External Reference</em> box lets multiple local expressions or DeltaV Operate graphics share one clean local parameter name instead of repeating a long <code>'//...'</code> path.</li>
+  </ul>
+  <p style="margin:0;"><strong>2-Second Plant Check:</strong> Double-click any unwired left-side box and check its <strong>Parameter Type</strong>—<code>Internal Reference</code> = shortcut to an internal block parameter; <code>External Reference</code> = pointer to another module; <code>Floating Point / Boolean / Named Set</code> = module variable read or written by expressions/SFCs.</p>
+</div>
+
 <!-- WORKSHOP 2 -->
 <div class="workshop">
   <div class="workshop-head">
