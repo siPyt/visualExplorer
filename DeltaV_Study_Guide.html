@@ -389,9 +389,9 @@
   <h1>Reading &amp; Troubleshooting DeltaV Control Studio</h1>
   <p class="subtitle">Complete in-depth native DeltaV lessons, pin-by-pin Control Studio schematics, real-plant engineering nuances, and step-by-step interactive workshops paired with <strong>Visual Explorer</strong>.</p>
   <div class="meta-strip">
-    <span class="meta-pill">Edition: v3.0 (Verified vs. Official Emerson Docs)</span>
+    <span class="meta-pill">Edition: v3.1 (Verified vs. Official Emerson Docs + Real Plant PCSD EM)</span>
     <span class="meta-pill">Continuous &amp; Discrete Control Studio Mastery</span>
-    <span class="meta-pill">5 Modules: EM_TANK_CHARGE • EM_XFER_HDR • EM_2STAGE_VLV • FIC_101 • CASCADE_201</span>
+    <span class="meta-pill">6 Modules: EM_TANK_CHARGE • EM_XFER_HDR • EM_2STAGE_VLV • FIC_101 • CASCADE_201 • 3WT-0001-NEUT</span>
     <span class="meta-pill">Launch Lab App: type "run" in terminal</span>
   </div>
 </div>
@@ -425,8 +425,8 @@
     <strong>Ch. 7:</strong> State-Driven EMs (Items × States, 4-Pattern Folding &amp; 2-Stage Valve)
   </div>
   <div class="roadmap-item done">
-    <span class="tag done">Complete + 3 Labs</span><br />
-    <strong>Ch. 8–10:</strong> Analog PID &amp; BKCAL, Cascade, CTLSL Override, Tracking, ISEL &amp; Composites
+    <span class="tag done">Complete + 4 Labs</span><br />
+    <strong>Ch. 8–11:</strong> Analog PID &amp; BKCAL, Cascade/CTLSL, Tracking/ISEL/Composites &amp; Real Plant <code>3WT-0001-NEUT</code>
   </div>
 </div>
 
@@ -1809,6 +1809,191 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
 </div>
 
 <!-- =====================================================================
+     CHAPTER 11: REAL-PLANT PCSD CASE STUDY (3WT-0001-NEUT)
+     ===================================================================== -->
+<h2 class="page-break">Chapter 11: Real-Plant Case Study — Decoding a PCSD 32-Device EM (<code>3WT-0001-NEUT</code>)</h2>
+<p>When you walk up to a real plant workstation and open <strong><code>N1EAST/BUFFER_PREP/PW_NEUT/3WT-0001-NEUT</code></strong> (Process Waste Neutralization, controller <code>3N1-CTR-03</code>), it can look overwhelming at first glance: 56 objects, 32 device blocks, 40 tuning parameters, 11 commands, and <strong>zero wires on the Main FBD Diagram!</strong> Once you learn the two secrets of Emerson's standard <strong>PCSD 32-Device Command-Driven EM template (<code>_EM_CMD32_140</code>)</strong>, the entire module snaps into crisp focus in under 30 seconds.</p>
+
+<h3>11.1 Secret #1: Mentally Delete the Unused PCSD Template Clutter!</h3>
+<p>Real plants rarely build EMs from scratch—they instantiate a reusable 32-device library shell (<code>_EM_CMD32_140</code>) and simply leave the extra slots blank or <code>&lt;Ignored&gt;</code>. Look how small <code>3WT-0001-NEUT</code> actually becomes once you separate <strong>Active Plant Logic</strong> from <strong>Empty Template Stubs</strong>:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="width:24%;">PCSD Template Area</th>
+      <th style="width:22%;">Total Slots in Shell</th>
+      <th style="width:28%;">ACTUALLY USED Here</th>
+      <th style="width:26%;">Unused Stubs (Ignore!)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Commands (<code>COMMAND_00000..10</code>)</strong></td>
+      <td>11 Commands</td>
+      <td><strong>6 Enabled:</strong> <code>HOLD</code>, <code>IDLE</code>, <code>TRANSFER</code>, <code>TREAT</code>, <code>DISCHARGE</code>, <code>OFF</code></td>
+      <td><code>CMD6–CMD10</code> (<code>Enabled = False</code>, empty shells)</td>
+    </tr>
+    <tr>
+      <td><strong>Shared Devices (<code>DEV1..32</code>)</strong></td>
+      <td>32 Device Blocks</td>
+      <td><strong>19 Bound Devices (<code>DEV1–DEV19</code>, <code>#2–#20</code>)</strong></td>
+      <td><code>DEV20–DEV32</code> (<code>&lt;Ignored&gt;</code> stubs; <code>SM_18..32 = False</code>)</td>
+    </tr>
+    <tr>
+      <td><strong>Timers (<code>TMR1..TMR8</code>)</strong></td>
+      <td>8 Timer Composites</td>
+      <td><strong>1 Configured:</strong> <code>TMR1</code> (<code>Excessive Treatment Timer</code>, 90 min)</td>
+      <td><code>TMR2–TMR8</code> (<code>TM_SP = 0</code>, unconfigured)</td>
+    </tr>
+    <tr>
+      <td><strong>Operating / Tuning Params</strong></td>
+      <td>20 <code>OP</code> + 40 <code>TP</code></td>
+      <td><strong>0 <code>OP</code> + 8 <code>TP</code> (<code>TP001–TP008</code>)</strong></td>
+      <td><code>OP001–OP020</code> &amp; <code>TP009–TP040</code> (all <code>Not Used</code>)</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="callout warn">
+  <div class="callout-title">2:00 AM False-Alarm Trap on PCSD Sheets: Why Do <code>DEV20–DEV32</code> Show <code>3.40282E+38</code> &amp; <code>FAILURE = True</code>?</div>
+  Do <strong>not</strong> panic when you scroll down a PCSD FBD sheet and see 13 greyed-out device blocks showing <code>3.40282E+38</code>, <code>REQ_MODE = ???</code>, and <code>FAILURE = True</code>! Those are simply unbound <code>&lt;Ignored&gt;</code> template slots. Because <code>SM_18</code> through <code>SM_32</code> are set to <strong><code>False</code></strong> inside <code>MONITOR</code>, <code>SENTINEL_MONITOR</code> ignores them completely!
+</div>
+
+<h3>11.2 Secret #2: Where All 4 Patterns Live on a Zero-Wire PCSD Sheet</h3>
+<p>Why are there <strong>zero wires</strong> on <code>3WT-0001-NEUT</code>'s Main FBD Diagram? Because wiring 19 shared devices to 6 SFCs would create an unreadable spiderweb! Instead, PCSD parks the devices, tuning parameters, arbitration block, and timed conditions cleanly on the FBD sheet unwired and connects them via <strong>SFC step expressions</strong> and <strong>Composite Blocks</strong>:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="width:22%;">Pattern</th>
+      <th style="width:32%;">Exact Location in <code>3WT-0001-NEUT</code></th>
+      <th>What It Does in Plain English</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Pattern 1:<br/>Command &amp; Step Flow</strong></td>
+      <td><code>COMMAND_00000</code> (<code>HOLD</code>) through <code>COMMAND_00005</code> (<code>OFF</code>)</td>
+      <td>Every Run SFC uses the exact same PCSD skeleton: <strong><code>S0000/S0010/S0020</code></strong> (boilerplate init, <code>ACQ_REL</code> acquire, Sentinel enable) → <strong><code>S0100</code></strong> (<em>the ONLY actual process work!</em> Note <code>TREAT</code> also has parallel branch <code>S0100R</code>) → <strong><code>S9900 → END</code></strong> (boilerplate cleanup/release). <code>HOLD</code> fans out across 12 selection branches (<code>H1000..H10000</code> + <code>H3000R</code>) into <code>H9900</code>!</td>
+    </tr>
+    <tr>
+      <td><strong>Pattern 2:<br/>Permissives &amp; Watchdogs</strong></td>
+      <td><code>CND1 (#42)</code>, <code>CND2 (#43)</code>, <code>CND3 (#44)</code> + <strong><code>MONITOR</code></strong> composite + <strong><code>TMR1</code></strong></td>
+      <td><code>CND1</code> = EQ Tank Low Level; <code>CND2</code> = pH Stabilization; <code>CND3</code> = Discharge pH Out of Range. Inside <code>MONITOR</code>, <strong><code>SENTINEL_MONITOR</code></strong> (<code>SM_AT1/2</code>) watches subordinate <em>device</em> failures (<code>SM_01..17 = True</code>), while <strong><code>HOLD_MONITOR</code></strong> (<code>HM_AT1/2</code>) watches <em>process</em> failure conditions (<code>HM_01 = True</code>, e.g., <code>TMR1</code> 90-min Excessive Treatment Timeout) and trips <code>COMMAND_00000 (HOLD)</code>!</td>
+    </tr>
+    <tr>
+      <td><strong>Pattern 3:<br/>Arbitration &amp; Setpoints</strong></td>
+      <td><code>ACQ_REL (#1)</code> + <code>TP001–TP008</code> + <code>TRT_TNK_PH</code> (<code>AIC002</code>) &amp; <code>TRT_PH_RAMP</code></td>
+      <td><code>ACQ_REL</code> arbitrates EM ownership (<code>OWNER_ID = Operator</code>, <code>HOLD_REQ = True</code> in <code>OFF</code> releases mode locks so operators can run manually). <code>TP001–TP008</code> hold all 8 process setpoints (<code>50%</code>, <code>80%</code>, <code>8 pH</code>, <code>20%</code>, <code>0.7</code>, <code>15%</code>, <code>0.5</code>, <code>2%</code>). <code>AIC002</code> runs split-range Base (<code>OUT1</code>) / Acid (<code>OUT2</code>) pH control with <code>AI02RMP</code>!</td>
+    </tr>
+    <tr>
+      <td><strong>Pattern 4:<br/>CM Command &amp; Feedback</strong></td>
+      <td>19 Bound Shared Devices (<code>DEV1–DEV19</code>, <code>#2–#20</code>)</td>
+      <td>Unwired module blocks parked on the Main FBD sheet. SFC steps write <code>_REQ_MODE</code> (<code>Cascade/</code> or <code>Remote cascade/</code>) and <code>_REQ_SP</code> (<code>START/STOP</code>, <code>OPEN/CLOSE</code>, <code>RECIRC/DRAIN</code>, <code>8 pH</code>), and confirm <code>PV_D</code>, <code>PV_STATE</code> (<code>Confirmed Closed</code>/<code>Stopped</code>), <code>PV</code>, and <code>FAILURE</code>!</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>11.3 Process Flow, 19 Active Devices &amp; 8 Tuning Parameters (<code>TP001–TP008</code>)</h3>
+<div class="diagram-box">
+  <svg viewBox="0 0 690 192" width="100%" height="182" xmlns="http://www.w3.org/2000/svg">
+    <rect width="690" height="192" fill="url(#g_p1)" rx="4"/>
+    <!-- EQ Tank -->
+    <rect x="18" y="34" width="110" height="92" rx="6" fill="#eff6ff" stroke="#1e3a8a" stroke-width="1.6"/>
+    <text x="73" y="52" text-anchor="middle" font-size="8.6" font-weight="800" fill="#0f172a">Equalization</text>
+    <text x="73" y="68" text-anchor="middle" font-size="8.0" font-weight="700" fill="#0369a1" font-family="Consolas, monospace">LI001 (DEV2): 35.6%</text>
+    <text x="73" y="82" text-anchor="middle" font-size="7.4" fill="#334155" font-family="Consolas, monospace">LAHH001 (DEV5)</text>
+    <text x="73" y="96" text-anchor="middle" font-size="7.2" fill="#475569" font-family="Consolas, monospace">In: XV010, XV025</text>
+    <text x="73" y="114" text-anchor="middle" font-size="7.2" font-weight="700" fill="#1e3a8a" font-family="Consolas, monospace">TP001=50% | TP006=15%</text>
+
+    <!-- P01 + XV01 -->
+    <rect x="148" y="84" width="110" height="46" rx="4" fill="#ffffff" stroke="#15803d" stroke-width="1.5"/>
+    <text x="203" y="100" text-anchor="middle" font-size="7.8" font-weight="800" fill="#14532d" font-family="Consolas, monospace">P01 (DEV11) + FAL001</text>
+    <text x="203" y="115" text-anchor="middle" font-size="7.6" fill="#334155" font-family="Consolas, monospace">XV01 (DEV14) 3-Way</text>
+    <line x1="128" y1="104" x2="148" y2="104" stroke="#1e293b" stroke-width="1.8"/>
+    <line x1="258" y1="104" x2="284" y2="104" stroke="#16a34a" stroke-width="2.0"/>
+
+    <!-- Neut Tank -->
+    <rect x="284" y="34" width="126" height="92" rx="6" fill="#f0fdf4" stroke="#0f766e" stroke-width="1.6"/>
+    <text x="347" y="52" text-anchor="middle" font-size="8.6" font-weight="800" fill="#0f172a">Neutralization</text>
+    <text x="347" y="68" text-anchor="middle" font-size="8.0" font-weight="700" fill="#0f766e" font-family="Consolas, monospace">LI002 (DEV3): 85.3%</text>
+    <text x="347" y="82" text-anchor="middle" font-size="7.8" font-weight="700" fill="#15803d" font-family="Consolas, monospace">AI02AVG (DEV18): 7.8pH</text>
+    <text x="347" y="96" text-anchor="middle" font-size="7.4" fill="#334155" font-family="Consolas, monospace">LAHH002 (DEV6)</text>
+    <text x="347" y="114" text-anchor="middle" font-size="7.2" font-weight="700" fill="#115e59" font-family="Consolas, monospace">TP002=80% | TP004=20%</text>
+
+    <!-- AIC002 Split-Range Dosing (top-right) -->
+    <rect x="434" y="14" width="238" height="58" rx="4" fill="#faf5ff" stroke="#9333ea" stroke-width="1.5"/>
+    <text x="553" y="29" text-anchor="middle" font-size="8.2" font-weight="800" fill="#6b21a8" font-family="Consolas, monospace">AIC002 (DEV17) + AI02RMP (DEV19)</text>
+    <text x="553" y="43" text-anchor="middle" font-size="7.6" fill="#1e293b" font-family="Consolas, monospace">SP=8.0 (TP003) • Limits 6–10 • Base(OUT1) / Acid(OUT2)</text>
+    <text x="553" y="58" text-anchor="middle" font-size="7.4" fill="#475569" font-family="Consolas, monospace">Drums: LAL001 Base (DEV8) • LAL002 Acid (DEV9) • TMR1=90m</text>
+    <line x1="434" y1="46" x2="410" y2="46" stroke="#9333ea" stroke-width="1.8"/>
+
+    <!-- P02 + XV05 -> Drain -->
+    <rect x="434" y="84" width="118" height="46" rx="4" fill="#ffffff" stroke="#15803d" stroke-width="1.5"/>
+    <text x="493" y="100" text-anchor="middle" font-size="7.8" font-weight="800" fill="#14532d" font-family="Consolas, monospace">P02 (DEV12) + FAL002</text>
+    <text x="493" y="115" text-anchor="middle" font-size="7.6" fill="#334155" font-family="Consolas, monospace">XV05 (DEV13) 3-Way</text>
+    <line x1="410" y1="104" x2="434" y2="104" stroke="#1e293b" stroke-width="1.8"/>
+
+    <rect x="572" y="84" width="100" height="46" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+    <text x="622" y="99" text-anchor="middle" font-size="8.0" font-weight="800" fill="#14532d" font-family="Consolas, monospace">→ DRAIN</text>
+    <text x="622" y="112" text-anchor="middle" font-size="7.4" fill="#166534" font-family="Consolas, monospace">AI001 (DEV1): 7.8 pH</text>
+    <text x="622" y="124" text-anchor="middle" font-size="7.2" fill="#166534" font-family="Consolas, monospace">TI001 (DEV4): 63.5°F</text>
+    <line x1="552" y1="104" x2="572" y2="104" stroke="#16a34a" stroke-width="2.0"/>
+
+    <!-- Bottom Watchdog Strip -->
+    <rect x="18" y="144" width="654" height="36" rx="4" fill="#fef2f2" stroke="#dc2626" stroke-width="1.3"/>
+    <text x="345" y="159" text-anchor="middle" font-size="8.1" font-weight="800" fill="#991b1b" font-family="Consolas, monospace">ALWAYS-ON PATTERN 2 WATCHDOGS: CND1 (#42 EQ Low) • CND2 (#43 Stable pH) • CND3 (#44 Disch pH Out)</text>
+    <text x="345" y="172" text-anchor="middle" font-size="7.7" fill="#7f1d1d" font-family="Consolas, monospace">MONITOR Composite: SENTINEL_MONITOR (SM_01..17 Device Failures) + HOLD_MONITOR (HM_01 Process Failures) → COMMAND_00000 (HOLD)</text>
+  </svg>
+  <div class="diagram-caption">Figure 11.1: Your Real Plant 3WT-0001-NEUT Process Map — All 19 bound shared devices, 8 active tuning parameters, 3 CND blocks, 90-minute TMR1, and MONITOR watchdog distilled onto one clean sheet.</div>
+</div>
+
+<h3>11.4 Inside <code>MONITOR</code> &amp; <code>TMR1</code> (Demystifying the PCSD Watchdog Composites)</h3>
+<ul>
+  <li><strong><code>MONITOR</code> (<code>EQUIPMENT MODULE FAIL MONITOR</code>, execution <code>#1 → #9</code>):</strong>
+    <ul>
+      <li><strong><code>SM_AT1 (#1)</code> &amp; <code>SM_AT2 (#2)</code> → <code>SENTINEL_MONITOR (#3)</code>:</strong> Monitors up to 32 subordinate <em>device failures</em>. On <code>3WT-0001-NEUT</code>, <code>SM_01–SM_17 = True</code> (watching active devices) and <code>SM_18–SM_32 = False</code>.</li>
+      <li><strong><code>HM_AT1 (#4)</code> &amp; <code>HM_AT2 (#5)</code> → <code>HOLD_MONITOR (#6)</code>:</strong> Monitors up to 32 <em>process failure conditions</em>. On <code>3WT-0001-NEUT</code>, <code>HM_01 = True</code> (watching process failure such as <code>TMR1</code> timeout) and <code>HM_02–HM_32 = False</code>.</li>
+      <li><strong><code>FAIL_EXPRESSION (#7, CALC)</code>:</strong> Reads wired <code>^ACTION_TIMER</code> (<code>IN1</code>) and <code>HH_MM_SS_ENAB</code> (<code>IN2</code>) and drives failure formatting/HOLD execution.</li>
+      <li><strong><code>CANCEL_WAIT (#8)</code> &amp; <code>OAR (#9)</code>:</strong> <code>CANCEL_WAIT</code> lets a Supervisor bypass an active process wait; <code>OAR</code> (containing <code>CALC1 #2</code> + <code>CND1 #1</code> horn timer) handles interactive HMI Operator Action Requests.</li>
+    </ul>
+  </li>
+  <li><strong><code>TMR1</code> (<code>PCSD TIMER COMPOSITE</code> — <code>Excessive Treatment Timer</code>):</strong> Unlike the zero-wire Main FBD sheet, inside <code>TMR1</code> you see classic wired FBD logic: <code>TM_HOLD</code> &amp; <code>TM_RESET</code> wire into <strong><code>TIMER</code> (<code>RET #1</code>)</strong> → <code>ELAPSED_TIMER</code> wires into <strong><code>TM_CALC</code> (<code>CALC #2</code>)</strong> along with <code>TM_SP = 90</code>, <code>TM_EU = Minutes</code>, and <code>HH_MM_SS_ENAB = True</code> → driving <code>TM_COMPLETE</code>, <code>TM_PV</code>, and <code>TM_REMAIN</code> (<code>01:30:00</code>)!</li>
+</ul>
+
+<div class="callout">
+  <div class="callout-title">11.5 What Wasn't in the Photo Set (Exact Spots to Double-Click Next Time!)</div>
+  Your 41 photos captured the entire architecture, hierarchy, device bindings, tuning parameters, SFC topologies, <code>MONITOR</code>, <code>TMR1</code>, and HMI P&amp;ID! If you ever want to see the exact line-by-line expressions inside the remaining four drill-downs at your engineering workstation, double-click: (1) Step <strong><code>S0100</code></strong> (and <code>S0100R</code>) inside <code>TRANSFER</code>, <code>TREAT</code>, and <code>DISCHARGE</code>; (2) <strong><code>CND1</code>, <code>CND2</code>, <code>CND3</code></strong> on the Main FBD sheet; (3) inside <strong><code>ACQ_REL</code></strong>; and (4) Condition #1 inside <strong><code>MONITOR/HM_AT1</code></strong>.
+</div>
+
+<!-- WORKSHOP 12 -->
+<div class="workshop">
+  <div class="workshop-head">
+    <span class="ws-title">Workshop 12: Decoding &amp; Troubleshooting Your Real <code>3WT-0001-NEUT</code> PCSD EM</span>
+    <span class="ws-badge">Hands-On Lab • 7 Min</span>
+  </div>
+  <div class="workshop-body">
+    <div class="workshop-setup">
+      <strong>Setup:</strong> In <strong>Visual Explorer</strong>, switch the top-left module dropdown to <code>3WT-0001-NEUT (Real Plant PCSD EM — Ch. 11)</code> and click <strong>Reset EM</strong> (starts at your exact HMI screenshot: <code>OFF</code>, <code>LI001 = 35.6%</code>, <code>LI002 = 85.3%</code>, <code>pH = 7.8</code>).
+    </div>
+    <ol>
+      <li><strong>Lab A — Strip Away PCSD Clutter &amp; Spot All 4 Patterns:</strong> Switch to Tab <strong>2. Main FBD (Zero-Wire PCSD)</strong>. Look at the greyed-out <code>DEV20–DEV32</code> block at the bottom—then click <strong>Stubs: Shown</strong> in the top bar so it flips to <strong>Stubs: HIDDEN ✓</strong>! Next click <strong>🔍 4-Pattern Lens</strong> in the top-right corner of the diagram to see how Patterns 2, 3, and 4 map onto a zero-wire PCSD sheet.</li>
+      <li><strong>Lab B — Walk the Full Neutralization Cycle (<code>TRANSFER → TREAT → DISCHARGE</code>):</strong> Switch back to Tab <strong>1. P&amp;ID &amp; Command SFC</strong>.
+        <ul>
+          <li>Drag <strong>LI001 (EQ)</strong> to <code>60%</code> and <strong>LI002 (Neut)</strong> to <code>40%</code>, then click <strong>TRANSFER</strong>—watch <code>P01</code> run, <code>XV01</code> swing to <code>TRANSFER</code>, and note how <code>S0100</code> is the real work step inside the PCSD SFC!</li>
+          <li>Drag <strong>pH</strong> down to <code>5.0</code> and click <strong>TREAT</strong>—watch <code>AIC002</code> switch from purple <code>LO</code> to green <code>RCAS</code>, pumping <strong>Base (<code>OUT1</code>)</strong> into the Neutralization Tank while <code>P02</code> recirculates! Now drag <strong>pH</strong> to <code>8.0</code> and watch dosing settle to <code>0%</code> and <code>CND2</code> turn True on Tab 2.</li>
+          <li>Click <strong>DISCHARGE</strong>—watch <code>XV05</code> swing to <code>DRAIN</code>. Now drag <strong>pH</strong> out of spec to <code>11.0</code>—watch <code>CND3</code> (Discharge pH Out of Range) immediately trip the EM to <strong><code>HOLD</code></strong>!</li>
+        </ul>
+      </li>
+      <li><strong>Lab C — Sentinel Monitor vs. Hold Monitor (Tab 3):</strong> Click <strong>Reset EM</strong>, click <strong>TREAT</strong>, and open Tab <strong>3. MONITOR &amp; TMR1 Watchdogs</strong>. First click <strong>Sentinel: OK</strong> → <strong>Sentinel: TRIP!</strong> (simulating <code>P02</code>/<code>XV05</code> device failure) to see <code>SENTINEL_MONITOR (#3)</code> fire <code>HOLD</code>. Restore Sentinel, then click <strong>TMR1: 0/90m</strong> → <strong>TMR1: 90m TRIP!</strong> to see wired <code>TIMER (RET #1) → TM_CALC (#2)</code> set <code>TM_COMPLETE = True</code> and trip <code>HOLD_MONITOR (#6)</code>!</li>
+    </ol>
+    <div class="workshop-takeaway">
+      <strong>What You Are Supposed to Learn From This Workshop:</strong> Real PCSD modules look ten times bigger than they actually are because of empty template slots (<code>DEV20–32</code>, <code>CMD6–10</code>, <code>TMR2–8</code>, unused <code>OP/TP</code>s). Ignore the unbound stubs, jump straight to <strong><code>S0100</code></strong> for process logic, check <strong><code>CND1–3</code></strong> for timed conditions, and check <strong><code>MONITOR</code></strong> (<code>SENTINEL</code> = device fault vs. <code>HOLD</code> = process fault) for trips!
+    </div>
+  </div>
+</div>
+
+<!-- =====================================================================
      FUNCTION BLOCK DEEP-DIVE FIELD GUIDE (ALL ACTIVE BLOCKS)
      ===================================================================== -->
 <h2 class="page-break">Field Guide: Function Block Deep-Dive — The 6 Active Blocks in Our Modules</h2>
@@ -2000,7 +2185,7 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
 <!-- =====================================================================
      APPENDIX B: MASTERY SELF-EXAM
      ===================================================================== -->
-<h2>Appendix B: Control Studio Mastery Check (Chapters 1–10)</h2>
+<h2>Appendix B: Control Studio Mastery Check (Chapters 1–11)</h2>
 <ol>
   <li>In Control Studio On-Line, what does a <strong>dashed connection wire</strong> actually mean—and why does reversing badges so <code>CND3</code> is <code>#1</code> and <code>CALC1</code> is <code>#2</code> cause batch weight overshoot?</li>
   <li>Inside <code>EM_TANK_CHARGE</code>, which of the 4 patterns steps through time, and what are the other 3 patterns doing while the EM sits in <code>S0_IDLE</code>?</li>
@@ -2018,6 +2203,8 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
   <li>In a Temperature-to-Flow Cascade (<code>TIC_201 → FIC_201 → AO_VLV</code>), an operator puts <code>AO_VLV</code> into <code>MAN</code> at 45%. What happens to <code>PID_FIC</code> and <code>PID_TIC</code>, and why won't the valve bump when <code>AO_VLV</code> returns to <code>CAS</code>?</li>
   <li>Why must a High-Pressure Override loop use DeltaV's <code>CTLSL</code> block instead of <code>XFR</code> or <code>ISEL</code>—and what happens to <code>CTLSL</code> if one of its connected <code>SEL_1..3</code> inputs goes <code>Bad</code>?</li>
   <li>How do you force a <code>PID</code> block to slam a control valve to <code>0%</code> on a safety trip—even if an operator has the PID in <code>MAN</code>—and what mode must the PID be in to edit <code>CONTROL_OPTS</code>?</li>
+  <li>On your plant's real <code>3WT-0001-NEUT</code> PCSD Main FBD sheet, why are there <strong>zero wires</strong>—and why don't the 13 greyed-out <code>DEV20–DEV32</code> blocks showing <code>FAILURE = True</code> trip the Equipment Module?</li>
+  <li>Inside <code>3WT-0001-NEUT/MONITOR</code>, what is the difference between <code>SENTINEL_MONITOR</code> (<code>SM_AT1/2</code>) and <code>HOLD_MONITOR</code> (<code>HM_AT1/2</code>), and which step inside a PCSD Run SFC holds the actual process work?</li>
 </ol>
 
 <div class="callout good">
@@ -2037,12 +2224,14 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
   <p style="margin-bottom:4px;"><strong>13.</strong> Follow the gray dotted <code>BKCAL_IN</code> wire <em>downstream</em> to <code>AO1</code>: <code>AO1</code> is out of <code>CAS</code> (in <code>MAN</code> or <code>OOS</code>) and is sending its current valve position + <code>Not Invited</code> (or <code>Bad: OOS</code>) backwards on <code>BKCAL_OUT</code> so <code>PID1</code> tracks bumplessly in <code>IMan</code>!</p>
   <p style="margin-bottom:4px;"><strong>14.</strong> <code>Not Invited</code> ripples backwards up <em>both</em> gray dotted <code>BKCAL</code> wires: <strong>both</strong> Slave <code>PID_FIC</code> and Master <code>PID_TIC</code> drop to <code>IMan</code> and track current valve/flow values, so returning <code>AO_VLV</code> to <code>CAS</code> is 100% bumpless with zero windup.</p>
   <p style="margin-bottom:4px;"><strong>15.</strong> <code>CTLSL</code> provides individual <code>BKCAL_SEL1..3</code> back-calculation wires back to every upstream PID so unselected PIDs stay windup-free (<em>FBR</em> p. 186). If any connected <code>SEL_1..3</code> input goes <code>Bad</code> while in <code>Auto</code>, <code>CTLSL</code> automatically sheds its actual mode to <code>Man</code> (<em>FBR</em> p. 187).</p>
-  <p style="margin:0;"><strong>16.</strong> Wire the trip into <code>PID1/TRK_IN_D</code> with <code>TRK_VAL = 0.0%</code> and enable both <code>Track Enable</code> and <code>Track in Manual</code> in <code>CONTROL_OPTS</code> (forcing <code>MODE.ACTUAL = LO</code> — <em>FBR</em> p. 234). <code>CONTROL_OPTS</code> can only be changed while the PID is in <strong><code>OOS</code></strong> mode!</p>
+  <p style="margin-bottom:4px;"><strong>16.</strong> Wire the trip into <code>PID1/TRK_IN_D</code> with <code>TRK_VAL = 0.0%</code> and enable both <code>Track Enable</code> and <code>Track in Manual</code> in <code>CONTROL_OPTS</code> (forcing <code>MODE.ACTUAL = LO</code> — <em>FBR</em> p. 234). <code>CONTROL_OPTS</code> can only be changed while the PID is in <strong><code>OOS</code></strong> mode!</p>
+  <p style="margin-bottom:4px;"><strong>17.</strong> PCSD templates park all 32 shared device blocks, tuning parameters, <code>ACQ_REL</code>, and <code>CND1–3</code> unwired on the Main FBD sheet and drive/read them inside SFC step expressions and <code>MONITOR</code>. <code>DEV20–DEV32</code> are unbound <code>&lt;Ignored&gt;</code> template stubs whose sentinel masks (<code>SM_18–SM_32</code>) are set <code>False</code> inside <code>MONITOR</code>, so they never trip the EM.</p>
+  <p style="margin:0;"><strong>18.</strong> <code>SENTINEL_MONITOR</code> watches subordinate <strong>device failures</strong> (<code>SM_01–SM_17 = True</code>), while <code>HOLD_MONITOR</code> watches <strong>process failure conditions</strong> (<code>HM_01 = True</code>, e.g., <code>TMR1</code> 90-min timeout). Inside any PCSD Run SFC, <code>S0000/S0010/S0020</code> and <code>S9900</code> are boilerplate startup/cleanup—<strong><code>S0100</code></strong> (and <code>S0100R</code>/<code>S0200</code>) holds the actual process work!</p>
 </div>
 
 <div class="footer-note">
   <span>Emerson DeltaV Control Studio — Complete Study Textbook &amp; Workshop Manual</span>
-  <span>Edition v3.0 (Verified vs. Official Emerson Docs • Chapters 1–10 + 11 Labs • 5 Interactive Modules) • Paired with Visual Explorer</span>
+  <span>Edition v3.1 (Verified vs. Emerson Docs + Real Plant 3WT-0001-NEUT • Ch. 1–11 + 12 Labs • 6 Modules)</span>
 </div>
 
 </body>

@@ -1,6 +1,6 @@
 ================================================================================
 DELTAV CONTROL STUDIO MASTERY — PROGRESS & MISSION TRACKER
-Last Updated: 2026-11-23 (Edition v3.0 — Continuous & Discrete Control Studio Mastery)
+Last Updated: 2026-11-23 (Edition v3.1 — Includes Real Plant PCSD EM 3WT-0001-NEUT)
 Repository:   https://github.com/siPyt/visualExplorer.git
 ================================================================================
 
@@ -14,18 +14,17 @@ engineer in the room — with zero made-up syntax and zero guessing.
 HOW THIS WORKSPACE OPERATES
 ---------------------------
 1. Visual Explorer (index.html — launch anytime by typing 'run' in terminal):
-   Interactive visual Control Studio trainer with 5 selectable modules:
+   Interactive visual Control Studio trainer with 6 selectable modules:
    EM_TANK_CHARGE, EM_XFER_HDR, EM_2STAGE_VLV, FIC_101 (PID + BKCAL + Tracking),
-   and CASCADE_201 (Master-Slave Cascade + CTLSL Low-Select Override). Uses
-   authentic Control Studio geometry, gray dotted feedback wires, and purple
-   dashed learning-only expression-ref pointers.
+   CASCADE_201 (Master-Slave Cascade + CTLSL Override), and 3WT-0001-NEUT (Real
+   Plant PCSD Process Waste Neutralization EM with 'Hide Stubs' & 4-Pattern Lens).
 2. Expression Forge (ex.html — launch anytime by typing 'run ex' in terminal):
    Web & mobile-ready interactive DeltaV Structured Text expression & parameter
    trainer (Decode Cold, Forge Builder, 2 AM Bug Hunt, and On-Line Expression
    Tree Evaluator).
-3. Textbook & Lab Manual (DeltaV_Study_Guide.pdf — Edition v3.0):
-   Full in-depth native DeltaV lessons (Chapters 1–10), 6-block FBR Field Guide,
-   pin-by-pin schematics, real-plant traps, and 11 complete step-by-step Visual
+3. Textbook & Lab Manual (DeltaV_Study_Guide.pdf — Edition v3.1):
+   Full in-depth native DeltaV lessons (Chapters 1–11), 6-block FBR Field Guide,
+   pin-by-pin schematics, real-plant traps, and 12 complete step-by-step Visual
    Explorer workshops (launch via 'run guide' or 'run pdf').
 4. Verified Truth Source (DELTAV_VERIFIED_FACTS.md + pdf reference/):
    Every Control Studio fact cited by exact PDF + page number across 12 official
@@ -88,14 +87,19 @@ HOW THIS WORKSPACE OPERATES
          redundant sensor selector (MAX/MIN/MID/FIRST_GOOD/AVG), Embedded vs.
          Linked Composites, and 5-module Cold-Read Readiness Challenge.
 
+[DONE] Ch. 11 + Workshop 12 — Real Plant PCSD Case Study (3WT-0001-NEUT)
+       - Decoded 41 live screenshots of N1EAST/BUFFER_PREP/PW_NEUT/3WT-0001-NEUT
+         (_EM_CMD32_140): 6/11 commands, 19/32 shared devices, 1/8 timers (TMR1
+         90m), 8/40 TPs (TP001–TP008), zero-wire Main FBD, ACQ_REL, CND1–CND3,
+         MONITOR (SENTINEL_MONITOR SM_01..17 + HOLD_MONITOR HM_01 + OAR +
+         CANCEL_WAIT), and split-range pH control (AIC002 + AI02RMP).
+
 ================================================================================
 2. WHERE WE ARE RIGHT NOW
 ================================================================================
-- Completed Edition v3.0 Continuous & Discrete Control Studio Mastery update
-  (steering clear of Batch per site requirements!): Chapters 1–10, 11 Workshops,
-  6-Block FBR Deep-Dive Field Guide, 16-question Mastery Exam, and 5 interactive
-  Visual Explorer modules (EM_TANK_CHARGE, EM_XFER_HDR, EM_2STAGE_VLV, FIC_101,
-  CASCADE_201).
+- Completed Edition v3.1 incorporating your real plant Process Waste
+  Neutralization EM (3WT-0001-NEUT) into both Visual Explorer (Module 6) and
+  the Study Guide PDF (Chapter 11 + Workshop 12 + Mastery Exam Q17–Q18).
 
 ================================================================================
 3. WHAT WE HOPE TO ACCOMPLISH (CONTROL STUDIO MASTERY ROADMAP — NON-BATCH FOCUS)

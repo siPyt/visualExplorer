@@ -621,6 +621,7 @@
         <option value="twostage">EM_2STAGE_VLV (State-Driven 2-Stage — 7016)</option>
         <option value="pid">FIC_101 (Analog PID + BKCAL &amp; Track — Ch. 8 &amp; 10)</option>
         <option value="cascade">CASCADE_201 (Cascade + CTLSL Override — Ch. 9)</option>
+        <option value="pwneut">3WT-0001-NEUT (Real Plant PCSD EM — Ch. 11)</option>
       </select>
       <span id="algPill" class="alg-pill">Algorithm: Command-Driven</span>
     </div>
@@ -816,6 +817,40 @@
   </div>
 </div>
 
+<!-- Sim Bar 6: 3WT-0001-NEUT (Real Plant PCSD Process Waste Neutralization EM — Ch. 11) -->
+<div class="sim-bar hidden" id="simBarPwNeut">
+  <div class="sim-group">
+    <span class="sim-label">A_PV</span>
+    <span id="pwStatusPill" class="state-pill state-IDLE">OFF</span>
+    <span class="sim-label" style="margin-left:4px;">Cmd:</span>
+    <button class="sim-btn selected-cmd pw-cmd-btn" data-pwcmd="OFF">OFF</button>
+    <button class="sim-btn pw-cmd-btn" data-pwcmd="IDLE">IDLE</button>
+    <button class="sim-btn pw-cmd-btn" data-pwcmd="TRANSFER">TRANSFER</button>
+    <button class="sim-btn pw-cmd-btn" data-pwcmd="TREAT">TREAT</button>
+    <button class="sim-btn pw-cmd-btn" data-pwcmd="DISCHARGE">DISCHARGE</button>
+    <button class="sim-btn warn pw-cmd-btn" data-pwcmd="HOLD">HOLD</button>
+  </div>
+
+  <div class="sim-group">
+    <span class="sim-label">LI001 (EQ)</span>
+    <input type="range" id="pwEqLvlSlider" class="wt-slider" min="5" max="95" step="1" value="36" />
+    <span id="pwEqLvlLbl" style="font-family:monospace;font-weight:700;">36%</span>
+    <span class="sim-label" style="margin-left:5px;">LI002 (Neut)</span>
+    <input type="range" id="pwTrtLvlSlider" class="wt-slider" min="5" max="95" step="1" value="85" />
+    <span id="pwTrtLvlLbl" style="font-family:monospace;font-weight:700;">85%</span>
+    <span class="sim-label" style="margin-left:5px;">pH (SP=8)</span>
+    <input type="range" id="pwPhSlider" class="wt-slider" min="3.0" max="12.5" step="0.2" value="7.8" />
+    <span id="pwPhLbl" style="font-family:monospace;font-weight:700;">7.8</span>
+  </div>
+
+  <div class="sim-group">
+    <button class="sim-btn" id="btnPwHideStubs" title="Hide unused PCSD template slots (DEV20-32, CMD6-10, TMR2-8) to cut visual clutter!">Stubs: Shown</button>
+    <button class="sim-btn" id="btnPwSentinel" title="Fault P02/XV05 to trip SENTINEL_MONITOR (SM_AT1) → forces HOLD">Sentinel: OK</button>
+    <button class="sim-btn" id="btnPwTmr1" title="Trip TMR1 (90-min Excessive Treatment Timer) → HM_01 HOLD_MONITOR → HOLD">TMR1: 0/90m</button>
+    <button class="sim-btn" id="btnPwReset">Reset EM</button>
+  </div>
+</div>
+
 <div class="diag-banner" id="diagBanner">
   <span id="diagText">Ready. Click any block, state, SFC step, transition, or margin flag to inspect its DeltaV path and plain-English role.</span>
   <div class="diag-metrics" id="diagMetrics"></div>
@@ -945,6 +980,11 @@ const MODULE_TABS = {
   cascade: [
     { id: "cas1", label: "1. Master → Slave Cascade", kind: "FBD", defaultSel: "CAS_FIC_BLK" },
     { id: "cas2", label: "2. CTLSL Low-Select Override", kind: "FBD", defaultSel: "CAS_CTLSL_BLK" }
+  ],
+  pwneut: [
+    { id: "pw1", label: "1. P&ID & Command SFC", kind: "SFC + P&ID", defaultSel: "PW_SFC_ACTIVE" },
+    { id: "pw2", label: "2. Main FBD (Zero-Wire PCSD)", kind: "FBD", defaultSel: "PW_CND_BOX" },
+    { id: "pw3", label: "3. MONITOR & TMR1 Watchdogs", kind: "COMPOSITE", defaultSel: "PW_MONITOR_SM" }
   ]
 };
 
@@ -1039,7 +1079,16 @@ const state = {
   casTempPv: 176,                 // °C (SP = 180 °C)
   casPressPv: 6.5,                // bar (Override SP = 8.5 bar)
   casValveClamp: false,           // AO1 saturated @ 100% HI-LIM
-  casPressSt: "GOOD"              // GOOD | BAD (Bad sheds CTLSL1 to MAN — FBR p187)
+  casPressSt: "GOOD",             // GOOD | BAD (Bad sheds CTLSL1 to MAN — FBR p187)
+
+  // Module 6: 3WT-0001-NEUT (Real Plant PCSD Process Waste Neutralization EM — Ch. 11)
+  pwCmd: "OFF",                   // OFF | IDLE | TRANSFER | TREAT | DISCHARGE | HOLD
+  pwEqLvl: 35.6,                  // 3WT-0001-LI001 (%) — TP001=50% min start, TP006=15% low stop
+  pwTrtLvl: 85.3,                 // 3WT-0001-LI002 (%) — TP002=80% xfer target, TP004=20% min disch
+  pwPh: 7.8,                      // 3WT-0001-AI001 / AI02AVG (pH) — TP003=8.0 SP, 6.0-10.0 window
+  pwHideStubs: false,             // Toggle hiding unused PCSD stubs (DEV20-32, CMD6-10, TMR2-8)
+  pwSentinelTrip: false,          // Simulates P02/XV05 device failure -> SENTINEL_MONITOR -> HOLD
+  pwTmr1Trip: false               // Simulates TMR1 90-min Excessive Treatment Timeout -> HM_01 -> HOLD
 };
 
 function computeChargeDerived() {
@@ -1358,6 +1407,55 @@ function computeCascadeDerived() {
     aoBkcalStatus, ficBkcalStatus,
     pressBad, flowPidOut, pressPidOut, ctlslActual, overrideActive, ctlslOut,
     sel1Bkcal, sel2Bkcal, pill, pillCls
+  };
+}
+
+function computePwNeutDerived() {
+  // Real plant tuning parameters from IMG_1122 & IMG_1123 (3WT-0001-NEUT):
+  // TP001=50% (EQ start min), TP002=80% (Neut target), TP003=8.0 pH (SP),
+  // TP004=20% (Neut min disch), TP005=0.7 (Stable pH ROC), TP006=15% (EQ stop min)
+  const cnd1EqLow = state.pwEqLvl <= 15.0;                     // CND1 (#42): TRANSFER EQ Tank Low Level Condition
+  const phInRange = state.pwPh >= 6.0 && state.pwPh <= 10.0;   // AIC002 SP_LO_LIM=6, SP_HI_LIM=10
+  const cnd2Stable = Math.abs(state.pwPh - 8.0) <= 0.7;        // CND2 (#43): Stabilization Conditions (near TP003=8.0, TP005=0.7)
+  const cnd3PhOut = !phInRange;                                // CND3 (#44): Discharge pH Out of Range Condition
+
+  const sentinelFault = state.pwSentinelTrip;                  // SM_AT1/SM_AT2 -> SENTINEL_MONITOR (#3)
+  const holdMonFault = state.pwTmr1Trip || (state.pwCmd === "DISCHARGE" && cnd3PhOut); // HM_AT1 -> HOLD_MONITOR (#6)
+  const anyFailure = sentinelFault || holdMonFault;
+
+  const activeCmd = anyFailure ? "HOLD" : state.pwCmd;
+  const holdReq = (activeCmd === "OFF" || activeCmd === "HOLD"); // IMG_1114: HOLD_REQ = True in OFF!
+
+  // Equipment states driven by active command (real tags from IMG_1118-1121 & IMG_1154!)
+  const p01Run = activeCmd === "TRANSFER" && !cnd1EqLow && state.pwTrtLvl < 80.0;
+  const xv01Pos = p01Run ? "TRANSFER" : "RECIRC";
+  const p02Run = (activeCmd === "TREAT") || (activeCmd === "DISCHARGE" && state.pwTrtLvl > 20.0 && phInRange);
+  const xv05Pos = (activeCmd === "DISCHARGE" && p02Run) ? "DRAIN" : "RECIRC";
+
+  // AIC002 split-range pH dosing (OUT1 = Base when pH < 8, OUT2 = Acid when pH > 8, TRK_VAL = 50% neutral)
+  let aicMode = activeCmd === "TREAT" ? "RCAS" : "LO";
+  let baseDose = 0, acidDose = 0;
+  if (activeCmd === "TREAT") {
+    if (state.pwPh < 7.8) baseDose = Math.min(100, Math.round((8.0 - state.pwPh) * 28));
+    else if (state.pwPh > 8.2) acidDose = Math.min(100, Math.round((state.pwPh - 8.0) * 28));
+  }
+
+  const failMsg = sentinelFault
+    ? "3WT-0001-NEUT FAILURE : SM_12/13 (TRT_PMP P02 / DISCH_VLV XV05)!"
+    : state.pwTmr1Trip
+      ? "3WT-0001-NEUT FAILURE : HM_01 (TMR1 90-Min Excessive Treatment Timeout)!"
+      : (state.pwCmd === "DISCHARGE" && cnd3PhOut)
+        ? `3WT-0001-NEUT FAILURE : CND3 Discharge pH Out of Range (${state.pwPh.toFixed(1)} pH)!`
+        : "3WT-0001-NEUT FAILURE : (None)";
+
+  let pill = activeCmd;
+  let pillCls = activeCmd === "HOLD" ? "state-FAILED" : (activeCmd === "OFF" || activeCmd === "IDLE" ? "state-IDLE" : "state-ALIGNED");
+
+  return {
+    cnd1EqLow, phInRange, cnd2Stable, cnd3PhOut,
+    sentinelFault, holdMonFault, anyFailure, activeCmd, holdReq,
+    p01Run, xv01Pos, p02Run, xv05Pos, aicMode, baseDose, acidDose,
+    failMsg, pill, pillCls
   };
 }
 
@@ -3448,9 +3546,400 @@ function renderCascadeTab2(vp, cas) {
 }
 
 // =========================================================================
+// 4F. RENDERERS FOR MODULE 6: 3WT-0001-NEUT (REAL PLANT PCSD EM — CH. 11)
+// =========================================================================
+function renderPwTab1(vp, pw) {
+  // Left Half: Process Waste Neutralization Live P&ID (mirroring IMG_1154.jpeg!)
+  drawSectionStrip(vp, 18, 14, 520, 344, "PROCESS WASTE NEUTRALIZATION P&ID (3WT-0001-NEUT — IMG_1154)", "#0f766e");
+
+  // Equalization Tank
+  const eqG = el("g", { class: "clickable", "data-id": "PW_EQ_TANK" });
+  eqG.appendChild(el("rect", { x: 38, y: 74, width: 122, height: 146, rx: 10, fill: "#f8fafc", stroke: "#334155", "stroke-width": 2 }));
+  const eqH = Math.round((state.pwEqLvl / 100) * 124);
+  eqG.appendChild(el("rect", { x: 40, y: 218 - eqH, width: 118, height: eqH, rx: 6, fill: pw.cnd1EqLow ? "#fde68a" : "#bae6fd" }));
+  eqG.appendChild(el("text", { x: 99, y: 94, "text-anchor": "middle", "font-size": 10.5, "font-weight": 800, fill: "#0f172a" }, "Equalization"));
+  eqG.appendChild(el("text", { x: 99, y: 112, "text-anchor": "middle", "font-size": 10, "font-weight": 800, fill: "#0369a1", "font-family": "ui-monospace, monospace" }, `LI001: ${state.pwEqLvl.toFixed(1)}%`));
+  eqG.appendChild(el("text", { x: 99, y: 128, "text-anchor": "middle", "font-size": 8.6, fill: "#475569", "font-family": "ui-monospace, monospace" }, "TP001:50% | TP006:15%"));
+  eqG.appendChild(el("text", { x: 99, y: 210, "text-anchor": "middle", "font-size": 8.6, "font-weight": 700, fill: "#14532d", "font-family": "ui-monospace, monospace" }, "LAHH001: Normal"));
+  vp.appendChild(eqG);
+
+  // P01 Pump & XV01 3-way Valve
+  const p01G = el("g", { class: "clickable", "data-id": "PW_P01_XV01" });
+  p01G.appendChild(el("circle", { cx: 100, cy: 266, r: 17, fill: pw.p01Run ? "#22c55e" : "#cbd5e1", stroke: "#1e293b", "stroke-width": 1.8 }));
+  p01G.appendChild(el("text", { x: 100, y: 270, "text-anchor": "middle", "font-size": 9.5, "font-weight": 800, fill: pw.p01Run ? "#fff" : "#0f172a", "font-family": "ui-monospace, monospace" }, "P01"));
+  p01G.appendChild(el("rect", { x: 158, y: 248, width: 78, height: 34, rx: 4, fill: pw.xv01Pos === "TRANSFER" ? "#dcfce7" : "#f1f5f9", stroke: pw.holdReq ? "#9333ea" : "#334155", "stroke-width": 1.8 }));
+  p01G.appendChild(el("text", { x: 197, y: 263, "text-anchor": "middle", "font-size": 9.2, "font-weight": 800, fill: "#0f172a", "font-family": "ui-monospace, monospace" }, "XV01 (3-Way)"));
+  p01G.appendChild(el("text", { x: 197, y: 276, "text-anchor": "middle", "font-size": 8.6, "font-weight": 700, fill: pw.xv01Pos === "TRANSFER" ? "#15803d" : "#475569", "font-family": "ui-monospace, monospace" }, pw.xv01Pos));
+  vp.appendChild(p01G);
+
+  // Pipes EQ -> P01 -> XV01 -> Neut
+  drawWire(vp, [[100, 220], [100, 249]], { active: pw.p01Run });
+  drawWire(vp, [[117, 266], [158, 266]], { active: pw.p01Run });
+  drawWire(vp, [[236, 266], [268, 266], [268, 194]], { active: pw.xv01Pos === "TRANSFER" });
+
+  // Neutralization Tank
+  const trtG = el("g", { class: "clickable", "data-id": "PW_TRT_TANK" });
+  trtG.appendChild(el("rect", { x: 256, y: 74, width: 138, height: 146, rx: 10, fill: "#f8fafc", stroke: "#334155", "stroke-width": 2 }));
+  const trtH = Math.round((state.pwTrtLvl / 100) * 124);
+  trtG.appendChild(el("rect", { x: 258, y: 218 - trtH, width: 134, height: trtH, rx: 6, fill: pw.phInRange ? "#bbf7d0" : "#fecaca" }));
+  trtG.appendChild(el("text", { x: 325, y: 94, "text-anchor": "middle", "font-size": 10.5, "font-weight": 800, fill: "#0f172a" }, "Neutralization"));
+  trtG.appendChild(el("text", { x: 325, y: 112, "text-anchor": "middle", "font-size": 10, "font-weight": 800, fill: "#0369a1", "font-family": "ui-monospace, monospace" }, `LI002: ${state.pwTrtLvl.toFixed(1)}%`));
+  trtG.appendChild(el("text", { x: 325, y: 128, "text-anchor": "middle", "font-size": 9.8, "font-weight": 800, fill: pw.phInRange ? "#15803d" : "#b91c1c", "font-family": "ui-monospace, monospace" }, `AI02AVG: ${state.pwPh.toFixed(1)} pH`));
+  trtG.appendChild(el("text", { x: 325, y: 144, "text-anchor": "middle", "font-size": 8.4, fill: "#475569", "font-family": "ui-monospace, monospace" }, "TP002:80% | TP004:20%"));
+  vp.appendChild(trtG);
+
+  // AIC002 + Acid / Base Dosing Box (top-right of P&ID)
+  const aicG = el("g", { class: "clickable", "data-id": "PW_AIC002" });
+  aicG.appendChild(el("rect", { x: 406, y: 50, width: 122, height: 118, rx: 5, fill: pw.aicMode === "RCAS" ? "#f0fdf4" : "#faf5ff", stroke: pw.aicMode === "RCAS" ? "#16a34a" : "#9333ea", "stroke-width": 1.8 }));
+  aicG.appendChild(el("text", { x: 467, y: 67, "text-anchor": "middle", "font-size": 9.5, "font-weight": 800, fill: "#0f172a", "font-family": "ui-monospace, monospace" }, "3WT-0001-AIC002"));
+  aicG.appendChild(el("text", { x: 467, y: 83, "text-anchor": "middle", "font-size": 9.2, "font-weight": 800, fill: pw.aicMode === "RCAS" ? "#15803d" : "#7e22ce", "font-family": "ui-monospace, monospace" }, `MODE: ${pw.aicMode} | SP: 8.0`));
+  aicG.appendChild(el("text", { x: 467, y: 100, "text-anchor": "middle", "font-size": 9.0, fill: "#1e293b", "font-family": "ui-monospace, monospace" }, `Base OUT1: ${pw.baseDose}%`));
+  aicG.appendChild(el("text", { x: 467, y: 116, "text-anchor": "middle", "font-size": 9.0, fill: "#1e293b", "font-family": "ui-monospace, monospace" }, `Acid OUT2: ${pw.acidDose}%`));
+  aicG.appendChild(el("text", { x: 467, y: 134, "text-anchor": "middle", "font-size": 8.4, fill: "#475569", "font-family": "ui-monospace, monospace" }, "Ramp: AI02RMP"));
+  aicG.appendChild(el("text", { x: 467, y: 152, "text-anchor": "middle", "font-size": 8.4, fill: "#475569", "font-family": "ui-monospace, monospace" }, "LAL001/002: Normal"));
+  vp.appendChild(aicG);
+  drawWire(vp, [[406, 108], [394, 108]], { active: pw.baseDose > 0 || pw.acidDose > 0 });
+
+  // P02 Pump, XV05 3-way Valve & Drain (AI001 / TI001)
+  const p02G = el("g", { class: "clickable", "data-id": "PW_P02_XV05" });
+  p02G.appendChild(el("circle", { cx: 325, cy: 266, r: 17, fill: pw.sentinelFault ? "#dc2626" : (pw.p02Run ? "#22c55e" : "#cbd5e1"), stroke: "#1e293b", "stroke-width": 1.8 }));
+  p02G.appendChild(el("text", { x: 325, y: 270, "text-anchor": "middle", "font-size": 9.5, "font-weight": 800, fill: (pw.p02Run || pw.sentinelFault) ? "#fff" : "#0f172a", "font-family": "ui-monospace, monospace" }, "P02"));
+  p02G.appendChild(el("rect", { x: 376, y: 248, width: 78, height: 34, rx: 4, fill: pw.sentinelFault ? "#fee2e2" : (pw.xv05Pos === "DRAIN" ? "#dcfce7" : "#f1f5f9"), stroke: pw.sentinelFault ? "#dc2626" : "#334155", "stroke-width": 1.8 }));
+  p02G.appendChild(el("text", { x: 415, y: 263, "text-anchor": "middle", "font-size": 9.2, "font-weight": 800, fill: "#0f172a", "font-family": "ui-monospace, monospace" }, "XV05 (3-Way)"));
+  p02G.appendChild(el("text", { x: 415, y: 276, "text-anchor": "middle", "font-size": 8.6, "font-weight": 700, fill: pw.xv05Pos === "DRAIN" ? "#15803d" : "#475569", "font-family": "ui-monospace, monospace" }, pw.xv05Pos));
+  p02G.appendChild(el("rect", { x: 468, y: 242, width: 62, height: 46, rx: 4, fill: pw.cnd3PhOut ? "#fee2e2" : "#f0fdf4", stroke: pw.cnd3PhOut ? "#dc2626" : "#16a34a" }));
+  p02G.appendChild(el("text", { x: 499, y: 257, "text-anchor": "middle", "font-size": 8.6, "font-weight": 800, fill: "#0f172a", "font-family": "ui-monospace, monospace" }, "→ DRAIN"));
+  p02G.appendChild(el("text", { x: 499, y: 271, "text-anchor": "middle", "font-size": 8.4, "font-weight": 700, fill: pw.cnd3PhOut ? "#b91c1c" : "#15803d", "font-family": "ui-monospace, monospace" }, `${state.pwPh.toFixed(1)} pH`));
+  p02G.appendChild(el("text", { x: 499, y: 283, "text-anchor": "middle", "font-size": 7.8, fill: "#475569", "font-family": "ui-monospace, monospace" }, "63.5 °F"));
+  vp.appendChild(p02G);
+  drawWire(vp, [[325, 220], [325, 249]], { active: pw.p02Run, fault: pw.sentinelFault });
+  drawWire(vp, [[342, 266], [376, 266]], { active: pw.p02Run, fault: pw.sentinelFault });
+  drawWire(vp, [[454, 266], [468, 266]], { active: pw.xv05Pos === "DRAIN", fault: pw.cnd3PhOut && state.pwCmd === "DISCHARGE" });
+
+  // Bottom-Left: Command State Table (mirroring IMG_1111 / IMG_1113!)
+  drawSectionStrip(vp, 18, 370, 520, 174, "COMMAND STATE TABLE (IMG_1111) — 6 ENABLED COMMANDS + 5 EMPTY SHELLS", "#1e3a8a");
+  const cmds = [
+    ["COMMAND_00000", "HOLD",      true],
+    ["COMMAND_00001", "IDLE",      true],
+    ["COMMAND_00002", "TRANSFER",  true],
+    ["COMMAND_00003", "TREAT",     true],
+    ["COMMAND_00004", "DISCHARGE", true],
+    ["COMMAND_00005", "OFF",       true],
+    ["CMD00006–00010", "CMD6–CMD10 (Disabled Shells)", false]
+  ];
+  cmds.forEach(([blk, nm, en], i) => {
+    if (!en && state.pwHideStubs) return;
+    const cy = 402 + i * 20;
+    const isAct = en && pw.activeCmd === nm;
+    const cg = el("g", { class: en ? "clickable" : "", "data-id": "PW_CMD_TABLE", "data-pwcmd": en ? nm : "" });
+    cg.appendChild(el("rect", { x: 28, y: cy - 12, width: 500, height: 18, rx: 2, fill: isAct ? "#dcfce7" : (en ? "#ffffff" : "#f1f5f9"), stroke: isAct ? "#16a34a" : "#e2e8f0" }));
+    cg.appendChild(el("text", { x: 36, y: cy, "font-size": 9.2, "font-weight": isAct ? 800 : 600, fill: en ? "#0f172a" : "#94a3b8", "font-family": "ui-monospace, monospace" }, `${isAct ? "✓ " : "  "}${blk.padEnd(15)} ${nm}`));
+    cg.appendChild(el("text", { x: 520, y: cy, "text-anchor": "end", "font-size": 9.0, "font-weight": 700, fill: isAct ? "#15803d" : (en ? "#475569" : "#94a3b8"), "font-family": "ui-monospace, monospace" }, en ? (isAct ? "ACTIVE / COMPLETE" : "Enabled = True") : "Enabled = False"));
+    vp.appendChild(cg);
+  });
+
+  // Right Half: PCSD Standard SFC Skeleton for the Active Command (IMG_1128–IMG_1133!)
+  drawSectionStrip(vp, 552, 14, 366, 530, `PATTERN 1: ACTIVE SFC SKELETON — ${pw.activeCmd}`, "#1e3a8a");
+  const sfcG = el("g", { class: "clickable", "data-id": "PW_SFC_ACTIVE" });
+
+  const sfcSteps = pw.activeCmd === "HOLD"
+    ? [
+        { code: "H0010", desc: "Start Hold / Check Active Fault", kind: "boiler", y: 66 },
+        { code: "H1000..H10000", desc: "12 Selection Branches (Safe Stop)", kind: "work", y: 186 },
+        { code: "H9900", desc: "Release Devices / HOLD_REQ := True", kind: "boiler", y: 316 }
+      ]
+    : [
+        { code: "S0000 / S0010", desc: "PCSD Init & Pre-Check (Boilerplate)", kind: "boiler", y: 64 },
+        { code: "S0020", desc: "ACQ_REL Acquire & Enable Sentinel SM", kind: "boiler", y: 158 },
+        {
+          code: pw.activeCmd === "TREAT" ? "S0100  |  S0100R" : (pw.activeCmd === "IDLE" ? "S0100 → S0200" : "S0100"),
+          desc: pw.activeCmd === "TRANSFER" ? "P01 Run, XV01→XFER (TP001/2/6)"
+              : pw.activeCmd === "TREAT" ? "P02 Recirc, AIC002→8pH, TMR1 90m"
+              : pw.activeCmd === "DISCHARGE" ? "P02 Run, XV05→DRAIN (TP004 & CND3)"
+              : pw.activeCmd === "IDLE" ? "Recirc / Standby Alignment"
+              : "Stop P01/P02, AIC002→LO, HOLD_REQ=1",
+          kind: "work", y: 262
+        },
+        { code: "S9900 → END", desc: "Cleanup & Release Shared Devices", kind: "boiler", y: 374 }
+      ];
+
+  sfcSteps.forEach((st, idx) => {
+    const isWork = st.kind === "work";
+    if (idx > 0) {
+      sfcG.appendChild(el("line", { x1: 735, y1: sfcSteps[idx - 1].y + 56, x2: 735, y2: st.y, stroke: "#334155", "stroke-width": 2 }));
+      const ty = (sfcSteps[idx - 1].y + 56 + st.y) / 2;
+      sfcG.appendChild(el("line", { x1: 721, y1: ty, x2: 749, y2: ty, stroke: "#1e293b", "stroke-width": 3.5 }));
+    }
+    sfcG.appendChild(el("rect", {
+      x: 586, y: st.y, width: 298, height: 56, rx: 4,
+      fill: isWork ? "#dcfce7" : "#f1f5f9",
+      stroke: isWork ? "#16a34a" : "#64748b",
+      "stroke-width": isWork ? 2.6 : 1.5
+    }));
+    if (idx === 0) {
+      sfcG.appendChild(el("rect", { x: 590, y: st.y + 4, width: 290, height: 48, rx: 2, fill: "none", stroke: "#64748b", "stroke-width": 1 }));
+    }
+    sfcG.appendChild(el("text", { x: 735, y: st.y + 23, "text-anchor": "middle", "font-size": 11, "font-weight": 800, fill: isWork ? "#14532d" : "#0f172a", "font-family": "ui-monospace, monospace" }, st.code));
+    sfcG.appendChild(el("text", { x: 735, y: st.y + 42, "text-anchor": "middle", "font-size": 9.3, "font-weight": isWork ? 700 : 500, fill: isWork ? "#166534" : "#475569" }, st.desc));
+  });
+
+  // Bypass rail note (T0020A / T9900A)
+  sfcG.appendChild(el("rect", { x: 566, y: 452, width: 338, height: 78, rx: 5, fill: "#eff6ff", stroke: "#93c5fd" }));
+  sfcG.appendChild(el("text", { x: 576, y: 472, "font-size": 9.8, "font-weight": 800, fill: "#1e3a8a" }, "2:00 AM PCSD SHORTCUT (SKIP BOILERPLATE!):"));
+  sfcG.appendChild(el("text", { x: 576, y: 490, "font-size": 9.2, fill: "#1e293b" }, "• S0000 / S0010 / S0020 & S9900 are identical PCSD"));
+  sfcG.appendChild(el("text", { x: 576, y: 505, "font-size": 9.2, fill: "#1e293b" }, "  template steps (Acquire/Release + Sentinel setup)."));
+  sfcG.appendChild(el("text", { x: 576, y: 520, "font-size": 9.2, "font-weight": 800, fill: "#15803d" }, "• Jump straight to S0100 (green) for real process work!"));
+  vp.appendChild(sfcG);
+}
+
+function renderPwTab2(vp, pw) {
+  const showLens = Boolean(state.showComboLens);
+  drawSectionStrip(vp, 18, 14, 898, 532, "3WT-0001-NEUT MAIN FBD SHEET (ZERO WIRES! — PCSD _EM_CMD32_140 TEMPLATE)", "#1e3a8a");
+
+  // Toggleable 4-Pattern Lens button right on Tab 2!
+  const lensBtn = el("g", { class: "clickable", "data-id": "TOGGLE_COMBO_LENS" });
+  lensBtn.appendChild(el("rect", { x: 676, y: 18, width: 232, height: 22, rx: 4, fill: showLens ? "#0284c7" : "#334155", stroke: "#7dd3fc", "stroke-width": 1.2 }));
+  lensBtn.appendChild(el("text", { x: 792, y: 33, "text-anchor": "middle", "font-size": 10, "font-weight": 800, fill: "#ffffff" },
+    showLens ? "🔍 4-Pattern Lens: ON (Click Raw)" : "🔍 4-Pattern Lens: OFF (Click On)"));
+  vp.appendChild(lensBtn);
+
+  // Zone 1 (Top-Left): Arbitration + ACQ_REL (#1) — PATTERN 3
+  const arbG = el("g", { class: "clickable", "data-id": "PW_ACQ_REL" });
+  arbG.appendChild(el("rect", { x: 30, y: 50, width: 242, height: 146, rx: 5, fill: "#ffffff", stroke: "#7c3aed", "stroke-width": 1.6 }));
+  arbG.appendChild(el("rect", { x: 31, y: 51, width: 240, height: 20, rx: 4, fill: "#ede9fe" }));
+  arbG.appendChild(el("text", { x: 151, y: 65, "text-anchor": "middle", "font-size": 9.6, "font-weight": 800, fill: "#5b21b6", "font-family": "ui-monospace, monospace" }, "ARBITRATION & ACQ_REL (#1)"));
+  const arbLines = [
+    `OWNER_ID : Operator (OWNED=True)`,
+    `HOLD_REQ : ${pw.holdReq ? "True (Manual Lock Off)" : "False (EM Locked)"}`,
+    `MY_TAG   : 3WT-0001-NEUT`,
+    `OPR_MASK : 47 | HM_MAX=32 SM_MAX=32`,
+    `FAILURE  : ${pw.anyFailure ? "TRUE (TRIP!)" : "False"}`
+  ];
+  arbLines.forEach((ln, i) => {
+    arbG.appendChild(el("text", { x: 40, y: 88 + i * 20, "font-size": 9.1, "font-weight": i === 4 && pw.anyFailure ? 800 : 600, fill: i === 4 && pw.anyFailure ? "#dc2626" : "#1e293b", "font-family": "ui-monospace, monospace" }, ln));
+  });
+  vp.appendChild(arbG);
+
+  // Zone 2 (Bottom-Left): CND1 (#42), CND2 (#43), CND3 (#44) — PATTERN 2
+  const cndG = el("g", { class: "clickable", "data-id": "PW_CND_BOX" });
+  cndG.appendChild(el("rect", { x: 30, y: 208, width: 242, height: 158, rx: 5, fill: "#ffffff", stroke: "#dc2626", "stroke-width": 1.6 }));
+  cndG.appendChild(el("rect", { x: 31, y: 209, width: 240, height: 20, rx: 4, fill: "#fee2e2" }));
+  cndG.appendChild(el("text", { x: 151, y: 223, "text-anchor": "middle", "font-size": 9.4, "font-weight": 800, fill: "#991b1b", "font-family": "ui-monospace, monospace" }, "TIMED CONDITIONS (#42–#44)"));
+  const cnds = [
+    ["CND1 (#42)", "EQ Tank Low Lvl (<=15%)", pw.cnd1EqLow],
+    ["CND2 (#43)", "pH Stabilization (near 8)", pw.cnd2Stable],
+    ["CND3 (#44)", "Disch pH Out of 6–10", pw.cnd3PhOut]
+  ];
+  cnds.forEach(([tag, desc, val], i) => {
+    const cy = 240 + i * 40;
+    cndG.appendChild(el("rect", { x: 38, y: cy, width: 226, height: 32, rx: 3, fill: val ? "#fef3c7" : "#f8fafc", stroke: val ? "#d97706" : "#cbd5e1" }));
+    cndG.appendChild(el("text", { x: 46, y: cy + 13, "font-size": 9.2, "font-weight": 800, fill: "#0f172a", "font-family": "ui-monospace, monospace" }, `${tag}: OUT_D = ${val ? "1" : "0"}`));
+    cndG.appendChild(el("text", { x: 46, y: cy + 26, "font-size": 8.6, fill: "#475569" }, desc));
+  });
+  vp.appendChild(cndG);
+
+  // Zone 3 (Bottom-Left 2): Active Tuning Parameters TP001–TP008 — PATTERN 3
+  const tpG = el("g", { class: "clickable", "data-id": "PW_TUNING_PARAMS" });
+  tpG.appendChild(el("rect", { x: 30, y: 378, width: 242, height: 156, rx: 5, fill: "#ffffff", stroke: "#7c3aed", "stroke-width": 1.6 }));
+  tpG.appendChild(el("rect", { x: 31, y: 379, width: 240, height: 20, rx: 4, fill: "#ede9fe" }));
+  tpG.appendChild(el("text", { x: 151, y: 393, "text-anchor": "middle", "font-size": 9.2, "font-weight": 800, fill: "#5b21b6", "font-family": "ui-monospace, monospace" },
+    state.pwHideStubs ? "TUNING PARAMS (8 Active Only!)" : "TP001–TP008 (TP009–40 & OP1–20 Unused)"));
+  const tps = [
+    "TP001: 50%  EQ Xfer Start Min",
+    "TP002: 80%  Neut Xfer Target",
+    "TP003: 8.0  pH Control SP",
+    "TP004: 20%  Neut Disch Min Lvl",
+    "TP005: 0.7  Stable pH ROC",
+    "TP006: 15%  EQ Xfer Low Stop",
+    "TP007: 0.5  Lockout pH ROC",
+    "TP008: 2%   Dose Pump Deadband"
+  ];
+  tps.forEach((ln, i) => {
+    tpG.appendChild(el("text", { x: 38, y: 414 + i * 14.8, "font-size": 8.6, fill: "#1e293b", "font-family": "ui-monospace, monospace" }, ln));
+  });
+  vp.appendChild(tpG);
+
+  // Right Side (Big Grid): All 19 Bound Devices (DEV1–DEV19, #2–#20) + Optional Unused DEV20–32 Stubs — PATTERN 4!
+  const devG = el("g", { class: "clickable", "data-id": "PW_DEV_GRID" });
+  devG.appendChild(el("rect", { x: 286, y: 50, width: 618, height: 484, rx: 5, fill: "#ffffff", stroke: "#0f766e", "stroke-width": 1.6 }));
+  devG.appendChild(el("rect", { x: 287, y: 51, width: 616, height: 22, rx: 4, fill: "#ccfbf1" }));
+  devG.appendChild(el("text", { x: 595, y: 66, "text-anchor": "middle", "font-size": 9.8, "font-weight": 800, fill: "#115e59", "font-family": "ui-monospace, monospace" },
+    "PATTERN 4: 19 BOUND SHARED DEVICES (DEV1–DEV19, #2–#20 — ALL UNWIRED! CONTROLLED BY SFC EXPRESSIONS)"));
+
+  const groups = [
+    {
+      title: "Analog Transmitters (DEV1–4)", x: 298, y: 84, w: 290, h: 118, col: "#0369a1",
+      items: [
+        `#2  DEV1 DISCH_PH (AI001): ${state.pwPh.toFixed(1)} pH`,
+        `#3  DEV2 EQ_TNK_LVL (LI001): ${state.pwEqLvl.toFixed(1)}%`,
+        `#4  DEV3 TRT_TNK_LVL (LI002): ${state.pwTrtLvl.toFixed(1)}%`,
+        `#5  DEV4 DISCH_TMP (TI001): 63.5 °F`
+      ]
+    },
+    {
+      title: "Level & Flow Switches (DEV5–10)", x: 602, y: 84, w: 290, h: 146, col: "#475569",
+      items: [
+        `#6  DEV5 EQ_TNK_HIHI (LAHH001): 0`,
+        `#7  DEV6 TRT_TNK_HIHI (LAHH002): 0`,
+        `#8  DEV7 EQ_FLOW_SW (FAL001): ${pw.p01Run ? "0 (Flow)" : "1 (NoFlow)"}`,
+        `#9  DEV8 BASE_LO_LVL (LAL001): 0`,
+        `#10 DEV9 ACID_LO_LVL (LAL002): 0`,
+        `#11 DEV10 TRT_FLOW_SW (FAL002): ${pw.p02Run ? "0 (Flow)" : "1 (NoFlow)"}`
+      ]
+    },
+    {
+      title: "Pumps & Valves (DEV11–16 • _REQ_SP / PV_STATE)", x: 298, y: 214, w: 290, h: 162, col: "#15803d",
+      items: [
+        `#12 DEV11 EQ_XFR_PMP (P01): ${pw.p01Run ? "RUNNING" : "STOPPED"}`,
+        `#13 DEV12 TRT_PMP (P02): ${pw.sentinelFault ? "FAIL!" : (pw.p02Run ? "RUNNING" : "STOPPED")}`,
+        `#14 DEV13 DISCH_VLV (XV05): ${pw.sentinelFault ? "FAIL!" : pw.xv05Pos}`,
+        `#15 DEV14 EQ_XFR_VLV (XV01): ${pw.xv01Pos}`,
+        `#16 DEV15 N3026_WST_VLV (XV010): CLOSED`,
+        `#17 DEV16 CIP_3200_VLV (XV025): CLOSED`
+      ]
+    },
+    {
+      title: "pH Control / Avg / Ramp (DEV17–19)", x: 602, y: 242, w: 290, h: 134, col: "#7c3aed",
+      items: [
+        `#18 DEV17 TRT_TNK_PH (AIC002): ${pw.aicMode}`,
+        `    SP=8 (6–10) | Base=${pw.baseDose}% Acid=${pw.acidDose}%`,
+        `#19 DEV18 TRT_TNK_PH_AVG: ${state.pwPh.toFixed(2)} pH`,
+        `#20 DEV19 TRT_PH_RAMP: RAMP_COMPLETE=1`
+      ]
+    }
+  ];
+
+  groups.forEach(g => {
+    devG.appendChild(el("rect", { x: g.x, y: g.y, width: g.w, height: g.h, rx: 4, fill: "#f8fafc", stroke: g.col, "stroke-width": 1.4 }));
+    devG.appendChild(el("rect", { x: g.x + 1, y: g.y + 1, width: g.w - 2, height: 18, rx: 3, fill: g.col }));
+    devG.appendChild(el("text", { x: g.x + 8, y: g.y + 13, "font-size": 8.9, "font-weight": 800, fill: "#ffffff" }, g.title));
+    g.items.forEach((it, idx) => {
+      const isFail = it.includes("FAIL!");
+      devG.appendChild(el("text", { x: g.x + 8, y: g.y + 34 + idx * 20, "font-size": 8.8, "font-weight": isFail ? 800 : 600, fill: isFail ? "#dc2626" : "#0f172a", "font-family": "ui-monospace, monospace" }, it));
+    });
+  });
+
+  // Unused DEV20–DEV32 Stubs Banner (toggleable with Hide Stubs button!)
+  if (!state.pwHideStubs) {
+    devG.appendChild(el("rect", { x: 298, y: 392, width: 594, height: 126, rx: 5, fill: "#f1f5f9", stroke: "#94a3b8", "stroke-dasharray": "5,3" }));
+    devG.appendChild(el("text", { x: 312, y: 414, "font-size": 9.8, "font-weight": 800, fill: "#64748b", "font-family": "ui-monospace, monospace" }, "UNUSED PCSD TEMPLATE STUBS: DEV20 – DEV32 (#21 – #33)  [<Ignored> • SM_18..32 = False]"));
+    devG.appendChild(el("text", { x: 312, y: 436, "font-size": 9.2, fill: "#475569" }, "These 13 greyed-out device blocks show '3.40282E+38' & 'FAILURE = True' ONLY because they are unbound slots"));
+    devG.appendChild(el("text", { x: 312, y: 454, "font-size": 9.2, fill: "#475569" }, "in the 32-device PCSD template! Because SM_18 through SM_32 are set False in MONITOR, they NEVER trip the EM."));
+    devG.appendChild(el("text", { x: 312, y: 478, "font-size": 9.4, "font-weight": 800, fill: "#0369a1" }, "👉 Click 'Stubs: Shown' in the top bar to hide DEV20–32, CMD6–10 & TMR2–8 and see how clean this EM really is!"));
+  } else {
+    devG.appendChild(el("rect", { x: 298, y: 392, width: 594, height: 126, rx: 5, fill: "#f0fdf4", stroke: "#16a34a" }));
+    devG.appendChild(el("text", { x: 312, y: 422, "font-size": 10.6, "font-weight": 800, fill: "#14532d" }, "✓ TEMPLATE CLUTTER HIDDEN! (13 unused devices, 5 disabled commands, 7 unused timers, 52 unused OP/TPs)"));
+    devG.appendChild(el("text", { x: 312, y: 450, "font-size": 9.8, fill: "#166534" }, "Every real PCSD EM looks giant at first — once you ignore unbound <Ignored> stubs and empty shells,"));
+    devG.appendChild(el("text", { x: 312, y: 472, "font-size": 9.8, fill: "#166534" }, "you are just looking at 2 tanks, 2 pumps, 2 three-way valves, 1 pH loop, 3 CNDs, 1 Timer, and MONITOR!"));
+  }
+  vp.appendChild(devG);
+
+  if (showLens) {
+    const zones = [
+      { x: 26, y: 46, w: 250, h: 154, col: "#7c3aed", bg: "rgba(124,58,237,0.06)", lbl: "PATTERN 3: ARBITRATION (ACQ_REL)" },
+      { x: 26, y: 204, w: 250, h: 166, col: "#dc2626", bg: "rgba(220,38,38,0.06)", lbl: "PATTERN 2: CND1–CND3 (TIMED)" },
+      { x: 26, y: 374, w: 250, h: 164, col: "#7c3aed", bg: "rgba(124,58,237,0.06)", lbl: "PATTERN 3: TP001–TP008 SPs" },
+      { x: 282, y: 46, w: 626, h: 492, col: "#0f766e", bg: "rgba(15,118,110,0.05)", lbl: "PATTERN 4: 19 SHARED CMs (UNWIRED — SFC EXPR CONTROL)" }
+    ];
+    zones.forEach(z => {
+      vp.appendChild(el("rect", { x: z.x, y: z.y, width: z.w, height: z.h, rx: 6, fill: z.bg, stroke: z.col, "stroke-width": 2.4, "stroke-dasharray": "8,5", "pointer-events": "none" }));
+      const bw = z.lbl.length * 6.0 + 14;
+      vp.appendChild(el("rect", { x: z.x + z.w - bw - 6, y: z.y + 4, width: bw, height: 18, rx: 4, fill: z.col, "pointer-events": "none" }));
+      vp.appendChild(el("text", { x: z.x + z.w - bw / 2 - 6, y: z.y + 16, "text-anchor": "middle", "font-size": 8.9, "font-weight": 800, fill: "#fff", "pointer-events": "none" }, z.lbl));
+    });
+  }
+}
+
+function renderPwTab3(vp, pw) {
+  // Top Half: MONITOR Composite (IMG_1139 – IMG_1141 & IMG_1150 – IMG_1153)
+  drawSectionStrip(vp, 18, 14, 898, 294, "MONITOR COMPOSITE (PATTERN 2 WATCHDOG — IMG_1139–1141 & 1150–1153)", "#991b1b");
+
+  drawFbdBlock(vp, {
+    id: "PW_MONITOR_SM", x: 34, y: 56, w: 264, h: 118, cls: "AT + COMPOSITE", name: "SENTINEL_MONITOR (#1–#3)", execNum: 3,
+    inputs: [], outputs: [{ name: "SM_FAIL", dy: 62 }],
+    bodyLines: [
+      "SM_AT1 (#1) + SM_AT2 (#2) → SM (#3)",
+      "SM_01..SM_17 = True (Active Devices)",
+      "SM_18..SM_32 = False (Unused Ignored)"
+    ],
+    status: pw.sentinelFault ? "bad" : "ok", liveBadge: pw.sentinelFault ? "TRIP!" : "OK"
+  });
+
+  drawFbdBlock(vp, {
+    id: "PW_MONITOR_HM", x: 34, y: 184, w: 264, h: 112, cls: "AT + COMPOSITE", name: "HOLD_MONITOR (#4–#6)", execNum: 6,
+    inputs: [], outputs: [{ name: "HM_FAIL", dy: 58 }],
+    bodyLines: [
+      "HM_AT1 (#4) + HM_AT2 (#5) → HM (#6)",
+      "HM_01 = True (Process Fail Watch)",
+      "HM_02..HM_32 = False"
+    ],
+    status: pw.holdMonFault ? "bad" : "ok", liveBadge: pw.holdMonFault ? "TRIP!" : "OK"
+  });
+
+  drawFbdBlock(vp, {
+    id: "PW_FAIL_EXPR", x: 356, y: 98, w: 226, h: 136, cls: "CALC", name: "FAIL_EXPRESSION", execNum: 7,
+    inputs: [{ name: "IN1 (TIMER)", dy: 52 }, { name: "IN2 (HMS)", dy: 96 }],
+    outputs: [{ name: "OUT1", dy: 74 }],
+    bodyLines: ["Reads ^ACTION_TIMER", "Formats Active Failure", "Triggers COMMAND_00000"],
+    status: pw.anyFailure ? "bad" : "normal", liveBadge: pw.anyFailure ? "HOLD!" : "OK"
+  });
+
+  drawFbdBlock(vp, {
+    id: "PW_OAR_CNL", x: 642, y: 56, w: 254, h: 108, cls: "COMPOSITE", name: "CANCEL_WAIT (#8) & OAR (#9)", execNum: 9,
+    inputs: [], outputs: [],
+    bodyLines: ["CANCEL_WAIT: Supervisor bypass wait", "OAR: Operator prompts (CALC1 + CND1)", "OAR_STATUS: NONE | HORN: False"],
+    status: "normal", liveBadge: "IDLE"
+  });
+
+  drawFlag(vp, { id: "PW_FAIL_OUT", x: 642, y: 196, w: 254, h: 66, side: "right", label: "^/FAILED (To HMI & HOLD)", sub: pw.failMsg.slice(0, 38), liveText: pw.anyFailure ? "HOLD!" : "Clear", status: pw.anyFailure ? "bad" : "ok" });
+
+  drawWire(vp, [[298, 118], [326, 118], [326, 150], [356, 150]], { ref: true });
+  drawWire(vp, [[298, 242], [326, 242], [326, 194], [356, 194]], { ref: true });
+  drawWire(vp, [[582, 172], [642, 224]], { active: pw.anyFailure, fault: pw.anyFailure });
+
+  // Bottom Half: TMR1 PCSD TIMER COMPOSITE (IMG_1142 — REAL WIRED RET #1 -> TM_CALC #2!)
+  drawSectionStrip(vp, 18, 322, 898, 224,
+    state.pwHideStubs
+      ? "TMR1: PCSD TIMER COMPOSITE — EXCESSIVE TREATMENT TIMER (TMR2–TMR8 HIDDEN)"
+      : "TMR1: PCSD TIMER COMPOSITE — EXCESSIVE TREATMENT TIMER (IMG_1142 • TMR2–TMR8 UNUSED)", "#0f766e");
+
+  drawFlag(vp, { id: "PW_TMR1_BLK", x: 34, y: 368, w: 158, h: 28, side: "left", label: "TM_HOLD (Run/Hold)", sub: "", liveText: pw.activeCmd === "TREAT" ? "Run (1)" : "Hold (0)", status: pw.activeCmd === "TREAT" ? "ok" : "normal" });
+  drawFlag(vp, { id: "PW_TMR1_BLK", x: 34, y: 408, w: 158, h: 28, side: "left", label: "TM_RESET", sub: "", liveText: "False", status: "normal" });
+  drawFlag(vp, { id: "PW_TMR1_BLK", x: 34, y: 468, w: 158, h: 28, side: "left", label: "TM_SP (Minutes)", sub: "", liveText: "90 min", status: "normal" });
+
+  drawFbdBlock(vp, {
+    id: "PW_TMR1_BLK", x: 238, y: 362, w: 170, h: 98, cls: "RET", name: "TIMER (TMR1)", execNum: 1,
+    inputs: [{ name: "IN_D", dy: 34 }, { name: "RESET_IN", dy: 64 }],
+    outputs: [{ name: "ELAPSED_TIMER", dy: 56 }],
+    bodyLines: ["Retentive Timer", state.pwTmr1Trip ? "90.0 min!" : (pw.activeCmd === "TREAT" ? "Counting..." : "0.0 min")],
+    status: state.pwTmr1Trip ? "bad" : (pw.activeCmd === "TREAT" ? "ok" : "normal"), liveBadge: state.pwTmr1Trip ? "90m" : "0m"
+  });
+
+  drawFbdBlock(vp, {
+    id: "PW_TMR1_BLK", x: 462, y: 366, w: 196, h: 138, cls: "CALC", name: "TM_CALC", execNum: 2,
+    inputs: [{ name: "IN1 (ELAPSED)", dy: 52 }, { name: "IN2 (SP=90)", dy: 96 }],
+    outputs: [{ name: "OUT1 (COMP)", dy: 42 }, { name: "OUT2 (PV)", dy: 76 }, { name: "OUT3 (REM)", dy: 110 }],
+    bodyLines: ["PV >= SP → Complete", "HH_MM_SS_ENAB=True", "DD:HH:MM:SS format"],
+    status: state.pwTmr1Trip ? "bad" : "normal", liveBadge: state.pwTmr1Trip ? "1" : "0"
+  });
+
+  drawFlag(vp, { id: "PW_TMR1_BLK", x: 704, y: 392, w: 192, h: 28, side: "right", label: "TM_COMPLETE → HM_01", sub: "", liveText: state.pwTmr1Trip ? "True!" : "False", status: state.pwTmr1Trip ? "bad" : "ok" });
+  drawFlag(vp, { id: "PW_TMR1_BLK", x: 704, y: 432, w: 192, h: 28, side: "right", label: "TM_PV (HH_MM_SS)", sub: "", liveText: state.pwTmr1Trip ? "01:30:00" : "00:00:00", status: "normal" });
+  drawFlag(vp, { id: "PW_TMR1_BLK", x: 704, y: 472, w: 192, h: 28, side: "right", label: "TM_REMAIN (DWN)", sub: "", liveText: state.pwTmr1Trip ? "00:00:00" : "01:30:00", status: "normal" });
+
+  drawWire(vp, [[192, 382], [238, 396]], { active: pw.activeCmd === "TREAT" });
+  drawWire(vp, [[192, 422], [238, 426]], { active: false });
+  drawWire(vp, [[408, 418], [462, 418]], { active: pw.activeCmd === "TREAT" || state.pwTmr1Trip });
+  drawWire(vp, [[192, 482], [436, 482], [436, 462], [462, 462]], { active: true });
+  drawWire(vp, [[658, 408], [704, 406]], { active: state.pwTmr1Trip, fault: state.pwTmr1Trip });
+  drawWire(vp, [[658, 442], [704, 446]], { active: state.pwTmr1Trip });
+  drawWire(vp, [[658, 476], [704, 486]], { active: !state.pwTmr1Trip });
+}
+
+// =========================================================================
 // 5. CONTEXTUAL INSPECTOR DATABASE (BOTH MODULES — VERIFIED FACTS)
 // =========================================================================
-function getInspectorInfo(id, d, h, ts, pid, cas) {
+function getInspectorInfo(id, d, h, ts, pid, cas, pw) {
   const map = {
     // --- MODULE 1: EM_TANK_CHARGE ---
     EPH_HANDSHAKE: {
@@ -4162,6 +4651,132 @@ function getInspectorInfo(id, d, h, ts, pid, cas) {
       paths: [["OUT → CTLSL1/SEL_2", "Pinches valve when Disch Press > 8.5 bar"], ["BKCAL_IN ← CTLSL1/BKCAL_SEL2", "Keeps PID_HI_PRESS primed & windup-free in standby!"]],
       expr: `(* Override SP = 8.5 bar; if Press Sensor .ST goes BAD, CTLSL1 drops to MAN! *)`,
       live: [["Disch Press", `${state.casPressPv.toFixed(1)} bar (${state.casPressSt})`, cas.pressBad || cas.overrideActive ? "v-bad" : "v-good"], ["Override Out", `${cas.pressPidOut}%`, "v-info"], ["BKCAL_SEL2", cas.sel2Bkcal, "v-info"]]
+    },
+
+    // --- MODULE 6: 3WT-0001-NEUT (REAL PLANT PCSD EM — CH. 11) ---
+    PW_SFC_ACTIVE: {
+      type: "PATTERN 1 — PCSD COMMAND SFC (IMG_1128–1133)",
+      title: `3WT-0001-NEUT / ${pw.activeCmd} SFC Skeleton`,
+      role: "Every Run command in Emerson's PCSD _EM_CMD32_140 template shares the exact same skeleton: S0000/S0010/S0020 (boilerplate init, ACQ_REL device acquisition, Sentinel Monitor enable) → S0100 (the REAL process work!) → S9900 (cleanup & release). HOLD (COMMAND_00000) uses 12 selection branches (H1000..H10000 + H3000R) into H9900.",
+      paths: [
+        ["S0000–S0020 / S9900", "Standard PCSD boilerplate startup & cleanup steps"],
+        ["S0100 / S0100R", "Actual process work (skip straight here when troubleshooting!)"],
+        ["T0020A / T9900A", "Standard bypass rails around startup or directly to S9900"]
+      ],
+      expr: `Active Command: ${pw.activeCmd}\nA_PV = ${pw.activeCmd} | HOLD_REQ = ${pw.holdReq}\nEnabled Commands: HOLD, IDLE, TRANSFER, TREAT, DISCHARGE, OFF\nDisabled Shells : CMD6, CMD7, CMD8, CMD9, CMD10`,
+      live: [["Active Cmd", pw.activeCmd, "v-info"], ["HOLD_REQ", pw.holdReq ? "True (Manual)" : "False (EM Lock)", "v-info"], ["Failure", pw.anyFailure ? "ACTIVE!" : "False", pw.anyFailure ? "v-bad" : "v-good"]]
+    },
+    PW_EQ_TANK: {
+      type: "EQUALIZATION TANK (IMG_1154 • DEV2 / DEV5)",
+      title: "Equalization Tank (3WT-0001-LI001 / LAHH001)",
+      role: "Receives incoming process waste via 3WT-0001-XV010 (N3026 PW) and 3CIP-3200-XV025. TRANSFER starts when LI001 >= TP001 (50%) and stops when LI001 drops to TP006 (15%, monitored by CND1 #42) or Neutralization Tank hits TP002 (80%).",
+      paths: [["DEV2: EQ_TNK_LVL", "3WT-0001-LI001 (%)"], ["DEV5: EQ_TNK_HIHI_LVL", "3WT-0001-LAHH001"]],
+      expr: `TP001 = 50% (Transfer Start Min)\nTP006 = 15% (Transfer Low Stop — CND1 #42)`,
+      live: [["LI001 Level", `${state.pwEqLvl.toFixed(1)}%`, pw.cnd1EqLow ? "v-warn" : "v-good"], ["CND1 Low Lvl", pw.cnd1EqLow ? "True (1)" : "False (0)", pw.cnd1EqLow ? "v-warn" : "v-good"]]
+    },
+    PW_TRT_TANK: {
+      type: "NEUTRALIZATION TANK (IMG_1154 • DEV3 / DEV6 / DEV18)",
+      title: "Neutralization Tank (3WT-0001-LI002 / AI02AVG)",
+      role: "Holds process waste during TREAT recirculation & Base/Acid pH neutralization toward TP003 (8.0 pH). Once stabilized (CND2 #43) and within 6–10 pH (CND3 #44 Clear), DISCHARGE pumps down to TP004 (20%).",
+      paths: [["DEV3: TRT_TNK_LVL", "3WT-0001-LI002 (%)"], ["DEV18: TRT_TNK_PH_AVG", "3WT-0001-AI02AVG (pH)"]],
+      expr: `TP002 = 80% (Transfer Target) | TP004 = 20% (Discharge Min)\nTP003 = 8.0 pH | CND2 Stable ROC <= 0.7`,
+      live: [["LI002 Level", `${state.pwTrtLvl.toFixed(1)}%`, "v-info"], ["AI02AVG pH", `${state.pwPh.toFixed(1)} pH`, pw.phInRange ? "v-good" : "v-bad"]]
+    },
+    PW_AIC002: {
+      type: "PATTERN 3 — SPLIT-RANGE pH CONTROLLER (IMG_1121 • DEV17)",
+      title: "TRT_TNK_PH (3WT-0001-AIC002 • #18)",
+      role: "Split-range pH PID controller (_REQ_MODE = Remote cascade/, _REQ_SP = 8, _SP_HI_LIM = 10, _SP_LO_LIM = 6, _TRK_VAL = 50%) with OUT1 (Base dosing) and OUT2 (Acid dosing) plus Ramp module 3WT-0001-AI02RMP (DEV19). In OFF/HOLD it drops to purple LO mode (neutral 50% track -> 0% dosing)!",
+      paths: [["DEV17: TRT_TNK_PH", "3WT-0001-AIC002 (OUT1=Base, OUT2=Acid)"], ["DEV19: TRT_PH_RAMP", "3WT-0001-AI02RMP (RAMP_COMPLETE)"]],
+      expr: `_REQ_MODE = Remote cascade/ | _REQ_SP = 8.0 pH\n_SP_LO_LIM = 6.0 | _SP_HI_LIM = 10.0 | _TRK_VAL = 50%`,
+      live: [["AIC002 Mode", pw.aicMode, pw.aicMode === "RCAS" ? "v-good" : "v-warn"], ["Base / Acid", `${pw.baseDose}% / ${pw.acidDose}%`, "v-info"]]
+    },
+    PW_P01_XV01: {
+      type: "PATTERN 4 — TRANSFER DEVICES (IMG_1120 • DEV11 / DEV14)",
+      title: "EQ_XFR_PMP (P01) & EQ_XFR_VLV (XV01)",
+      role: "Shared subordinate Control Modules driven via PCSD device interface (_REQ_MODE = Cascade/, _REQ_SP = START/STOP or TRANSFER/RECIRC) with confirmed readbacks (PV_D, PV_STATE, FAILURE) watched by SENTINEL_MONITOR.",
+      paths: [["DEV11: EQ_XFR_PMP", "3WT-0001-P01"], ["DEV14: EQ_XFR_VLV", "3WT-0001-XV01 (3-Way)"]],
+      expr: `P01: ${pw.p01Run ? "START" : "STOP"} | XV01: ${pw.xv01Pos}`,
+      live: [["P01 Status", pw.p01Run ? "RUNNING" : "STOPPED", pw.p01Run ? "v-good" : "v-info"], ["XV01 Pos", pw.xv01Pos, "v-info"]]
+    },
+    PW_P02_XV05: {
+      type: "PATTERN 4 — TREATMENT & DISCHARGE DEVICES (DEV12 / DEV13)",
+      title: "TRT_PMP (P02) & DISCH_VLV (XV05)",
+      role: "During TREAT, P02 recirculates Neutralization Tank with XV05 in RECIRC. During DISCHARGE, XV05 swings to DRAIN while DISCH_PH (AI001) & DISCH_TMP (TI001) verify effluent quality. Any device FAILURE trips SENTINEL_MONITOR (SM_AT1) → HOLD!",
+      paths: [["DEV12: TRT_PMP", "3WT-0001-P02"], ["DEV13: DISCH_VLV", "3WT-0001-XV05 (3-Way)"]],
+      expr: `P02: ${pw.p02Run ? "START" : "STOP"} | XV05: ${pw.xv05Pos}`,
+      live: [["P02 / XV05", pw.sentinelFault ? "FAILURE (SM TRIP!)" : `${pw.p02Run ? "RUN" : "STOP"} / ${pw.xv05Pos}`, pw.sentinelFault ? "v-bad" : "v-good"]]
+    },
+    PW_ACQ_REL: {
+      type: "PATTERN 3 — ARBITRATION COMPOSITE (IMG_1117 • #1)",
+      title: "ACQ_REL (#1) — Shared Device Arbitration",
+      role: "Handles acquiring and releasing the 19 Shared Devices (DEV1–DEV19) and manages EM ownership (OWNER_ID = Operator, HOLD_REQ = True in OFF to release mode lock so operators can control valves manually!).",
+      paths: [["OWNER_ID / OWNED", "Who currently owns 3WT-0001-NEUT"], ["HOLD_REQ", "True = temporarily removes mode lock from subordinate devices"]],
+      expr: `OWNER_ID = 'Operator' | OWNED = True | HOLD_REQ = ${pw.holdReq}`,
+      live: [["Execution Order", "#1", "v-info"], ["HOLD_REQ", pw.holdReq ? "True" : "False", "v-info"]]
+    },
+    PW_CND_BOX: {
+      type: "PATTERN 2 — MAIN DIAGRAM TIMED CONDITIONS (IMG_1117 • #42–#44)",
+      title: "CND1 (#42), CND2 (#43), CND3 (#44)",
+      role: "Three unwired Condition blocks sitting right on the Main FBD sheet, evaluated every scan and read by SFC transitions: CND1 = TRANSFER EQ Tank Low Level, CND2 = Stabilization Conditions, CND3 = Discharge pH Out of Range!",
+      paths: [["CND1 (#42)", "EQ Tank Low Level (LI001 <= TP006 15%)"], ["CND2 (#43)", "pH Stabilization (near TP003 8.0, ROC <= TP005 0.7)"], ["CND3 (#44)", "Discharge pH Out of Range (outside 6–10 pH)"]],
+      expr: `CND1/OUT_D = ${pw.cnd1EqLow ? 1 : 0}\nCND2/OUT_D = ${pw.cnd2Stable ? 1 : 0}\nCND3/OUT_D = ${pw.cnd3PhOut ? 1 : 0}`,
+      live: [["CND1 (EQ Low)", pw.cnd1EqLow ? "1" : "0", pw.cnd1EqLow ? "v-warn" : "v-good"], ["CND2 (Stable)", pw.cnd2Stable ? "1" : "0", pw.cnd2Stable ? "v-good" : "v-info"], ["CND3 (pH Out)", pw.cnd3PhOut ? "1" : "0", pw.cnd3PhOut ? "v-bad" : "v-good"]]
+    },
+    PW_TUNING_PARAMS: {
+      type: "PATTERN 3 — UNWIRED TUNING PARAMETERS (IMG_1122–1123)",
+      title: "TP001–TP008 (Out of 40 TP & 20 OP Slots)",
+      role: "All 20 Operating Parameters (OP001–OP020) and 32 Tuning Parameters (TP009–TP040) are 'Not Used'. Only TP001–TP008 are active unwired parameter boxes on the Main Diagram read by SFC steps and CND1–CND3!",
+      paths: [["TP001 / TP006", "50% EQ Xfer Start Min / 15% EQ Low Stop"], ["TP002 / TP004", "80% Neut Target / 20% Neut Disch Min"], ["TP003 / TP005 / TP007 / TP008", "8.0 pH SP / 0.7 Stable ROC / 0.5 Lockout ROC / 2% Deadband"]],
+      expr: `(* Unwired parameter boxes on Main FBD — read inside expressions! *)`,
+      live: [["Active TPs", "8 of 40 (TP001–TP008)", "v-info"], ["Active OPs", "0 of 20 (All Not Used)", "v-info"]]
+    },
+    PW_DEV_GRID: {
+      type: "PATTERN 4 — 19 BOUND SHARED DEVICES (IMG_1118–1121)",
+      title: "DEV1–DEV19 Active (#2–#20) vs. DEV20–DEV32 Stubs (#21–#33)",
+      role: "Why are there ZERO wires on 3WT-0001-NEUT's Main FBD Diagram? Because PCSD places all 32 subordinate CM slots on the FBD sheet unwired and commands/reads them inside SFC expressions & MONITOR! DEV20–DEV32 are <Ignored> template stubs disabled via SM_18..32 = False.",
+      paths: [["DEV1–DEV19", "19 bound plant devices (4 AI, 6 Switches, 6 Pumps/Valves, 3 pH)"], ["DEV20–DEV32", "13 <Ignored> unused stubs (SM_18..32 = False)"]],
+      expr: `(* Click 'Stubs: Shown' in the top bar to hide unused DEV20-32 stubs! *)`,
+      live: [["Active Devices", "19 of 32 (DEV1–DEV19)", "v-good"], ["Ignored Stubs", "13 (DEV20–DEV32)", "v-info"]]
+    },
+    PW_MONITOR_SM: {
+      type: "PATTERN 2 — SENTINEL MONITOR (IMG_1139–1141, 1153)",
+      title: "SM_AT1 (#1) + SM_AT2 (#2) → SENTINEL_MONITOR (#3)",
+      role: "Watches subordinate DEVICE failures across up to 32 devices! In 3WT-0001-NEUT, SM_01 through SM_17 are True (monitoring DEV1–DEV17), while SM_18 through SM_32 are False (ignoring unused stubs). Any active device FAILURE trips FAIL_EXPRESSION and executes COMMAND_00000 (HOLD)!",
+      paths: [["SM_01..SM_17 = True", "Active Sentinel device failure masks"], ["SM_18..SM_32 = False", "Disabled masks for unused DEV20–DEV32"]],
+      expr: `(* Sentinel Monitor = Subordinate DEVICE Failure Watchdog (32 slots) *)`,
+      live: [["Sentinel Status", pw.sentinelFault ? "TRIPPED (P02/XV05)!" : "Clear", pw.sentinelFault ? "v-bad" : "v-good"]]
+    },
+    PW_MONITOR_HM: {
+      type: "PATTERN 2 — HOLD MONITOR (IMG_1139–1141, 1151)",
+      title: "HM_AT1 (#4) + HM_AT2 (#5) → HOLD_MONITOR (#6)",
+      role: "Watches PROCESS failure conditions (up to 32 slots)! In 3WT-0001-NEUT, HM_01 = True (e.g., TMR1 90-Min Excessive Treatment Timeout) while HM_02–HM_32 = False. When tripped, captures the first failure description and drives COMMAND_00000 (HOLD)!",
+      paths: [["HM_01 = True", "Active process failure condition"], ["HM_02..HM_32 = False", "Unused Hold Monitor slots"]],
+      expr: `(* Hold Monitor = PROCESS Failure Watchdog (32 slots) *)`,
+      live: [["Hold Monitor", pw.holdMonFault ? "TRIPPED (HOLD!)": "Clear", pw.holdMonFault ? "v-bad" : "v-good"]]
+    },
+    PW_FAIL_EXPR: {
+      type: "MONITOR CALC (#7 — IMG_1139)",
+      title: "FAIL_EXPRESSION (CALC #7)",
+      role: "Wired from ^ACTION_TIMER (IN1) and HH_MM_SS_ENAB (IN2); formats active wait time and consolidates Sentinel + Hold failure flags to trip COMMAND_00000 (HOLD).",
+      paths: [["^ACTION_TIMER → IN1", "Live step/action wait time"], ["HH_MM_SS_ENAB → IN2", "Time display formatting flag"]],
+      expr: `(* Consolidated failure & action timer formatter inside MONITOR *)`,
+      live: [["Execution Order", "#7", "v-info"], ["Fault Active", pw.anyFailure ? "TRUE" : "False", pw.anyFailure ? "v-bad" : "v-good"]]
+    },
+    PW_OAR_CNL: {
+      type: "OPERATOR INTERACTION COMPOSITES (IMG_1150, 1152)",
+      title: "CANCEL_WAIT (#8) & OAR (#9)",
+      role: "CANCEL_WAIT lets a Supervisor/Operator cancel a process delay wait; OAR (Operator Action Request — containing CALC1 #2 + CND1 #1 horn timer) handles interactive HMI prompts and answers!",
+      paths: [["CANCEL_WAIT (#8)", "C_CNL_WT_EM_V01"], ["OAR (#9)", "C_OAR_ENG_EM_V01 (CALC1 + CND1)"]],
+      expr: `OAR_STATUS = 'NONE' | ACTION = 'Ask Again' | HORN = False`,
+      live: [["OAR Status", "NONE", "v-info"], ["Horn", "False", "v-good"]]
+    },
+    PW_TMR1_BLK: {
+      type: "PCSD TIMER COMPOSITE (IMG_1142 — RET #1 → TM_CALC #2)",
+      title: "TMR1: Excessive Treatment Timer (90 Minutes)",
+      role: "The ONLY configured timer out of TMR1–TMR8 (TMR2–TMR8 are unused stubs!). Uses a real wired Retentive Timer (RET #1) feeding TM_CALC (CALC #2): TM_SP = 90 Minutes, TM_TYPE = Continuous, HH_MM_SS_ENAB = True (DD:HH:MM:SS). Sets TM_COMPLETE = True if PV >= 90 min!",
+      paths: [["TIMER (RET #1)", "IN_D ← TM_HOLD | RESET_IN ← TM_RESET → ELAPSED_TIMER"], ["TM_CALC (CALC #2)", "Computes TM_COMPLETE, TM_PV, TM_REMAIN & HH:MM:SS strings"]],
+      expr: `TM_DESC = "Excessive Treatment Timer"\nTM_SP = 90 | TM_EU = Minutes | TM_TYPE = Continuous`,
+      live: [["TM_SP", "90 Minutes (01:30:00)", "v-info"], ["TM_COMPLETE", state.pwTmr1Trip ? "True (TIMED OUT!)" : "False", state.pwTmr1Trip ? "v-bad" : "v-good"]]
     }
   };
 
@@ -4203,6 +4818,7 @@ function render() {
   const ts = computeTwoStageDerived();
   const pid = computePidDerived();
   const cas = computeCascadeDerived();
+  const pw = computePwNeutDerived();
 
   // Header module indicator & sim bars
   document.getElementById("moduleSelect").value = state.module;
@@ -4211,7 +4827,8 @@ function render() {
     header: "Algorithm: State-Driven EM",
     twostage: "Algorithm: State-Driven EM (7016)",
     pid: "Control Module: Analog PID + Tracking",
-    cascade: "Control Modules: Cascade & CTLSL Override"
+    cascade: "Control Modules: Cascade & CTLSL Override",
+    pwneut: "Real Plant PCSD EM: _EM_CMD32_140"
   };
   document.getElementById("algPill").textContent = algMap[state.module] || "Control Studio";
   document.getElementById("simBarCharge").classList.toggle("hidden", state.module !== "charge");
@@ -4219,6 +4836,7 @@ function render() {
   document.getElementById("simBarTwoStage").classList.toggle("hidden", state.module !== "twostage");
   document.getElementById("simBarPid").classList.toggle("hidden", state.module !== "pid");
   document.getElementById("simBarCascade").classList.toggle("hidden", state.module !== "cascade");
+  document.getElementById("simBarPwNeut").classList.toggle("hidden", state.module !== "pwneut");
 
   const vp = document.getElementById("viewport");
   vp.innerHTML = "";
@@ -4366,7 +4984,7 @@ function render() {
 
     if (state.tab === "pid1") renderPidTab1(vp, pid);
     else renderPidTab2(vp, pid);
-  } else {
+  } else if (state.module === "cascade") {
     // Module 5: CASCADE_201 (Cascade + CTLSL Override)
     const cPill = document.getElementById("casStatusPill");
     cPill.textContent = cas.pill;
@@ -4409,11 +5027,48 @@ function render() {
 
     if (state.tab === "cas1") renderCascadeTab1(vp, cas);
     else renderCascadeTab2(vp, cas);
+  } else {
+    // Module 6: 3WT-0001-NEUT (Real Plant PCSD EM)
+    const pwPill = document.getElementById("pwStatusPill");
+    pwPill.textContent = pw.pill;
+    pwPill.className = "state-pill " + pw.pillCls;
+    document.querySelectorAll(".pw-cmd-btn").forEach(b => {
+      b.classList.toggle("selected-cmd", b.dataset.pwcmd === pw.activeCmd);
+    });
+    document.getElementById("pwEqLvlSlider").value = state.pwEqLvl;
+    document.getElementById("pwEqLvlLbl").textContent = `${state.pwEqLvl.toFixed(0)}%`;
+    document.getElementById("pwTrtLvlSlider").value = state.pwTrtLvl;
+    document.getElementById("pwTrtLvlLbl").textContent = `${state.pwTrtLvl.toFixed(0)}%`;
+    document.getElementById("pwPhSlider").value = state.pwPh;
+    document.getElementById("pwPhLbl").textContent = `${state.pwPh.toFixed(1)}`;
+
+    const btnStubs = document.getElementById("btnPwHideStubs");
+    btnStubs.textContent = state.pwHideStubs ? "Stubs: HIDDEN ✓" : "Stubs: Shown";
+    btnStubs.className = state.pwHideStubs ? "sim-btn ok" : "sim-btn";
+    const btnSm = document.getElementById("btnPwSentinel");
+    btnSm.textContent = state.pwSentinelTrip ? "Sentinel: TRIP!" : "Sentinel: OK";
+    btnSm.className = state.pwSentinelTrip ? "sim-btn active-toggle" : "sim-btn";
+    const btnTmr = document.getElementById("btnPwTmr1");
+    btnTmr.textContent = state.pwTmr1Trip ? "TMR1: 90m TRIP!" : "TMR1: 0/90m";
+    btnTmr.className = state.pwTmr1Trip ? "sim-btn active-toggle" : "sim-btn";
+
+    const banner = document.getElementById("diagBanner");
+    let lvl = pw.anyFailure ? "alert" : (pw.activeCmd === "OFF" || pw.activeCmd === "IDLE" ? "info" : "ok");
+    banner.className = "diag-banner" + (lvl !== "info" ? " " + lvl : "");
+    const defPwMsg = pw.anyFailure
+      ? `${pw.failMsg} → MONITOR triggered COMMAND_00000 (HOLD)!`
+      : `3WT-0001-NEUT (${pw.activeCmd}): Real PCSD _EM_CMD32_140 template — click 'Stubs: Shown' to hide unused DEV20–32, CMD6–10 & TMR2–8!`;
+    document.getElementById("diagText").textContent = state.notice || defPwMsg;
+    document.getElementById("diagMetrics").textContent = `A_PV: ${pw.activeCmd} | LI001: ${state.pwEqLvl.toFixed(0)}% | LI002: ${state.pwTrtLvl.toFixed(0)}% | pH: ${state.pwPh.toFixed(1)}`;
+
+    if (state.tab === "pw1") renderPwTab1(vp, pw);
+    else if (state.tab === "pw2") renderPwTab2(vp, pw);
+    else renderPwTab3(vp, pw);
   }
 
   applyTransform();
 
-  const info = getInspectorInfo(state.selectedId, d, h, ts, pid, cas);
+  const info = getInspectorInfo(state.selectedId, d, h, ts, pid, cas, pw);
   document.getElementById("inspType").textContent = info.type;
   document.getElementById("inspTitle").textContent = info.title;
   document.getElementById("inspRole").textContent = info.role;
@@ -4511,9 +5166,12 @@ document.getElementById("moduleSelect").addEventListener("change", (e) => {
   } else if (state.module === "pid") {
     state.tab = "pid1";
     state.selectedId = "PID1_BLK";
-  } else {
+  } else if (state.module === "cascade") {
     state.tab = "cas1";
     state.selectedId = "CAS_FIC_BLK";
+  } else {
+    state.tab = "pw1";
+    state.selectedId = "PW_SFC_ACTIVE";
   }
   rebuildTabs();
   render();
@@ -4551,6 +5209,11 @@ document.getElementById("schematic").addEventListener("click", (e) => {
     const tsCmd = target.getAttribute("data-tscmd");
     if (tsCmd) {
       applyTwoStageCommand(tsCmd);
+    }
+    const pwCmd = target.getAttribute("data-pwcmd");
+    if (pwCmd) {
+      state.pwCmd = pwCmd;
+      state.notice = "";
     }
     render();
   }
@@ -4832,6 +5495,29 @@ document.getElementById("btnCasReset").addEventListener("click", () => {
   state.casTempPv = 176; state.casPressPv = 6.5; state.casValveClamp = false; state.casPressSt = "GOOD";
   state.selectedId = state.tab === "cas2" ? "CAS_CTLSL_BLK" : "CAS_FIC_BLK";
   state.notice = "Reset CASCADE_201 to healthy closed-loop cascade / normal flow selection.";
+  render();
+});
+
+// --- Module 6 Controls (3WT-0001-NEUT — Real Plant PCSD EM) ---
+document.querySelectorAll(".pw-cmd-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    state.pwCmd = btn.dataset.pwcmd;
+    state.selectedId = "PW_SFC_ACTIVE";
+    state.notice = "";
+    render();
+  });
+});
+document.getElementById("pwEqLvlSlider").addEventListener("input", (e) => { state.pwEqLvl = parseFloat(e.target.value); state.notice = ""; render(); });
+document.getElementById("pwTrtLvlSlider").addEventListener("input", (e) => { state.pwTrtLvl = parseFloat(e.target.value); state.notice = ""; render(); });
+document.getElementById("pwPhSlider").addEventListener("input", (e) => { state.pwPh = parseFloat(e.target.value); state.notice = ""; render(); });
+document.getElementById("btnPwHideStubs").addEventListener("click", () => { state.pwHideStubs = !state.pwHideStubs; state.notice = ""; render(); });
+document.getElementById("btnPwSentinel").addEventListener("click", () => { state.pwSentinelTrip = !state.pwSentinelTrip; state.notice = ""; render(); });
+document.getElementById("btnPwTmr1").addEventListener("click", () => { state.pwTmr1Trip = !state.pwTmr1Trip; state.notice = ""; render(); });
+document.getElementById("btnPwReset").addEventListener("click", () => {
+  state.pwCmd = "OFF"; state.pwEqLvl = 35.6; state.pwTrtLvl = 85.3; state.pwPh = 7.8;
+  state.pwSentinelTrip = false; state.pwTmr1Trip = false;
+  state.selectedId = "PW_SFC_ACTIVE";
+  state.notice = "Reset 3WT-0001-NEUT to its exact screenshot snapshot (OFF Complete, LI001=35.6%, LI002=85.3%, pH=7.8).";
   render();
 });
 
