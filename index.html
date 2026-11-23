@@ -619,6 +619,8 @@
         <option value="charge">EM_TANK_CHARGE (Command-Driven)</option>
         <option value="header">EM_XFER_HDR (State-Driven — Ch. 7)</option>
         <option value="twostage">EM_2STAGE_VLV (State-Driven 2-Stage — 7016)</option>
+        <option value="pid">FIC_101 (Analog PID + BKCAL &amp; Track — Ch. 8 &amp; 10)</option>
+        <option value="cascade">CASCADE_201 (Cascade + CTLSL Override — Ch. 9)</option>
       </select>
       <span id="algPill" class="alg-pill">Algorithm: Command-Driven</span>
     </div>
@@ -737,6 +739,80 @@
     <span class="sim-label">Pattern 2 Trip</span>
     <button class="sim-btn" id="btnTsInterlock" title="Trigger tank safety interlock to force A_COMMAND := Close">Tank Trip: Clear</button>
     <button class="sim-btn" id="btnTsReset" title="Clear all faults and return to Close">Reset 2-Stage</button>
+  </div>
+</div>
+
+<!-- Sim Bar 4: FIC_101 (Single-Loop Analog PID + BKCAL + Tracking — Ch. 8 & 10) -->
+<div class="sim-bar hidden" id="simBarPid">
+  <div class="sim-group">
+    <span class="sim-label">PID1 Actual</span>
+    <span id="pidStatusPill" class="state-pill state-ALIGNED">AUTO</span>
+    <span class="sim-label" style="margin-left:4px;">PID1 Target:</span>
+    <select id="selPidMode" class="sim-select" title="PID1 target mode (AUTO or MAN)">
+      <option value="AUTO">AUTO</option>
+      <option value="MAN">MAN</option>
+    </select>
+    <span class="sim-label" style="margin-left:4px;">AO1 Target:</span>
+    <select id="selAoMode" class="sim-select" title="AO1 target mode (CAS, MAN, or OOS)">
+      <option value="CAS">CAS (from PID1)</option>
+      <option value="MAN">MAN (forces PID IMan!)</option>
+      <option value="OOS">OOS (Out of Service)</option>
+    </select>
+  </div>
+
+  <div class="sim-group">
+    <span class="sim-label">Flow SP</span>
+    <input type="range" id="pidSpSlider" class="wt-slider" min="20" max="120" step="5" value="80" />
+    <span id="pidSpLbl" style="font-family:monospace;font-weight:700;">80 gpm</span>
+    <span class="sim-label" style="margin-left:6px;">Flow PV</span>
+    <input type="range" id="pidPvSlider" class="wt-slider" min="0" max="130" step="5" value="75" />
+    <span id="pidPvLbl" style="font-family:monospace;font-weight:700;">75 gpm</span>
+  </div>
+
+  <div class="sim-group">
+    <button class="sim-btn" id="btnPidAiSt" title="Toggle AI1 sensor health (.ST)">AI1 .ST: GOOD</button>
+    <button class="sim-btn" id="btnPidHiLim" title="Simulate valve saturated at 100% (AO1 sends Limited High on BKCAL_OUT)">Valve: Normal</button>
+    <button class="sim-btn" id="btnPidTrk" title="Trigger CND_INTERLOCK → PID1/TRK_IN_D = True (forces LO &amp; TRK_VAL=0%)">TRK_IN_D: Clear</button>
+    <button class="sim-btn" id="btnPidReset" title="Reset FIC_101 loop to normal AUTO/CAS">Reset Loop</button>
+  </div>
+</div>
+
+<!-- Sim Bar 5: CASCADE_201 (Master-Slave Cascade + CTLSL Low-Select Override — Ch. 9) -->
+<div class="sim-bar hidden" id="simBarCascade">
+  <div class="sim-group">
+    <span class="sim-label">Chain</span>
+    <span id="casStatusPill" class="state-pill state-ALIGNED">CASCADE OK</span>
+    <span class="sim-label" style="margin-left:4px;">TIC (Master):</span>
+    <select id="selCasTicMode" class="sim-select">
+      <option value="AUTO">AUTO</option>
+      <option value="MAN">MAN</option>
+    </select>
+    <span class="sim-label" style="margin-left:4px;">FIC (Slave):</span>
+    <select id="selCasFicMode" class="sim-select">
+      <option value="CAS">CAS</option>
+      <option value="AUTO">AUTO (breaks cascade!)</option>
+      <option value="MAN">MAN (breaks cascade!)</option>
+    </select>
+    <span class="sim-label" style="margin-left:4px;">AO1:</span>
+    <select id="selCasAoMode" class="sim-select">
+      <option value="CAS">CAS</option>
+      <option value="MAN">MAN</option>
+    </select>
+  </div>
+
+  <div class="sim-group">
+    <span class="sim-label">Temp PV (SP=180)</span>
+    <input type="range" id="casTempSlider" class="wt-slider" min="150" max="210" step="2" value="176" />
+    <span id="casTempLbl" style="font-family:monospace;font-weight:700;">176 °C</span>
+    <span class="sim-label" style="margin-left:6px;">Disch Press (Lim=8.5)</span>
+    <input type="range" id="casPressSlider" class="wt-slider" min="4.0" max="10.0" step="0.5" value="6.5" />
+    <span id="casPressLbl" style="font-family:monospace;font-weight:700;">6.5 bar</span>
+  </div>
+
+  <div class="sim-group">
+    <button class="sim-btn" id="btnCasClamp" title="Clamp AO1 valve at 100% HI-LIM to watch Limited High travel up both BKCAL wires">Valve: Normal</button>
+    <button class="sim-btn" id="btnCasPressSt" title="Simulate Bad status on Override Pressure Sensor (sheds CTLSL1 to MAN per FBR p187!)">Press .ST: GOOD</button>
+    <button class="sim-btn" id="btnCasReset">Reset Cascade</button>
   </div>
 </div>
 
@@ -861,6 +937,14 @@ const MODULE_TABS = {
     { id: "ts1", label: "1. Items & State Table", kind: "STATE TABLE", defaultSel: "TS_STATE_TABLE" },
     { id: "ts2", label: "2. Watchdog & Trip", kind: "FBD", defaultSel: "TS_CND_HEALTH" },
     { id: "ts3", label: "3. Full Control Studio", kind: "COMBO", defaultSel: "TS_STATE_TABLE" }
+  ],
+  pid: [
+    { id: "pid1", label: "1. Main PID Diagram", kind: "FBD", defaultSel: "PID1_BLK" },
+    { id: "pid2", label: "2. BKCAL & Windup X-Ray", kind: "X-RAY", defaultSel: "PID_BKCAL_WIRE" }
+  ],
+  cascade: [
+    { id: "cas1", label: "1. Master → Slave Cascade", kind: "FBD", defaultSel: "CAS_FIC_BLK" },
+    { id: "cas2", label: "2. CTLSL Low-Select Override", kind: "FBD", defaultSel: "CAS_CTLSL_BLK" }
   ]
 };
 
@@ -937,7 +1021,25 @@ const state = {
   tsDribSt: "GOOD",               // Feedback .ST quality on CM_DRIB_XV (GOOD | BAD)
   tsInterlock: false,             // Tank safety interlock forcing A_COMMAND := Close
   tsLastBulkPv: "CLOSED",         // Retained valve state when Auto_Mode/Idle leaves CAS_SP (not written)
-  tsLastDribPv: "CLOSED"
+  tsLastDribPv: "CLOSED",
+
+  // Module 4: FIC_101 (Single-Loop Analog PID + BKCAL + Tracking — Ch. 8 & 10)
+  pidTarget: "AUTO",              // AUTO | MAN
+  aoTarget: "CAS",                // CAS | MAN | OOS
+  pidSp: 80,                      // gpm
+  pidPv: 75,                      // gpm
+  pidAiSt: "GOOD",                // GOOD | BAD
+  pidHiLim: false,                // AO1 saturated @ 100% HI-LIM
+  pidTrkTrip: false,              // TRK_IN_D = True -> LO mode, TRK_VAL = 0%
+
+  // Module 5: CASCADE_201 (Master-Slave Cascade + CTLSL Low-Select Override — Ch. 9)
+  casTicTarget: "AUTO",           // AUTO | MAN
+  casFicTarget: "CAS",            // CAS | AUTO | MAN
+  casAoTarget: "CAS",             // CAS | MAN
+  casTempPv: 176,                 // °C (SP = 180 °C)
+  casPressPv: 6.5,                // bar (Override SP = 8.5 bar)
+  casValveClamp: false,           // AO1 saturated @ 100% HI-LIM
+  casPressSt: "GOOD"              // GOOD | BAD (Bad sheds CTLSL1 to MAN — FBR p187)
 };
 
 function computeChargeDerived() {
@@ -1130,6 +1232,135 @@ function computeTwoStageDerived() {
   };
 }
 
+function computePidDerived() {
+  const aiBad = state.pidAiSt === "BAD";
+  const aoActual = state.aoTarget; // CAS | MAN | OOS
+  const aoNotCas = aoActual !== "CAS";
+
+  // Actual PID1 mode hierarchy (verified FBR pp. 234, 239-240):
+  // 1. TRK_IN_D = True (with Track Enable & Track in Manual) -> LO (Local Override) -> OUT := TRK_VAL (0%)
+  // 2. AO1 not in CAS (MAN or OOS) -> BKCAL_OUT sends Not Invited / Bad -> PID1 forced to IMan (tracks AO1)!
+  // 3. AI1/OUT.ST = BAD -> PID1 sheds actual mode from AUTO to MAN (FBR p240)!
+  // 4. Otherwise follows pidTarget (AUTO or MAN).
+  let pidActual = state.pidTarget;
+  let bkcalStatus = "GoodCascade: Non-Limited";
+  let bkcalShort = "GoodCas";
+  let windupClamped = false;
+
+  if (aoActual === "OOS") {
+    bkcalStatus = "Bad: Out of Service";
+    bkcalShort = "Bad: OOS";
+  } else if (aoActual === "MAN") {
+    bkcalStatus = "GoodCascade: Not Invited (Init Req)";
+    bkcalShort = "NotInvited";
+  } else if (state.pidHiLim) {
+    bkcalStatus = "GoodCascade: Limited High (Anti-Windup!)";
+    bkcalShort = "LimHigh";
+    windupClamped = true;
+  }
+
+  if (state.pidTrkTrip) {
+    pidActual = "LO";
+  } else if (aoNotCas) {
+    pidActual = "IMan";
+  } else if (aiBad && state.pidTarget === "AUTO") {
+    pidActual = "MAN";
+  }
+
+  // Reverse-acting flow PID: error = SP - PV -> positive error opens valve
+  const error = +(state.pidSp - state.pidPv).toFixed(1);
+  let calcOut = Math.max(0, Math.min(100, +(50 + error * 1.4).toFixed(1)));
+  if (state.pidHiLim && !state.pidTrkTrip && !aoNotCas) calcOut = 100.0;
+  if (pidActual === "MAN" && !aiBad) calcOut = 50.0;
+  if (pidActual === "IMan") calcOut = 42.0; // Bumplessly tracks AO1's manual valve position!
+  if (pidActual === "LO") calcOut = 0.0;    // TRK_VAL = 0.0%
+
+  const aoOut = aoActual === "OOS" ? 0.0 : (aoActual === "MAN" ? 42.0 : calcOut);
+  const bkcalVal = aoOut; // SP_WRK fed back on gray dotted BKCAL_OUT -> BKCAL_IN wire!
+
+  let pill = "AUTO";
+  let pillCls = "state-ALIGNED";
+  if (pidActual === "LO") { pill = "LO (TRACK 0%)"; pillCls = "state-FAILED"; }
+  else if (pidActual === "IMan") { pill = "IMan (TRACKING AO)"; pillCls = "state-HELD"; }
+  else if (aiBad) { pill = "MAN (BAD PV)"; pillCls = "state-FAILED"; }
+  else if (windupClamped) { pill = "AUTO (HI-LIM CLAMP)"; pillCls = "state-HELD"; }
+  else if (pidActual === "MAN") { pill = "MAN"; pillCls = "state-IDLE"; }
+
+  return {
+    aiBad, aoActual, aoNotCas, pidActual, error,
+    pidOut: calcOut, aoOut, bkcalVal, bkcalStatus, bkcalShort,
+    windupClamped, pill, pillCls
+  };
+}
+
+function computeCascadeDerived() {
+  const tempSp = 180;
+  const pressLim = 8.5;
+  const aoActual = state.casAoTarget; // CAS | MAN
+  const aoNotCas = aoActual !== "CAS";
+
+  // Slave FIC actual mode: if AO1 is MAN -> FIC forced to IMan!
+  let ficActual = aoNotCas ? "IMan" : state.casFicTarget;
+  // Master TIC actual mode: if Slave FIC is NOT in CAS (i.e., AUTO, MAN, or IMan) -> Master TIC forced to IMan!
+  let ticActual = (ficActual !== "CAS") ? "IMan" : state.casTicTarget;
+
+  // Master TIC computes Flow SP (reverse acting: temp below 180 -> ask for more steam flow)
+  const tempErr = +(tempSp - state.casTempPv).toFixed(1);
+  let flowSp = Math.max(20, Math.min(120, +(65 + tempErr * 2.2).toFixed(1)));
+  if (ticActual === "IMan") flowSp = 60.0; // Bumplessly tracks Slave's current flow PV/SP!
+  if (ticActual === "MAN") flowSp = 70.0;
+
+  // Slave FIC computes Steam Valve %
+  let ficOut = Math.max(0, Math.min(100, +(flowSp * 0.78).toFixed(1)));
+  if (state.casValveClamp && !aoNotCas) ficOut = 100.0;
+  if (ficActual === "IMan") ficOut = 45.0; // Tracks AO1 manual position
+
+  const aoBkcalStatus = aoNotCas ? "NotInvited" : (state.casValveClamp ? "LimHigh" : "GoodCas");
+  const ficBkcalStatus = (ficActual !== "CAS") ? "NotInvited" : (state.casValveClamp ? "LimHigh" : "GoodCas");
+
+  // Tab 2: CTLSL1 Low-Select Pressure Override (FBR pp. 185-189)
+  // PID_FLOW demands normal flow output (~ficOut or 72%); PID_HI_PRESS reduces output when Disch Press > 8.5 bar!
+  const pressBad = state.casPressSt === "BAD";
+  const flowPidOut = Math.max(10, Math.min(100, +(68 + tempErr * 1.1).toFixed(1)));
+  const pressErr = +(pressLim - state.casPressPv).toFixed(1);
+  const pressPidOut = Math.max(0, Math.min(100, +(75 + pressErr * 32).toFixed(1)));
+
+  // CTLSL1 actual mode: AO1 MAN -> IMan; Bad SEL_1/SEL_2 -> MAN (FBR p187!); else AUTO
+  let ctlslActual = "AUTO";
+  if (aoNotCas) ctlslActual = "IMan";
+  else if (pressBad) ctlslActual = "MAN";
+
+  const overrideActive = (ctlslActual === "AUTO") && (pressPidOut < flowPidOut);
+  let ctlslOut = aoNotCas ? 45.0 : (pressBad ? 55.0 : Math.min(flowPidOut, pressPidOut));
+  if (state.casValveClamp && !aoNotCas) ctlslOut = 100.0;
+
+  // CTLSL1 BKCAL_SEL1 & BKCAL_SEL2 prevent windup on the UNSELECTED PID!
+  const sel1Bkcal = ctlslActual !== "AUTO" ? "NotInvited" : (overrideActive ? "LimHigh (Clamped!)" : (state.casValveClamp ? "LimHigh" : "GoodCas"));
+  const sel2Bkcal = ctlslActual !== "AUTO" ? "NotInvited" : (!overrideActive ? "LimHigh (Clamped!)" : (state.casValveClamp ? "LimHigh" : "GoodCas"));
+
+  let pill = "CASCADE OK";
+  let pillCls = "state-ALIGNED";
+  if (state.tab === "cas2") {
+    if (pressBad) { pill = "CTLSL → MAN (BAD AI)"; pillCls = "state-FAILED"; }
+    else if (aoNotCas) { pill = "CTLSL → IMan"; pillCls = "state-HELD"; }
+    else if (overrideActive) { pill = "PRESS OVERRIDE!"; pillCls = "state-FAILED"; }
+    else if (state.casValveClamp) { pill = "HI-LIM CLAMP"; pillCls = "state-HELD"; }
+    else { pill = "FLOW SELECTED"; pillCls = "state-ALIGNED"; }
+  } else {
+    if (aoNotCas) { pill = "BOTH PIDs → IMan"; pillCls = "state-HELD"; }
+    else if (ticActual === "IMan") { pill = "MASTER → IMan"; pillCls = "state-HELD"; }
+    else if (state.casValveClamp) { pill = "HI-LIM CLAMP"; pillCls = "state-HELD"; }
+  }
+
+  return {
+    tempSp, pressLim, aoActual, aoNotCas, ficActual, ticActual,
+    tempErr, flowSp, ficOut, aoOut: aoNotCas ? 45.0 : ficOut,
+    aoBkcalStatus, ficBkcalStatus,
+    pressBad, flowPidOut, pressPidOut, ctlslActual, overrideActive, ctlslOut,
+    sel1Bkcal, sel2Bkcal, pill, pillCls
+  };
+}
+
 // =========================================================================
 // 2. SESSION VOCABULARY DATA (CHAPTERS 1–7)
 // =========================================================================
@@ -1152,7 +1383,11 @@ const VOCAB = [
   { term: "Modes & 'OS' Keyword", full: "Operating Modes (FBR p30, CONFIG p82)", desc: "Block modes: OOS, IMan, LO, Man (on PID/AO/DO), Auto, Cas, RCas, ROut. In Structured Text expressions, Out of Service is spelled OS (not OOS!). Write to MODE.TARGET; test MODE.ACTUAL." },
   { term: ".CV, .ST & >= GOOD", full: "Value & Status Rules (CONFIG p81, PDS p3)", desc: ".CV = live value; .ST = health (Bad <=63 shows Red ✕, Uncertain 64–127 shows Blue ?, GoodNonCascade 128–191, GoodCascade 192–255). Always write '>= GOOD' in expressions because '= GOOD' misses GoodCascade!" },
   { term: "Named-Set Constant", full: "'SetName:Value' Syntax (7016 p37–39)", desc: "Single-quoted SetName:StateName inside expressions, e.g., '//CM_FEED_XV/CAS_SP.CV' := 'vlvnc-sp:OPEN' and '//CM_FEED_XV/PV.CV' = 'vlvnc-pv:CLOSED'." },
-  { term: "Golden Tare Rule", full: "START_WT.CV [P] Snapshot", desc: "Capture '^/START_WT.CV' := '//CM_TANK_WT/AI1/OUT.CV' with [P] on S0_IDLE → S10_CHARGE_OPEN ONLY. Never overwrite START_WT.CV in RESTART_LOGIC or you will overfill the tank!" }
+  { term: "Golden Tare Rule", full: "START_WT.CV [P] Snapshot", desc: "Capture '^/START_WT.CV' := '//CM_TANK_WT/AI1/OUT.CV' with [P] on S0_IDLE → S10_CHARGE_OPEN ONLY. Never overwrite START_WT.CV in RESTART_LOGIC or you will overfill the tank!" },
+  { term: "PID & AO Modes", full: "Analog Loop Modes (FBR pp. 110, 239)", desc: "PID supports all 8 modes (OOS, IMan, LO, Man, Auto, Cas, RCas, ROut). Bad PV sheds PID actual mode to Man; AO not in CAS forces PID into IMan; TRK_IN_D = True forces PID into LO." },
+  { term: "BKCAL_OUT → BKCAL_IN", full: "Back-Calculation Feedback Wire (FBR p. 106, 238)", desc: "The #1 real-plant gray dotted feedback wire (#3 AO → #2 PID, or Slave → Master)! Carries downstream valve position & status backwards every scan to prevent integral windup (Limited High/Low) and provide bumpless IMan tracking." },
+  { term: "TRK_IN_D / TRK_VAL", full: "PID Output Tracking (FBR p. 234)", desc: "When CONTROL_OPTS Track Enable = True and TRK_IN_D = True, PID actual mode drops to LO (Local Override) and OUT tracks TRK_VAL (e.g., 0% safe close)!" },
+  { term: "CTLSL (Control Selector)", full: "Override Selector Block (FBR pp. 185–189)", desc: "Selects High, Low, or Middle of up to 3 PID outputs (SEL_1..3) and sends individual BKCAL_SEL1..3 feedback wires back to every PID so unselected controllers NEVER wind up! Bad input sheds CTLSL to Man." }
 ];
 
 // =========================================================================
@@ -2859,9 +3094,363 @@ function renderTwoStageTab3Combo(vp, ts) {
 }
 
 // =========================================================================
+// 4D. RENDERERS FOR MODULE 4: FIC_101 (ANALOG PID + BKCAL + TRACKING — CH. 8 & 10)
+// =========================================================================
+function renderPidTab1(vp, pid) {
+  drawSectionStrip(vp, 22, 16, 896, 326, "STRIP A: SINGLE-LOOP REGULATORY CONTROL — AI1 (#1) → PID1 (#2) → AO1 (#3) + GRAY DOTTED BKCAL FEEDBACK WIRE (#3 → #2)", "#1e3a8a");
+
+  // Unwired left-side module-level Internal Reference parameter (Course 7017 p. 243!)
+  drawFlag(vp, { id: "PID_MODE_REF", x: 38, y: 52, w: 168, h: 28, side: "left", label: "MODE (Int Ref → PID1)", sub: "Unwired (7017 p243)", liveText: pid.pidActual, status: pid.pidActual === "AUTO" ? "ok" : "warn" });
+
+  // #1 AI1
+  drawFbdBlock(vp, {
+    id: "PID_AI1_BLK", x: 38, y: 112, w: 168, h: 122, cls: "AI", name: "AI1 (FT-101)", execNum: 1,
+    inputs: [],
+    outputs: [{ name: "OUT", dy: 62 }],
+    bodyLines: ["IO_IN: CH01 (4-20mA)", `PV_FTIME = 1.5s`, `OUT: ${state.pidPv} gpm`],
+    status: pid.aiBad ? "bad" : "ok", liveBadge: `${state.pidPv} gpm`, badSt: pid.aiBad
+  });
+
+  // #2 PID1
+  drawFbdBlock(vp, {
+    id: "PID1_BLK", x: 278, y: 74, w: 238, h: 196, cls: "PID", name: "PID1 (FIC-101)", execNum: 2,
+    inputs: [{ name: "IN", dy: 100 }, { name: "BKCAL_IN", dy: 136 }, { name: "TRK_IN_D", dy: 164 }],
+    outputs: [{ name: "OUT", dy: 100 }],
+    bodyLines: [
+      `TGT: ${state.pidTarget}  |  ACT: ${pid.pidActual}`,
+      `SP: ${state.pidSp} gpm  |  PV: ${state.pidPv} gpm`,
+      `Err: ${pid.error >= 0 ? "+" : ""}${pid.error}  |  OUT: ${pid.pidOut}%`,
+      `TRK_VAL = 0.0% (Track En)`
+    ],
+    status: (pid.pidActual === "LO" || pid.aiBad) ? "bad" : ((pid.pidActual === "IMan" || pid.windupClamped) ? "warn" : "ok"),
+    liveBadge: `${pid.pidOut}%`, badSt: pid.aiBad
+  });
+
+  // #3 AO1
+  drawFbdBlock(vp, {
+    id: "PID_AO1_BLK", x: 590, y: 92, w: 215, h: 162, cls: "AO", name: "AO1 (FV-101)", execNum: 3,
+    inputs: [{ name: "CAS_IN", dy: 82 }],
+    outputs: [{ name: "OUT", dy: 64 }, { name: "BKCAL_OUT", dy: 120 }],
+    bodyLines: [
+      `MODE: ${pid.aoActual}`,
+      `Valve: ${pid.aoOut}% ${state.pidHiLim ? "(HI-LIM!)" : ""}`,
+      `BKCAL: ${pid.bkcalShort}`
+    ],
+    status: pid.aoActual === "OOS" ? "bad" : ((pid.aoActual === "MAN" || state.pidHiLim) ? "warn" : "ok"),
+    liveBadge: `${pid.aoOut}%`
+  });
+
+  // Right-side output parameter box (leaving diagram to physical I/O channel)
+  drawFlag(vp, { id: "PID_IO_OUT", x: 828, y: 139, w: 80, h: 34, side: "right", label: "IO_OUT", sub: "4-20 mA", liveText: `${pid.aoOut}%`, status: pid.aoActual === "OOS" ? "bad" : "ok" });
+
+  // Forward solid wires (#1 -> #2 -> #3 -> IO_OUT)
+  drawWire(vp, [[206, 174], [278, 174]], { active: !pid.aiBad, fault: pid.aiBad, label: pid.aiBad ? "BAD ✕" : `${state.pidPv} gpm`, labelPos: [242, 160] });
+  drawWire(vp, [[516, 174], [590, 174]], { active: pid.aoActual === "CAS", fault: pid.pidActual === "LO", label: `${pid.pidOut}%`, labelPos: [553, 160] });
+  drawWire(vp, [[805, 156], [828, 156]], { active: pid.aoOut > 0, fault: pid.aoActual === "OOS" });
+
+  // REAL DELTAV GRAY DOTTED FEEDBACK WIRE (#3 AO1/BKCAL_OUT -> #2 PID1/BKCAL_IN)!
+  drawWire(vp, [[805, 212], [820, 212], [820, 314], [248, 314], [248, 210], [278, 210]], {
+    feedback: true,
+    label: `BKCAL (#3 → #2 Feedback: ${pid.bkcalVal}% | ${pid.bkcalShort})`,
+    labelPos: [534, 314]
+  });
+
+  // Strip B: Pattern 2 / Ch. 10 Output Tracking Interlock -> PID1/TRK_IN_D (forces LO -> 0%)
+  drawSectionStrip(vp, 22, 360, 896, 184, "STRIP B (CH. 10 INTERLOCK TRACKING): CND_TRIP (#4) → PID1/TRK_IN_D FORCES MODE = LO & OUT = TRK_VAL (0%)", "#991b1b");
+
+  drawFlag(vp, { id: "PID_TRIP_IN", x: 38, y: 432, w: 196, h: 32, side: "left", label: "//PT_101/HI_HI_ACT", sub: "Process Trip (Purple Ref)", liveText: state.pidTrkTrip ? "TRIP!" : "CLEAR", status: state.pidTrkTrip ? "bad" : "ok" });
+
+  drawFbdBlock(vp, {
+    id: "PID_CND_TRIP", x: 294, y: 400, w: 195, h: 102, cls: "CND", name: "CND_INTERLOCK", execNum: 4,
+    inputs: [], outputs: [{ name: "OUT_D", dy: 52 }],
+    bodyLines: ["Process Safety Trip", "Drives PID1/TRK_IN_D"],
+    status: state.pidTrkTrip ? "bad" : "normal", liveBadge: state.pidTrkTrip ? "True" : "False"
+  });
+
+  // Purple dashed learning-only expression reference into CND_INTERLOCK
+  drawWire(vp, [[234, 448], [294, 448]], { ref: true, label: "expr ref", labelPos: [264, 434] });
+  // Real gray dotted feedback wire from #4 CND_INTERLOCK back up to #2 PID1/TRK_IN_D (#4 -> #2!)
+  drawWire(vp, [[489, 452], [536, 452], [536, 344], [228, 344], [228, 238], [278, 238]], {
+    feedback: true,
+    label: "TRK_IN_D (#4 → #2 Feedback → Forces LO)",
+    labelPos: [690, 452]
+  });
+
+  // Explanatory card bottom-right of Strip B
+  vp.appendChild(el("rect", { x: 562, y: 396, width: 338, height: 128, rx: 5, fill: "#ffffff", stroke: "#cbd5e1", "stroke-width": 1.3 }));
+  vp.appendChild(el("text", { x: 574, y: 418, "font-size": 10, "font-weight": 800, fill: "#0f172a" }, "TRY THESE 3 REAL-PLANT TESTS ABOVE:"));
+  const tips = [
+    "1. Switch AO1 to MAN → Watch PID1 drop to IMan",
+    "   and bumplessly track AO1's 42% position!",
+    "2. Toggle Valve HI-LIM → Watch BKCAL send",
+    "   'LimHigh' to freeze PID1 integral windup!",
+    "3. Toggle AI1 .ST = BAD → PID1 sheds to MAN;",
+    "   Toggle TRK_IN_D → PID1 drops to LO (0%)!"
+  ];
+  tips.forEach((ln, i) => {
+    vp.appendChild(el("text", { x: 574, y: 438 + i * 14.5, "font-size": 9.2, fill: "#334155", "font-family": "ui-monospace, monospace" }, ln));
+  });
+}
+
+function renderPidTab2(vp, pid) {
+  drawSectionStrip(vp, 22, 18, 896, 526, "BKCAL_OUT → BKCAL_IN X-RAY: HOW DELTAV PREVENTS INTEGRAL WINDUP & DELIVERS BUMPLESS TRANSFER", "#0f766e");
+
+  // Top Forward Path Banner
+  const fwd = el("g", { class: "clickable", "data-id": "PID1_BLK" });
+  fwd.appendChild(el("rect", { x: 46, y: 66, width: 340, height: 138, rx: 6, fill: "#eff6ff", stroke: "#0284c7", "stroke-width": 1.8 }));
+  fwd.appendChild(el("text", { x: 60, y: 90, "font-size": 11, "font-weight": 800, fill: "#1e3a8a" }, "PID1 (#2) — UPSTREAM CONTROLLER"));
+  fwd.appendChild(el("text", { x: 60, y: 114, "font-size": 10.2, fill: "#0f172a", "font-family": "ui-monospace, monospace" }, `MODE.TARGET : ${state.pidTarget}`));
+  fwd.appendChild(el("text", { x: 60, y: 134, "font-size": 10.2, "font-weight": 800, fill: pid.pidActual === "AUTO" ? "#15803d" : "#b91c1c", "font-family": "ui-monospace, monospace" }, `MODE.ACTUAL : ${pid.pidActual}`));
+  fwd.appendChild(el("text", { x: 60, y: 154, "font-size": 10.2, fill: "#0f172a", "font-family": "ui-monospace, monospace" }, `OUT.CV      : ${pid.pidOut}%`));
+  fwd.appendChild(el("text", { x: 60, y: 174, "font-size": 10.0, fill: "#334155", "font-family": "ui-monospace, monospace" }, `Integral    : ${pid.windupClamped ? "CLAMPED (Anti-Windup!)" : (pid.pidActual === "AUTO" ? "Integrating normally" : "Held / Tracking")}`));
+  vp.appendChild(fwd);
+
+  const dwn = el("g", { class: "clickable", "data-id": "PID_AO1_BLK" });
+  dwn.appendChild(el("rect", { x: 534, y: 66, width: 358, height: 138, rx: 6, fill: "#f0fdf4", stroke: "#16a34a", "stroke-width": 1.8 }));
+  dwn.appendChild(el("text", { x: 548, y: 90, "font-size": 11, "font-weight": 800, fill: "#14532d" }, "AO1 (#3) — DOWNSTREAM VALVE OUTPUT"));
+  dwn.appendChild(el("text", { x: 548, y: 114, "font-size": 10.2, fill: "#0f172a", "font-family": "ui-monospace, monospace" }, `MODE.ACTUAL : ${pid.aoActual}`));
+  dwn.appendChild(el("text", { x: 548, y: 134, "font-size": 10.2, fill: "#0f172a", "font-family": "ui-monospace, monospace" }, `CAS_IN.CV   : ${pid.pidOut}% ${pid.aoActual === "CAS" ? "(OBEYING)" : "(IGNORED!)"}`));
+  dwn.appendChild(el("text", { x: 548, y: 154, "font-size": 10.2, "font-weight": 800, fill: "#0f172a", "font-family": "ui-monospace, monospace" }, `OUT / SP_WRK: ${pid.aoOut}%`));
+  dwn.appendChild(el("text", { x: 548, y: 174, "font-size": 10.0, fill: "#334155", "font-family": "ui-monospace, monospace" }, `BKCAL_OUT   : ${pid.bkcalVal}% [${pid.bkcalShort}]`));
+  vp.appendChild(dwn);
+
+  // Forward arrow
+  drawWire(vp, [[386, 110], [534, 110]], { active: pid.aoActual === "CAS", fault: pid.pidActual === "LO", label: `OUT → CAS_IN (${pid.pidOut}%)`, labelPos: [460, 94] });
+  // Backward gray dotted feedback arrow
+  drawWire(vp, [[534, 174], [386, 174]], { feedback: true, label: `BKCAL_OUT → BKCAL_IN (${pid.bkcalVal}% | ${pid.bkcalShort})`, labelPos: [460, 196] });
+
+  // Live Status Truth Table below
+  const tbl = el("g", { class: "clickable", "data-id": "PID_BKCAL_WIRE" });
+  tbl.appendChild(el("rect", { x: 46, y: 238, width: 846, height: 282, rx: 6, fill: "#ffffff", stroke: "#64748b", "stroke-width": 1.4 }));
+  tbl.appendChild(el("rect", { x: 47, y: 239, width: 844, height: 28, rx: 5, fill: "#1e293b" }));
+  tbl.appendChild(el("text", { x: 62, y: 257, "font-size": 10.5, "font-weight": 800, fill: "#ffffff" }, "LIVE BKCAL SUB-STATUS DECODER — WHAT AO1 IS TELLING PID1 ON THIS EXACT SCAN:"));
+
+  const scenarios = [
+    {
+      act: pid.aoActual === "CAS" && !state.pidHiLim && !state.pidTrkTrip && !pid.aiBad,
+      st: "GoodCascade: Non-Limited",
+      what: "AO1 is in CAS and valve is freely moving between 0% and 100%.",
+      eff: "PID1 runs normally in AUTO, adjusting OUT freely."
+    },
+    {
+      act: pid.windupClamped && !state.pidTrkTrip,
+      st: "GoodCascade: Limited High (or Low)",
+      what: "Valve hit 100% (OUT_HI_LIM) or 0% (OUT_LO_LIM) and cannot move further.",
+      eff: "PID1 freezes integral action in the limited direction → ZERO reset windup!"
+    },
+    {
+      act: pid.aoActual === "MAN" && !state.pidTrkTrip,
+      st: "GoodCascade: Not Invited (Init Request)",
+      what: "Operator placed AO1 in MAN (42%) — AO1 is no longer listening to CAS_IN.",
+      eff: "PID1 drops to IMan and tracks OUT := 42% so returning AO1 to CAS is 100% BUMPLESS!"
+    },
+    {
+      act: pid.aoActual === "OOS" && !state.pidTrkTrip,
+      st: "Bad: Out of Service",
+      what: "AO1 was placed in OOS (or hardware/DST failed).",
+      eff: "PID1 drops to IMan and halts control until AO1 returns to CAS."
+    }
+  ];
+  scenarios.forEach((sc, i) => {
+    const sy = 278 + i * 58;
+    tbl.appendChild(el("rect", {
+      x: 58, y: sy, width: 822, height: 50, rx: 4,
+      fill: sc.act ? "#dcfce7" : "#f8fafc",
+      stroke: sc.act ? "#16a34a" : "#e2e8f0",
+      "stroke-width": sc.act ? 2 : 1
+    }));
+    tbl.appendChild(el("text", { x: 70, y: sy + 19, "font-size": 10.2, "font-weight": 800, fill: sc.act ? "#14532d" : "#0f172a", "font-family": "ui-monospace, monospace" }, `${sc.act ? "▶ ACTIVE: " : "  "}${sc.st}`));
+    tbl.appendChild(el("text", { x: 70, y: sy + 38, "font-size": 9.4, fill: "#334155" }, `${sc.what}  →  ${sc.eff}`));
+  });
+  vp.appendChild(tbl);
+}
+
+// =========================================================================
+// 4E. RENDERERS FOR MODULE 5: CASCADE_201 (MASTER-SLAVE CASCADE + CTLSL OVERRIDE — CH. 9)
+// =========================================================================
+function renderCascadeTab1(vp, cas) {
+  drawSectionStrip(vp, 22, 16, 896, 526, "MASTER → SLAVE CASCADE (TIC_201 → FIC_201 → AO_VLV) WITH DOUBLE GRAY DOTTED BKCAL FEEDBACK CHAIN", "#1e3a8a");
+
+  // #1 AI_TT
+  drawFbdBlock(vp, {
+    id: "CAS_AI_TT", x: 36, y: 112, w: 138, h: 110, cls: "AI", name: "AI_TT (Temp)", execNum: 1,
+    inputs: [], outputs: [{ name: "OUT", dy: 56 }],
+    bodyLines: ["Reactor Temp", `${state.casTempPv} °C`],
+    status: "ok", liveBadge: `${state.casTempPv}°C`
+  });
+
+  // #2 PID_TIC (Master)
+  drawFbdBlock(vp, {
+    id: "CAS_TIC_BLK", x: 214, y: 84, w: 196, h: 168, cls: "PID", name: "PID_TIC (Master)", execNum: 2,
+    inputs: [{ name: "IN", dy: 84 }, { name: "BKCAL_IN", dy: 128 }],
+    outputs: [{ name: "OUT", dy: 84 }],
+    bodyLines: [
+      `TGT: ${state.casTicTarget} | ACT: ${cas.ticActual}`,
+      `Temp SP: ${cas.tempSp} °C`,
+      `Temp PV: ${state.casTempPv} °C`,
+      `Flow SP Out: ${cas.flowSp} gpm`
+    ],
+    status: cas.ticActual === "IMan" ? "warn" : (cas.ticActual === "AUTO" ? "ok" : "normal"),
+    liveBadge: `${cas.flowSp}`
+  });
+
+  // #3 PID_FIC (Slave)
+  drawFbdBlock(vp, {
+    id: "CAS_FIC_BLK", x: 458, y: 84, w: 196, h: 168, cls: "PID", name: "PID_FIC (Slave)", execNum: 3,
+    inputs: [{ name: "CAS_IN", dy: 84 }, { name: "BKCAL_IN", dy: 128 }],
+    outputs: [{ name: "OUT", dy: 84 }, { name: "BKCAL_OUT", dy: 128 }],
+    bodyLines: [
+      `TGT: ${state.casFicTarget} | ACT: ${cas.ficActual}`,
+      `SP (from TIC): ${cas.flowSp} gpm`,
+      `Valve Out: ${cas.ficOut}%`,
+      `BKCAL: ${cas.ficBkcalStatus}`
+    ],
+    status: (cas.ficActual === "IMan" || cas.ficActual !== "CAS") ? "warn" : "ok",
+    liveBadge: `${cas.ficOut}%`
+  });
+
+  // #4 AO_VLV
+  drawFbdBlock(vp, {
+    id: "CAS_AO_BLK", x: 702, y: 98, w: 186, h: 140, cls: "AO", name: "AO_VLV (Steam)", execNum: 4,
+    inputs: [{ name: "CAS_IN", dy: 70 }],
+    outputs: [{ name: "OUT", dy: 52 }, { name: "BKCAL_OUT", dy: 108 }],
+    bodyLines: [
+      `MODE: ${cas.aoActual}`,
+      `Steam Vlv: ${cas.aoOut}%`,
+      state.casValveClamp ? "HI-LIM CLAMP!" : `BKCAL: ${cas.aoBkcalStatus}`
+    ],
+    status: (cas.aoNotCas || state.casValveClamp) ? "warn" : "ok",
+    liveBadge: `${cas.aoOut}%`
+  });
+
+  // Forward wires (#1 -> #2 -> #3 -> #4)
+  drawWire(vp, [[174, 168], [214, 168]], { active: true });
+  drawWire(vp, [[410, 168], [458, 168]], { active: cas.ficActual === "CAS", label: `${cas.flowSp}`, labelPos: [434, 152] });
+  drawWire(vp, [[654, 168], [702, 168]], { active: !cas.aoNotCas, label: `${cas.ficOut}%`, labelPos: [678, 152] });
+
+  // Gray dotted BKCAL feedback wire #4 -> #3
+  drawWire(vp, [[888, 206], [902, 206], [902, 294], [434, 294], [434, 212], [458, 212]], {
+    feedback: true,
+    label: `BKCAL #4 → #3 (${cas.aoOut}% | ${cas.aoBkcalStatus})`,
+    labelPos: [684, 294]
+  });
+
+  // Gray dotted BKCAL feedback wire #3 -> #2
+  drawWire(vp, [[654, 212], [672, 212], [672, 340], [192, 340], [192, 212], [214, 212]], {
+    feedback: true,
+    label: `BKCAL #3 → #2 (${cas.flowSp} gpm | ${cas.ficBkcalStatus})`,
+    labelPos: [414, 340]
+  });
+
+  // Bottom Diagnostic Summary Card
+  vp.appendChild(el("rect", { x: 40, y: 374, width: 848, height: 150, rx: 6, fill: "#ffffff", stroke: "#64748b", "stroke-width": 1.4 }));
+  vp.appendChild(el("rect", { x: 41, y: 375, width: 846, height: 26, rx: 5, fill: "#0f172a" }));
+  vp.appendChild(el("text", { x: 56, y: 392, "font-size": 10.2, "font-weight": 800, fill: "#ffffff" }, "WHY CASCADE LOOPS NEED BOTH GRAY DOTTED BKCAL FEEDBACK WIRES (TRY IT LIVE ABOVE!):"));
+  const clines = [
+    "1. Normal Cascade: Master TIC (#2) in AUTO outputs Flow SP → Slave FIC (#3) in CAS outputs Valve % → AO_VLV (#4) in CAS.",
+    "2. Drop Slave FIC to AUTO or MAN: FIC sends 'NotInvited' up BKCAL (#3 → #2) → Master TIC drops to IMan and tracks Flow SP!",
+    "3. Drop AO_VLV to MAN: 'NotInvited' ripples BACKWARDS through BOTH BKCAL wires → BOTH FIC and TIC drop to IMan bumplessly!",
+    "4. Click 'Valve: HI-LIM Clamp': 'LimHigh' ripples up BOTH BKCAL wires so NEITHER Slave FIC nor Master TIC winds up its integral!"
+  ];
+  clines.forEach((ln, i) => {
+    vp.appendChild(el("text", { x: 56, y: 422 + i * 24, "font-size": 9.8, fill: "#1e293b", "font-family": "ui-monospace, monospace" }, ln));
+  });
+}
+
+function renderCascadeTab2(vp, cas) {
+  drawSectionStrip(vp, 22, 16, 896, 526, "OVERRIDE CONTROL: CTLSL1 (CONTROL SELECTOR, SEL_TYPE = LOW, FBR p. 185) + DUAL BKCAL ANTI-WINDUP", "#7c2d12");
+
+  // #1 PID_FLOW (Normal Control)
+  drawFbdBlock(vp, {
+    id: "CAS_OVR_FLOW", x: 48, y: 66, w: 222, h: 144, cls: "PID", name: "PID_FLOW (Normal)", execNum: 1,
+    inputs: [{ name: "BKCAL_IN", dy: 112 }],
+    outputs: [{ name: "OUT", dy: 64 }],
+    bodyLines: [
+      `Flow Demand: ${cas.flowPidOut}%`,
+      !cas.overrideActive && cas.ctlslActual === "AUTO" ? "★ SELECTED BY CTLSL1" : "Unselected (Clamped)",
+      `BKCAL_IN: ${cas.sel1Bkcal}`
+    ],
+    status: (!cas.overrideActive && cas.ctlslActual === "AUTO") ? "ok" : "warn",
+    liveBadge: `${cas.flowPidOut}%`
+  });
+
+  // #2 PID_HI_PRESS (High Discharge Pressure Override)
+  drawFbdBlock(vp, {
+    id: "CAS_OVR_PRESS", x: 48, y: 248, w: 222, h: 144, cls: "PID", name: "PID_HI_PRESS (Override)", execNum: 2,
+    inputs: [{ name: "BKCAL_IN", dy: 112 }],
+    outputs: [{ name: "OUT", dy: 64 }],
+    bodyLines: [
+      `Press: ${state.casPressPv.toFixed(1)} / 8.5 bar`,
+      `Override Out: ${cas.pressPidOut}%`,
+      cas.overrideActive ? "⚠ OVERRIDE ACTIVE!" : `BKCAL_IN: ${cas.sel2Bkcal}`
+    ],
+    status: cas.pressBad ? "bad" : (cas.overrideActive ? "bad" : "normal"),
+    liveBadge: cas.pressBad ? "BAD" : `${cas.pressPidOut}%`, badSt: cas.pressBad
+  });
+
+  // #3 CTLSL1 (Control Selector — FBR p. 185!)
+  drawFbdBlock(vp, {
+    id: "CAS_CTLSL_BLK", x: 358, y: 126, w: 232, h: 210, cls: "CTLSL", name: "CTLSL1 (LOW Select)", execNum: 3,
+    inputs: [{ name: "SEL_1", dy: 52 }, { name: "SEL_2", dy: 102 }, { name: "BKCAL_IN", dy: 168 }],
+    outputs: [{ name: "OUT", dy: 76 }, { name: "BKCAL_SEL1", dy: 132 }, { name: "BKCAL_SEL2", dy: 168 }],
+    bodyLines: [
+      `SEL_TYPE: LOW (min)`,
+      `MODE.ACTUAL: ${cas.ctlslActual}`,
+      `Winner: ${cas.ctlslActual !== "AUTO" ? cas.ctlslActual : (cas.overrideActive ? "SEL_2 (PRESS!)" : "SEL_1 (FLOW)")}`,
+      `OUT: ${cas.ctlslOut}%`
+    ],
+    status: cas.pressBad ? "bad" : (cas.overrideActive ? "warn" : (cas.ctlslActual === "AUTO" ? "ok" : "warn")),
+    liveBadge: `${cas.ctlslOut}%`
+  });
+
+  // #4 AO_VLV
+  drawFbdBlock(vp, {
+    id: "CAS_AO_BLK", x: 676, y: 150, w: 204, h: 148, cls: "AO", name: "AO_VLV (Control Vlv)", execNum: 4,
+    inputs: [{ name: "CAS_IN", dy: 52 }],
+    outputs: [{ name: "OUT", dy: 52 }, { name: "BKCAL_OUT", dy: 112 }],
+    bodyLines: [
+      `MODE: ${cas.aoActual}`,
+      `Valve: ${cas.ctlslOut}%`,
+      `BKCAL: ${cas.aoBkcalStatus}`
+    ],
+    status: (cas.aoNotCas || state.casValveClamp) ? "warn" : "ok",
+    liveBadge: `${cas.ctlslOut}%`
+  });
+
+  // Forward wires (#1/#2 -> #3 -> #4)
+  drawWire(vp, [[270, 130], [312, 130], [312, 178], [358, 178]], { active: !cas.overrideActive && cas.ctlslActual === "AUTO", label: `${cas.flowPidOut}%`, labelPos: [312, 114] });
+  drawWire(vp, [[270, 312], [312, 312], [312, 228], [358, 228]], { active: cas.overrideActive, fault: cas.pressBad || cas.overrideActive, label: cas.pressBad ? "BAD ✕" : `${cas.pressPidOut}%`, labelPos: [312, 326] });
+  drawWire(vp, [[590, 202], [676, 202]], { active: !cas.aoNotCas, fault: cas.overrideActive, label: `${cas.ctlslOut}%`, labelPos: [633, 188] });
+
+  // Gray dotted BKCAL feedback #4 -> #3
+  drawWire(vp, [[880, 262], [896, 262], [896, 368], [336, 368], [336, 294], [358, 294]], {
+    feedback: true,
+    label: `AO BKCAL_OUT → CTLSL1/BKCAL_IN (${cas.aoBkcalStatus})`,
+    labelPos: [638, 368]
+  });
+
+  // Gray dotted BKCAL_SEL1 (#3 -> #1) & BKCAL_SEL2 (#3 -> #2)
+  drawWire(vp, [[590, 258], [622, 258], [622, 424], [28, 424], [28, 178], [48, 178]], {
+    feedback: true,
+    label: `BKCAL_SEL1 → PID_FLOW (${cas.sel1Bkcal})`,
+    labelPos: [250, 424]
+  });
+  drawWire(vp, [[590, 294], [608, 294], [608, 456], [36, 456], [36, 360], [48, 360]], {
+    feedback: true,
+    label: `BKCAL_SEL2 → PID_HI_PRESS (${cas.sel2Bkcal})`,
+    labelPos: [250, 456]
+  });
+
+  // Bottom FBR p187 Gotcha Strip
+  vp.appendChild(el("rect", { x: 40, y: 478, width: 848, height: 52, rx: 5, fill: "#fff7ed", stroke: "#fb923c", "stroke-width": 1.4 }));
+  vp.appendChild(el("text", { x: 54, y: 498, "font-size": 9.8, "font-weight": 800, fill: "#9a3412" }, "REAL-PLANT TEST (FBR pp. 185–187): Drag 'Disch Press' above 8.5 bar to watch PID_HI_PRESS pinch the valve via LOW-select while BKCAL_SEL1 clamps PID_FLOW!"));
+  vp.appendChild(el("text", { x: 54, y: 517, "font-size": 9.5, fill: "#7c2d12" }, "Then toggle 'Press .ST: BAD' — per FBR p. 187, a Bad status on ANY connected SEL_1..3 input automatically sheds CTLSL1 actual mode from AUTO to MAN!"));
+}
+
+// =========================================================================
 // 5. CONTEXTUAL INSPECTOR DATABASE (BOTH MODULES — VERIFIED FACTS)
 // =========================================================================
-function getInspectorInfo(id, d, h, ts) {
+function getInspectorInfo(id, d, h, ts, pid, cas) {
   const map = {
     // --- MODULE 1: EM_TANK_CHARGE ---
     EPH_HANDSHAKE: {
@@ -3446,6 +4035,133 @@ function getInspectorInfo(id, d, h, ts) {
       paths: [["IN_D", "Driven by CND_TANK_TRIP (#2)"], ["^/A_COMMAND.CV", "Forced to 'em_2stage:Close'"]],
       expr: `'^/A_COMMAND.CV' := 'em_2stage:Close';`,
       live: [["Execution Order", "#3", "v-info"], ["Active?", ts.tripActive ? "ACTIVE (Forcing Close)" : "IDLE", ts.tripActive ? "v-bad" : "v-good"]]
+    },
+
+    // --- MODULE 4: FIC_101 (ANALOG PID + BKCAL + TRACKING) ---
+    PID_MODE_REF: {
+      type: "UNWIRED INTERNAL REFERENCE (7017 p. 243)",
+      title: "MODE (Internal Reference → PID1/MODE)",
+      role: "Classic real-plant unwired parameter box parked on the left side! Because PID1/MODE has no wireable pin, engineers add an Input Parameter of type 'Internal Reference' pointing to PID1/MODE with zero wires so faceplates and upstream logic can read/write FIC_101/MODE directly.",
+      paths: [["Parameter Type", "Internal Reference → PID1/MODE (zero wires!)"]],
+      expr: `(* No wire needed — Internal Reference aliases PID1/MODE at module level *)`,
+      live: [["PID1 Target", state.pidTarget, "v-info"], ["PID1 Actual", pid.pidActual, pid.pidActual === "AUTO" ? "v-good" : "v-warn"]]
+    },
+    PID_AI1_BLK: {
+      type: "ANALOG INPUT BLOCK (#1 — FBR pp. 92–99)",
+      title: "AI1 (FT-101 Flow Transmitter)",
+      role: "Reads 4–20 mA channel (IO_IN), scales to engineering units (OUT_SCALE), applies PV_FTIME filter (1.5s), and outputs OUT.CV + OUT.ST to PID1/IN. Unlike DC blocks, AI supports MAN mode (operator can type a fixed OUT!). Raw signal outside -20.12%..116.6% forces OUT.ST = BAD (Red ✕).",
+      paths: [["IO_IN → OUT", "Hardware channel scaled to gpm + status"], ["PV_FTIME", "1.5 s first-order filter time constant (63% step)"]],
+      expr: `(* Modes: OOS, MAN, AUTO (+ IMan actual) — FBR p. 95 *)\n(* Bad OUT.ST forces downstream PID1 actual mode to MAN! *)`,
+      live: [["Flow PV", `${state.pidPv} gpm`, "v-info"], ["OUT.ST", state.pidAiSt, pid.aiBad ? "v-bad" : "v-good"]]
+    },
+    PID1_BLK: {
+      type: "PID FUNCTION BLOCK (#2 — FBR pp. 228–241)",
+      title: "PID1 (FIC-101 — Reverse-Acting Flow PID)",
+      role: "Supports all 8 modes (OOS, IMan, LO, Man, Auto, Cas, RCas, ROut). Notice three real-plant behaviors: (1) If AO1 drops out of CAS, BKCAL_IN forces PID1 to IMan to track AO1 bumplessly; (2) If AI1/OUT.ST goes BAD, PID1 sheds to MAN; (3) If TRK_IN_D = True (with Track Enable in CONTROL_OPTS), PID1 drops to LO and outputs TRK_VAL (0.0%)!",
+      paths: [
+        ["IN / OUT", "PV from AI1 (#1) → Valve demand % to AO1 (#3)"],
+        ["BKCAL_IN", "Gray dotted feedback wire from AO1/BKCAL_OUT (#3 → #2)"],
+        ["TRK_IN_D / TRK_VAL", "Tracking interlock (forces LO & OUT := 0.0% — FBR p. 234)"]
+      ],
+      expr: `(* CONTROL_OPTS editable in OOS ONLY! (FBR p. 234, 238) *)\nDirect Acting = False (Reverse Acting: PV < SP opens valve)\nTrack Enable = True | Track in Manual = True | TRK_VAL = 0.0%`,
+      live: [
+        ["MODE.TARGET / ACTUAL", `${state.pidTarget} / ${pid.pidActual}`, pid.pidActual === "AUTO" ? "v-good" : "v-warn"],
+        ["SP / PV / Err", `${state.pidSp} / ${state.pidPv} / ${pid.error}`, "v-info"],
+        ["OUT.CV", `${pid.pidOut}%`, "v-info"],
+        ["BKCAL_IN Status", pid.bkcalShort, pid.windupClamped || pid.aoNotCas ? "v-warn" : "v-good"]
+      ]
+    },
+    PID_AO1_BLK: {
+      type: "ANALOG OUTPUT BLOCK (#3 — FBR pp. 106–111)",
+      title: "AO1 (FV-101 Control Valve Output)",
+      role: "Converts PID1/OUT (on CAS_IN) into 4–20 mA valve command on IO_OUT (with optional IO_OPTS 'Increase to close' for fail-open valves or 'Use PV for BKCAL_OUT'). Crucially, AO1 sends SP_WRK + status backwards on BKCAL_OUT to PID1/BKCAL_IN every scan!",
+      paths: [
+        ["CAS_IN", "Wired from PID1/OUT (used only when AO1 MODE.ACTUAL = CAS)"],
+        ["BKCAL_OUT", "Gray dotted feedback wire back to PID1/BKCAL_IN (#3 → #2)"]
+      ],
+      expr: `(* If CAS_IN goes Bad in CAS mode, AO1 sheds to next permitted mode (FBR p. 110) *)\n(* FSTATE_TIME / FSTATE_VAL define fail-safe valve output on fault *)`,
+      live: [["MODE.ACTUAL", pid.aoActual, pid.aoActual === "CAS" ? "v-good" : "v-warn"], ["Valve OUT", `${pid.aoOut}%`, "v-info"], ["BKCAL_OUT", `${pid.bkcalVal}% (${pid.bkcalShort})`, "v-info"]]
+    },
+    PID_BKCAL_WIRE: {
+      type: "GRAY DOTTED FEEDBACK WIRE (#3 → #2, CONFIG p. 368)",
+      title: "AO1/BKCAL_OUT → PID1/BKCAL_IN",
+      role: "Why is this wire drawn gray dotted in DeltaV? Because AO1 (#3) executes AFTER PID1 (#2), so BKCAL arrives on the NEXT scan! It prevents integral windup (Limited High/Low) and drives bumpless IMan tracking whenever AO1 leaves CAS!",
+      paths: [["#3 → #2", "Real DeltaV feedback wire (1-scan delay)"], ["Sub-Status", pid.bkcalStatus]],
+      expr: `(* AO1 (#3) BKCAL_OUT -> PID1 (#2) BKCAL_IN *)\nValue  = ${pid.bkcalVal}% (downstream SP_WRK)\nStatus = ${pid.bkcalStatus}`,
+      live: [["BKCAL Value", `${pid.bkcalVal}%`, "v-info"], ["BKCAL Status", pid.bkcalShort, pid.aoNotCas || pid.windupClamped ? "v-warn" : "v-good"]]
+    },
+    PID_CND_TRIP: {
+      type: "INTERLOCK TRACKING (#4 — FBR p. 234 & p. 413)",
+      title: "CND_INTERLOCK → PID1/TRK_IN_D",
+      role: "Monitors process high-high pressure trip. When True, wires OUT_D = 1 into PID1/TRK_IN_D, forcing PID1 actual mode to LO (Local Override) and clamping OUT := TRK_VAL (0.0% closed)!",
+      paths: [["OUT_D → TRK_IN_D", "Gray dotted feedback wire (#4 → #2)"]],
+      expr: `'//PT_101/HI_HI_ACT.CV' = True`,
+      live: [["Execution Order", "#4", "v-info"], ["TRK_IN_D", state.pidTrkTrip ? "True (LO → 0%)" : "False", state.pidTrkTrip ? "v-bad" : "v-good"]]
+    },
+
+    // --- MODULE 5: CASCADE_201 (MASTER-SLAVE CASCADE + CTLSL OVERRIDE) ---
+    CAS_AI_TT: {
+      type: "MASTER SENSOR (#1)",
+      title: "AI_TT (Reactor Temperature)",
+      role: "Measures reactor temperature (°C) and feeds Master PID_TIC (#2). Master loop is slow (temperature), while Slave loop (steam flow) is fast — classic Cascade architecture!",
+      paths: [["OUT → PID_TIC/IN", "Wired live temperature measurement"]],
+      expr: `(* Master PV = Reactor Temperature *)`,
+      live: [["Temp PV", `${state.casTempPv} °C`, "v-info"], ["Temp SP", `${cas.tempSp} °C`, "v-info"]]
+    },
+    CAS_TIC_BLK: {
+      type: "MASTER PID (#2 — CASCADE PRIMARY)",
+      title: "PID_TIC (Master Temperature PID)",
+      role: "Runs in AUTO and outputs a Flow Setpoint (gpm) to Slave PID_FIC/CAS_IN! Whenever Slave PID_FIC drops out of CAS (to AUTO, MAN, or IMan), PID_FIC's BKCAL_OUT tells PID_TIC 'Not Invited', forcing Master PID_TIC into IMan so it tracks bumplessly without winding up!",
+      paths: [["OUT → PID_FIC/CAS_IN", "Master output becomes Slave's Cascade Setpoint"], ["BKCAL_IN", "Gray dotted feedback wire from PID_FIC/BKCAL_OUT (#3 → #2)"]],
+      expr: `(* Tip: Enable FRSIPID_OPTS 'Dynamic Reset Limit' on Master PID\n   to use Slave PV for external reset feedback (FBR p. 238)! *)`,
+      live: [["TIC Target / Actual", `${state.casTicTarget} / ${cas.ticActual}`, cas.ticActual === "AUTO" ? "v-good" : "v-warn"], ["Flow SP Out", `${cas.flowSp} gpm`, "v-info"]]
+    },
+    CAS_FIC_BLK: {
+      type: "SLAVE PID (#3 — CASCADE SECONDARY)",
+      title: "PID_FIC (Slave Steam Flow PID)",
+      role: "Runs in CAS mode, obeying Master PID_TIC's Flow SP while rapidly rejecting steam header pressure disturbances before reactor temperature ever moves! Passes AO_VLV's limit/mode status right back up to Master PID_TIC via BKCAL_OUT.",
+      paths: [["CAS_IN", "Receives Flow SP from Master PID_TIC/OUT"], ["BKCAL_OUT → PID_TIC/BKCAL_IN", "Propagates NotInvited or LimHigh up to Master!"]],
+      expr: `(* If operator puts FIC in AUTO or MAN, cascade breaks cleanly:\n   FIC BKCAL_OUT = NotInvited -> Master TIC drops to IMan! *)`,
+      live: [["FIC Target / Actual", `${state.casFicTarget} / ${cas.ficActual}`, cas.ficActual === "CAS" ? "v-good" : "v-warn"], ["Valve Out", `${cas.ficOut}%`, "v-info"], ["BKCAL_OUT", cas.ficBkcalStatus, "v-info"]]
+    },
+    CAS_AO_BLK: {
+      type: "FINAL CONTROL ELEMENT (#4)",
+      title: "AO_VLV (Steam / Process Control Valve)",
+      role: "Final Analog Output block driving the physical valve. If AO_VLV drops to MAN or hits 100% HI-LIM, its BKCAL_OUT signal ripples BACKWARDS up the entire gray dotted feedback chain to prevent windup on every upstream PID!",
+      paths: [["BKCAL_OUT", "Feeds back to Slave PID_FIC (Tab 1) or CTLSL1 (Tab 2)"]],
+      expr: `(* Single valve limit or MAN mode protects the ENTIRE upstream chain via BKCAL! *)`,
+      live: [["AO Mode", cas.aoActual, cas.aoActual === "CAS" ? "v-good" : "v-warn"], ["Valve Pos", `${state.tab === "cas2" ? cas.ctlslOut : cas.aoOut}%`, "v-info"]]
+    },
+    CAS_CTLSL_BLK: {
+      type: "CONTROL SELECTOR (#3 — FBR pp. 185–189)",
+      title: "CTLSL1 (Low-Select Override Controller)",
+      role: "Real DeltaV Control Selector (CTLSL) block! Compares SEL_1 (Normal Flow PID) and SEL_2 (High-Pressure Override PID) using SEL_TYPE = LOW, sending the lower signal to AO_VLV. Crucially, CTLSL1 sends separate BKCAL_SEL1 and BKCAL_SEL2 feedback wires back to BOTH PIDs so the unselected PID tracks and NEVER winds up! (FBR p. 187 gotcha: if ANY connected SEL input goes BAD, CTLSL1 drops from AUTO to MAN!)",
+      paths: [
+        ["SEL_1 / SEL_2", "Wired from PID_FLOW/OUT and PID_HI_PRESS/OUT"],
+        ["BKCAL_SEL1 / BKCAL_SEL2", "Gray dotted anti-windup wires back to BOTH PIDs!"]
+      ],
+      expr: `SEL_TYPE = LOW (min of SEL_1 and SEL_2)\nModes: OOS, IMan, Man, Auto (FBR p. 187)\nBad SEL_1/2/3 in Auto -> actual mode sheds to Man!`,
+      live: [
+        ["CTLSL1 Actual Mode", cas.ctlslActual, cas.ctlslActual === "AUTO" ? "v-good" : "v-bad"],
+        ["Winning Input", cas.ctlslActual !== "AUTO" ? cas.ctlslActual : (cas.overrideActive ? "SEL_2 (HI-PRESS!)" : "SEL_1 (FLOW)"), cas.overrideActive ? "v-bad" : "v-good"],
+        ["OUT to AO_VLV", `${cas.ctlslOut}%`, "v-info"]
+      ]
+    },
+    CAS_OVR_FLOW: {
+      type: "NORMAL CONTROL PID (#1 — OVERRIDE LOOP)",
+      title: "PID_FLOW (Normal Flow Controller)",
+      role: "Runs the valve during normal operation. When Discharge Pressure exceeds 8.5 bar and PID_HI_PRESS takes over through CTLSL1, BKCAL_SEL1 clamps PID_FLOW so it cannot wind up to 100% while unselected!",
+      paths: [["OUT → CTLSL1/SEL_1", "Normal flow demand"], ["BKCAL_IN ← CTLSL1/BKCAL_SEL1", "Prevents reset windup during pressure override"]],
+      expr: `(* When unselected by CTLSL1, BKCAL_SEL1 clamps integral windup! *)`,
+      live: [["Flow Demand", `${cas.flowPidOut}%`, "v-info"], ["BKCAL_SEL1", cas.sel1Bkcal, cas.overrideActive ? "v-warn" : "v-good"]]
+    },
+    CAS_OVR_PRESS: {
+      type: "OVERRIDE PID (#2 — HIGH-PRESSURE GUARD)",
+      title: "PID_HI_PRESS (High Discharge Pressure Override)",
+      role: "Sits quietly in standby while Discharge Pressure is safely below 8.5 bar (BKCAL_SEL2 keeps it from winding up!). The moment pressure rises above 8.5 bar, its output drops below PID_FLOW and seamlessly wins CTLSL1's LOW-select to pinch the valve back!",
+      paths: [["OUT → CTLSL1/SEL_2", "Pinches valve when Disch Press > 8.5 bar"], ["BKCAL_IN ← CTLSL1/BKCAL_SEL2", "Keeps PID_HI_PRESS primed & windup-free in standby!"]],
+      expr: `(* Override SP = 8.5 bar; if Press Sensor .ST goes BAD, CTLSL1 drops to MAN! *)`,
+      live: [["Disch Press", `${state.casPressPv.toFixed(1)} bar (${state.casPressSt})`, cas.pressBad || cas.overrideActive ? "v-bad" : "v-good"], ["Override Out", `${cas.pressPidOut}%`, "v-info"], ["BKCAL_SEL2", cas.sel2Bkcal, "v-info"]]
     }
   };
 
@@ -3485,15 +4201,24 @@ function render() {
   const d = computeChargeDerived();
   const h = computeHeaderDerived();
   const ts = computeTwoStageDerived();
+  const pid = computePidDerived();
+  const cas = computeCascadeDerived();
 
   // Header module indicator & sim bars
   document.getElementById("moduleSelect").value = state.module;
-  document.getElementById("algPill").textContent = state.module === "charge"
-    ? "Algorithm: Command-Driven"
-    : "Algorithm: State-Driven";
+  const algMap = {
+    charge: "Algorithm: Command-Driven EM",
+    header: "Algorithm: State-Driven EM",
+    twostage: "Algorithm: State-Driven EM (7016)",
+    pid: "Control Module: Analog PID + Tracking",
+    cascade: "Control Modules: Cascade & CTLSL Override"
+  };
+  document.getElementById("algPill").textContent = algMap[state.module] || "Control Studio";
   document.getElementById("simBarCharge").classList.toggle("hidden", state.module !== "charge");
   document.getElementById("simBarHeader").classList.toggle("hidden", state.module !== "header");
   document.getElementById("simBarTwoStage").classList.toggle("hidden", state.module !== "twostage");
+  document.getElementById("simBarPid").classList.toggle("hidden", state.module !== "pid");
+  document.getElementById("simBarCascade").classList.toggle("hidden", state.module !== "cascade");
 
   const vp = document.getElementById("viewport");
   vp.innerHTML = "";
@@ -3563,7 +4288,7 @@ function render() {
     else if (state.tab === "h2") renderHeaderTab2(vp, h);
     else if (state.tab === "h3") renderHeaderTab3(vp, h);
     else if (state.tab === "h4") renderHeaderTab4Combo(vp, h);
-  } else {
+  } else if (state.module === "twostage") {
     // Module 3: EM_2STAGE_VLV (State-Driven 2-Stage Valve — Course 7016)
     const tsPill = document.getElementById("tsStatusPill");
     tsPill.textContent = ts.bannerPill;
@@ -3602,11 +4327,93 @@ function render() {
     if (state.tab === "ts1") renderTwoStageTab1(vp, ts);
     else if (state.tab === "ts2") renderTwoStageTab2(vp, ts);
     else if (state.tab === "ts3") renderTwoStageTab3Combo(vp, ts);
+  } else if (state.module === "pid") {
+    // Module 4: FIC_101 (Analog PID + BKCAL + Tracking)
+    const pPill = document.getElementById("pidStatusPill");
+    pPill.textContent = pid.pill;
+    pPill.className = "state-pill " + pid.pillCls;
+    document.getElementById("selPidMode").value = state.pidTarget;
+    document.getElementById("selAoMode").value = state.aoTarget;
+    document.getElementById("pidSpSlider").value = state.pidSp;
+    document.getElementById("pidSpLbl").textContent = `${state.pidSp} gpm`;
+    document.getElementById("pidPvSlider").value = state.pidPv;
+    document.getElementById("pidPvLbl").textContent = `${state.pidPv} gpm`;
+
+    const btnAi = document.getElementById("btnPidAiSt");
+    btnAi.textContent = `AI1 .ST: ${state.pidAiSt}`;
+    btnAi.className = pid.aiBad ? "sim-btn active-toggle" : "sim-btn";
+    const btnHi = document.getElementById("btnPidHiLim");
+    btnHi.textContent = state.pidHiLim ? "Valve: HI-LIM 100%!" : "Valve: Normal";
+    btnHi.className = state.pidHiLim ? "sim-btn active-toggle" : "sim-btn";
+    const btnTrk = document.getElementById("btnPidTrk");
+    btnTrk.textContent = state.pidTrkTrip ? "TRK_IN_D: TRIP (LO)!" : "TRK_IN_D: Clear";
+    btnTrk.className = state.pidTrkTrip ? "sim-btn active-toggle" : "sim-btn";
+
+    const banner = document.getElementById("diagBanner");
+    let lvl = (pid.pidActual === "LO" || pid.aiBad || pid.aoActual === "OOS") ? "alert" : ((pid.pidActual === "IMan" || pid.windupClamped) ? "warn" : "ok");
+    banner.className = "diag-banner " + lvl;
+    const defPidMsg = pid.pidActual === "LO"
+      ? `LOCAL OVERRIDE (LO): TRK_IN_D = True forced PID1 to track TRK_VAL = 0.0% (FBR p. 234)!`
+      : pid.pidActual === "IMan"
+        ? `INITIALIZATION MANUAL (IMan): AO1 is in ${pid.aoActual}, sending '${pid.bkcalShort}' up the gray dotted BKCAL feedback wire → PID1 tracks ${pid.bkcalVal}% bumplessly!`
+        : pid.aiBad
+          ? `BAD PV SHED: AI1/OUT.ST = BAD (Red ✕) forced PID1 actual mode from AUTO to MAN (FBR p. 240)!`
+          : pid.windupClamped
+            ? `ANTI-RESET WINDUP ACTIVE: AO1 hit 100% HI-LIM and sent 'LimHigh' on BKCAL_OUT → PID1 froze integral action!`
+            : `NORMAL REGULATORY LOOP: AI1 (#1) → PID1 (#2, ${pid.pidActual}) → AO1 (#3, ${pid.aoActual}) with gray dotted BKCAL feedback wire (#3 → #2).`;
+    document.getElementById("diagText").textContent = state.notice || defPidMsg;
+    document.getElementById("diagMetrics").textContent = `PID1: ${pid.pidActual} (${pid.pidOut}%) | AO1: ${pid.aoActual} (${pid.aoOut}%) | BKCAL: ${pid.bkcalShort}`;
+
+    if (state.tab === "pid1") renderPidTab1(vp, pid);
+    else renderPidTab2(vp, pid);
+  } else {
+    // Module 5: CASCADE_201 (Cascade + CTLSL Override)
+    const cPill = document.getElementById("casStatusPill");
+    cPill.textContent = cas.pill;
+    cPill.className = "state-pill " + cas.pillCls;
+    document.getElementById("selCasTicMode").value = state.casTicTarget;
+    document.getElementById("selCasFicMode").value = state.casFicTarget;
+    document.getElementById("selCasAoMode").value = state.casAoTarget;
+    document.getElementById("casTempSlider").value = state.casTempPv;
+    document.getElementById("casTempLbl").textContent = `${state.casTempPv} °C`;
+    document.getElementById("casPressSlider").value = state.casPressPv;
+    document.getElementById("casPressLbl").textContent = `${state.casPressPv.toFixed(1)} bar`;
+
+    const btnCl = document.getElementById("btnCasClamp");
+    btnCl.textContent = state.casValveClamp ? "Valve: HI-LIM 100%!" : "Valve: Normal";
+    btnCl.className = state.casValveClamp ? "sim-btn active-toggle" : "sim-btn";
+    const btnPs = document.getElementById("btnCasPressSt");
+    btnPs.textContent = `Press .ST: ${state.casPressSt}`;
+    btnPs.className = cas.pressBad ? "sim-btn active-toggle" : "sim-btn";
+
+    const banner = document.getElementById("diagBanner");
+    let lvl = (cas.pressBad || cas.overrideActive) ? "alert" : ((cas.ticActual === "IMan" || state.casValveClamp) ? "warn" : "ok");
+    banner.className = "diag-banner " + lvl;
+    const defCasMsg = state.tab === "cas2"
+      ? (cas.pressBad
+          ? `CTLSL1 SHED TO MAN (FBR p. 187): Bad status on SEL_2 (Pressure Override) automatically forced CTLSL1 from AUTO to MAN!`
+          : cas.overrideActive
+            ? `PRESSURE OVERRIDE ACTIVE (${state.casPressPv.toFixed(1)} > 8.5 bar)! CTLSL1 LOW-select chose PID_HI_PRESS (${cas.pressPidOut}%) and clamped PID_FLOW via BKCAL_SEL1!`
+            : `NORMAL LOW-SELECT: PID_FLOW (${cas.flowPidOut}%) wins CTLSL1; BKCAL_SEL2 holds PID_HI_PRESS windup-free in standby!`)
+      : (cas.aoNotCas
+          ? `DOUBLE IMan RIPPLE: AO_VLV is in MAN → 'NotInvited' rippled up BOTH gray dotted BKCAL wires forcing BOTH FIC and TIC into IMan!`
+          : cas.ticActual === "IMan"
+            ? `MASTER IN IMan: Slave FIC left CAS (${cas.ficActual}) → BKCAL (#3 → #2) forced Master TIC into IMan so it tracks bumplessly!`
+            : state.casValveClamp
+              ? `CASCADE ANTI-WINDUP: Valve clamped @ 100% → 'LimHigh' propagated up BOTH gray dotted BKCAL wires to freeze both PIDs!`
+              : `CASCADE CLOSED: Master TIC (${cas.ticActual}) → Flow SP ${cas.flowSp} gpm → Slave FIC (${cas.ficActual}) → AO_VLV (${cas.aoOut}%).`);
+    document.getElementById("diagText").textContent = state.notice || defCasMsg;
+    document.getElementById("diagMetrics").textContent = state.tab === "cas2"
+      ? `CTLSL1: ${cas.ctlslActual} | FlowPID: ${cas.flowPidOut}% | PressPID: ${cas.pressPidOut}% | Valve: ${cas.ctlslOut}%`
+      : `TIC: ${cas.ticActual} (${cas.flowSp} gpm) | FIC: ${cas.ficActual} (${cas.ficOut}%) | AO: ${cas.aoActual}`;
+
+    if (state.tab === "cas1") renderCascadeTab1(vp, cas);
+    else renderCascadeTab2(vp, cas);
   }
 
   applyTransform();
 
-  const info = getInspectorInfo(state.selectedId, d, h, ts);
+  const info = getInspectorInfo(state.selectedId, d, h, ts, pid, cas);
   document.getElementById("inspType").textContent = info.type;
   document.getElementById("inspTitle").textContent = info.title;
   document.getElementById("inspRole").textContent = info.role;
@@ -3698,9 +4505,15 @@ document.getElementById("moduleSelect").addEventListener("change", (e) => {
   } else if (state.module === "header") {
     state.tab = "h1";
     state.selectedId = "HDR_DEVICE_MASK";
-  } else {
+  } else if (state.module === "twostage") {
     state.tab = "ts1";
     state.selectedId = "TS_STATE_TABLE";
+  } else if (state.module === "pid") {
+    state.tab = "pid1";
+    state.selectedId = "PID1_BLK";
+  } else {
+    state.tab = "cas1";
+    state.selectedId = "CAS_FIC_BLK";
   }
   rebuildTabs();
   render();
@@ -3988,6 +4801,37 @@ document.getElementById("btnTsReset").addEventListener("click", () => {
   state.tsLastDribPv = "CLOSED";
   state.selectedId = "TS_STATE_TABLE";
   state.notice = "Reset EM_2STAGE_VLV to Close (1) with both valves in CAS and GOOD status.";
+  render();
+});
+
+// --- Module 4 Controls (FIC_101 — Analog PID + BKCAL + Tracking) ---
+document.getElementById("selPidMode").addEventListener("change", (e) => { state.pidTarget = e.target.value; state.notice = ""; render(); });
+document.getElementById("selAoMode").addEventListener("change", (e) => { state.aoTarget = e.target.value; state.notice = ""; render(); });
+document.getElementById("pidSpSlider").addEventListener("input", (e) => { state.pidSp = parseFloat(e.target.value); state.notice = ""; render(); });
+document.getElementById("pidPvSlider").addEventListener("input", (e) => { state.pidPv = parseFloat(e.target.value); state.notice = ""; render(); });
+document.getElementById("btnPidAiSt").addEventListener("click", () => { state.pidAiSt = state.pidAiSt === "GOOD" ? "BAD" : "GOOD"; state.notice = ""; render(); });
+document.getElementById("btnPidHiLim").addEventListener("click", () => { state.pidHiLim = !state.pidHiLim; state.notice = ""; render(); });
+document.getElementById("btnPidTrk").addEventListener("click", () => { state.pidTrkTrip = !state.pidTrkTrip; state.notice = ""; render(); });
+document.getElementById("btnPidReset").addEventListener("click", () => {
+  state.pidTarget = "AUTO"; state.aoTarget = "CAS"; state.pidSp = 80; state.pidPv = 75;
+  state.pidAiSt = "GOOD"; state.pidHiLim = false; state.pidTrkTrip = false;
+  state.selectedId = "PID1_BLK"; state.notice = "Reset FIC_101 to normal AUTO/CAS closed-loop flow control.";
+  render();
+});
+
+// --- Module 5 Controls (CASCADE_201 — Cascade + CTLSL Override) ---
+document.getElementById("selCasTicMode").addEventListener("change", (e) => { state.casTicTarget = e.target.value; state.notice = ""; render(); });
+document.getElementById("selCasFicMode").addEventListener("change", (e) => { state.casFicTarget = e.target.value; state.notice = ""; render(); });
+document.getElementById("selCasAoMode").addEventListener("change", (e) => { state.casAoTarget = e.target.value; state.notice = ""; render(); });
+document.getElementById("casTempSlider").addEventListener("input", (e) => { state.casTempPv = parseFloat(e.target.value); state.notice = ""; render(); });
+document.getElementById("casPressSlider").addEventListener("input", (e) => { state.casPressPv = parseFloat(e.target.value); state.notice = ""; render(); });
+document.getElementById("btnCasClamp").addEventListener("click", () => { state.casValveClamp = !state.casValveClamp; state.notice = ""; render(); });
+document.getElementById("btnCasPressSt").addEventListener("click", () => { state.casPressSt = state.casPressSt === "GOOD" ? "BAD" : "GOOD"; state.notice = ""; render(); });
+document.getElementById("btnCasReset").addEventListener("click", () => {
+  state.casTicTarget = "AUTO"; state.casFicTarget = "CAS"; state.casAoTarget = "CAS";
+  state.casTempPv = 176; state.casPressPv = 6.5; state.casValveClamp = false; state.casPressSt = "GOOD";
+  state.selectedId = state.tab === "cas2" ? "CAS_CTLSL_BLK" : "CAS_FIC_BLK";
+  state.notice = "Reset CASCADE_201 to healthy closed-loop cascade / normal flow selection.";
   render();
 });
 

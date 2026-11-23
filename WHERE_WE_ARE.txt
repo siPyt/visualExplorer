@@ -1,6 +1,6 @@
 ================================================================================
 DELTAV CONTROL STUDIO MASTERY — PROGRESS & MISSION TRACKER
-Last Updated: 2026-11-23 (Edition v2.2 — Verified Against 12 Official Emerson PDFs)
+Last Updated: 2026-11-23 (Edition v3.0 — Continuous & Discrete Control Studio Mastery)
 Repository:   https://github.com/siPyt/visualExplorer.git
 ================================================================================
 
@@ -14,18 +14,19 @@ engineer in the room — with zero made-up syntax and zero guessing.
 HOW THIS WORKSPACE OPERATES
 ---------------------------
 1. Visual Explorer (index.html — launch anytime by typing 'run' in terminal):
-   Interactive visual Control Studio trainer (EM_TANK_CHARGE + EM_XFER_HDR +
-   EM_2STAGE_VLV). Uses authentic Control Studio geometry, pins, modes, and
-   State-Driven tables (including '(not written)' cells & 4-Pattern Lens) while
-   keeping clearly labeled study-aid colors and purple dashed expression-ref lines.
+   Interactive visual Control Studio trainer with 5 selectable modules:
+   EM_TANK_CHARGE, EM_XFER_HDR, EM_2STAGE_VLV, FIC_101 (PID + BKCAL + Tracking),
+   and CASCADE_201 (Master-Slave Cascade + CTLSL Low-Select Override). Uses
+   authentic Control Studio geometry, gray dotted feedback wires, and purple
+   dashed learning-only expression-ref pointers.
 2. Expression Forge (ex.html — launch anytime by typing 'run ex' in terminal):
    Web & mobile-ready interactive DeltaV Structured Text expression & parameter
    trainer (Decode Cold, Forge Builder, 2 AM Bug Hunt, and On-Line Expression
    Tree Evaluator).
-3. Textbook & Lab Manual (DeltaV_Study_Guide.pdf — Edition v2.2):
-   Full in-depth native DeltaV lessons, pin-by-pin schematics, real-plant traps,
-   and 8 complete step-by-step Visual Explorer workshops (launch via 'run guide'
-   or 'run pdf').
+3. Textbook & Lab Manual (DeltaV_Study_Guide.pdf — Edition v3.0):
+   Full in-depth native DeltaV lessons (Chapters 1–10), 6-block FBR Field Guide,
+   pin-by-pin schematics, real-plant traps, and 11 complete step-by-step Visual
+   Explorer workshops (launch via 'run guide' or 'run pdf').
 4. Verified Truth Source (DELTAV_VERIFIED_FACTS.md + pdf reference/):
    Every Control Studio fact cited by exact PDF + page number across 12 official
    Emerson manuals (Function Block Reference, DeltaV Configuration, 7009, 7016,
@@ -71,25 +72,38 @@ HOW THIS WORKSPACE OPERATES
          (Command-Driven 3–4 patterns vs. State-Driven 2–3 patterns), custom FBD
          anti-cross-mix gate, health watchdog, overpressure & tank trip overrides.
 
+[DONE] Ch. 8 + Workshop 9 — Analog Control Modules, PID & BKCAL (FIC_101)
+       - AI1 -> PID1 -> AO1, all 8 PID modes, gray dotted BKCAL_OUT -> BKCAL_IN
+         feedback wire (#3 -> #2), IMan bumpless tracking, Limited High anti-
+         reset windup, Bad PV mode shed, IO_IN precedence, and AO fail-safe.
+
+[DONE] Ch. 9 + Workshop 10 — Cascade & CTLSL Override Control (CASCADE_201)
+       - Master TIC -> Slave FIC -> AO_VLV double gray dotted BKCAL chain,
+         Dynamic Reset Limit, plus CTLSL Control Selector (LOW select,
+         BKCAL_SEL1..3 anti-windup, Bad input shedding CTLSL to MAN).
+
+[DONE] Ch. 10 + Workshop 11 — Interlocks, Tracking, ISEL & Composite Blocks
+       - PID TRK_IN_D / TRK_VAL -> LO (Track Enable & Track in Manual), AO
+         FSTATE_VAL, DC INTERLOCK_D vs PERMISSIVE_D vs SHUTDOWN_D, ISEL 4-input
+         redundant sensor selector (MAX/MIN/MID/FIRST_GOOD/AVG), Embedded vs.
+         Linked Composites, and 5-module Cold-Read Readiness Challenge.
+
 ================================================================================
 2. WHERE WE ARE RIGHT NOW
 ================================================================================
-- Completed Edition v2.2 update incorporating the in-depth Command-Driven vs.
-  State-Driven 4-Pattern architecture comparison, State Table 3-in-1 folding,
-  Course 7016 2-Stage Valve State-Driven EM (EM_2STAGE_VLV with '(not written)'
-  Auto Mode cells & FBD watchdog/trip), and Workshop 8 across index.html and
-  DeltaV_Study_Guide.html / DeltaV_Study_Guide.pdf.
-- NEXT IMMEDIATE STEP:
-  -> Phase 3 / Chapter 8 + Workshop 9: Analog Control Modules & PID Loops
-     (AI -> PID -> AO, MAN/AUTO/CAS/ROUT, SP/PV/OUT, and BKCAL_IN / BKCAL_OUT
-     anti-reset-windup back-calculation wires — verified straight from FBR!).
+- Completed Edition v3.0 Continuous & Discrete Control Studio Mastery update
+  (steering clear of Batch per site requirements!): Chapters 1–10, 11 Workshops,
+  6-Block FBR Deep-Dive Field Guide, 16-question Mastery Exam, and 5 interactive
+  Visual Explorer modules (EM_TANK_CHARGE, EM_XFER_HDR, EM_2STAGE_VLV, FIC_101,
+  CASCADE_201).
 
 ================================================================================
-3. WHAT WE HOPE TO ACCOMPLISH (FULL CONTROL STUDIO MASTERY ROADMAP)
+3. WHAT WE HOPE TO ACCOMPLISH (CONTROL STUDIO MASTERY ROADMAP — NON-BATCH FOCUS)
 ================================================================================
 [DONE] Phase 1: Command-Driven EMs, Modes, Paths & Discrete CMs (Ch. 1–6 + Labs 1–6)
-[DONE] Phase 2: State-Driven Equipment Modules — EM_XFER_HDR (Ch. 7 + Lab 7)
-[NEXT] Phase 3: Analog Control, PID, Cascade & Back-Calculation (Ch. 8–9 + Labs)
-[PLAN] Phase 4: Advanced Interlocks, Tracking & Composite Blocks (Ch. 10 + Labs)
-[PLAN] Phase 5: Batch Unit Phases (RUN/HOLD/RESTART/FAIL_MONITOR) & Cold-Read Mastery
+[DONE] Phase 2: State-Driven EMs — EM_XFER_HDR & EM_2STAGE_VLV (Ch. 7 + Labs 7–8)
+[DONE] Phase 3: Analog PID, BKCAL, Cascade & CTLSL Override (Ch. 8–9 + Labs 9–10)
+[DONE] Phase 4: Tracking Interlocks, ISEL & Composite Blocks (Ch. 10 + Lab 11)
+[OPT.] Phase 5: Advanced Continuous Topics (Split-Range, Feedforward, Ratio,
+                Lead-Lag, or Custom Cold-Read Scenarios from your plant!)
 ================================================================================

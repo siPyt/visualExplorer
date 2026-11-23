@@ -389,9 +389,9 @@
   <h1>Reading &amp; Troubleshooting DeltaV Control Studio</h1>
   <p class="subtitle">Complete in-depth native DeltaV lessons, pin-by-pin Control Studio schematics, real-plant engineering nuances, and step-by-step interactive workshops paired with <strong>Visual Explorer</strong>.</p>
   <div class="meta-strip">
-    <span class="meta-pill">Edition: v2.2 (Verified vs. Official Emerson Docs)</span>
-    <span class="meta-pill">Strictly Native DeltaV Control Studio</span>
-    <span class="meta-pill">Modules: EM_TANK_CHARGE • EM_XFER_HDR • EM_2STAGE_VLV</span>
+    <span class="meta-pill">Edition: v3.0 (Verified vs. Official Emerson Docs)</span>
+    <span class="meta-pill">Continuous &amp; Discrete Control Studio Mastery</span>
+    <span class="meta-pill">5 Modules: EM_TANK_CHARGE • EM_XFER_HDR • EM_2STAGE_VLV • FIC_101 • CASCADE_201</span>
     <span class="meta-pill">Launch Lab App: type "run" in terminal</span>
   </div>
 </div>
@@ -424,9 +424,9 @@
     <span class="tag done">Complete + 2 Labs</span><br />
     <strong>Ch. 7:</strong> State-Driven EMs (Items × States, 4-Pattern Folding &amp; 2-Stage Valve)
   </div>
-  <div class="roadmap-item next">
-    <span class="tag next">Up Next (Phases 3–5)</span><br />
-    <strong>Ch. 8–12:</strong> Analog PID &amp; BKCAL, Cascade, Composites &amp; Phase SFCs
+  <div class="roadmap-item done">
+    <span class="tag done">Complete + 3 Labs</span><br />
+    <strong>Ch. 8–10:</strong> Analog PID &amp; BKCAL, Cascade, CTLSL Override, Tracking, ISEL &amp; Composites
   </div>
 </div>
 
@@ -1517,7 +1517,299 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
 </div>
 
 <!-- =====================================================================
-     FUNCTION BLOCK DEEP-DIVE FIELD GUIDE (ALL 6 ACTIVE BLOCKS)
+     CHAPTER 8: ANALOG CONTROL MODULES, PID LOOPS & BACK-CALCULATION
+     ===================================================================== -->
+<h2 class="page-break">Chapter 8: Analog Control Modules, PID Loops &amp; Back-Calculation (<code>FIC_101</code>)</h2>
+<p>In continuous (non-batch) plants, <strong>80%+ of the Control Studio sheets you open will be Analog Regulatory Control Modules</strong>—flow, pressure, level, and temperature loops built around <strong><code>AI → PID → AO</code></strong>. Unlike discrete <code>DC</code> valves (which snap <code>OPEN</code> or <code>CLOSE</code>), analog loops throttle continuously from <code>0%</code> to <code>100%</code> and rely on a backward feedback wire—<strong><code>BKCAL_OUT → BKCAL_IN</code></strong>—to prevent windup and keep mode transitions 100% bumpless.</p>
+
+<h3>8.1 Anatomy of a Standard Regulatory Loop (<code>AI1 → PID1 → AO1</code>)</h3>
+<div class="diagram-box">
+  <svg viewBox="0 0 690 196" width="100%" height="186" xmlns="http://www.w3.org/2000/svg">
+    <rect width="690" height="196" fill="url(#g_p1)" rx="4"/>
+    <!-- Unwired MODE Internal Reference (7017 p243) -->
+    <rect x="14" y="14" width="128" height="22" fill="#f1f5f9" stroke="#64748b"/>
+    <text x="20" y="28" font-size="7.6" font-weight="700" font-family="Consolas, monospace">MODE (Int Ref → PID1)</text>
+
+    <!-- #1 AI1 -->
+    <rect x="14" y="54" width="128" height="76" rx="2" fill="#ffffff" stroke="#1e3a8a" stroke-width="1.5"/>
+    <rect x="15" y="55" width="126" height="15" fill="#dbeafe"/>
+    <text x="78" y="66" text-anchor="middle" fill="#1e3a8a" font-size="8.4" font-weight="800" font-family="Consolas, monospace">AI1 (FT-101)</text>
+    <text x="78" y="88" text-anchor="middle" fill="#334155" font-size="7.6">IO_IN → OUT_SCALE</text>
+    <text x="78" y="102" text-anchor="middle" fill="#334155" font-size="7.6">PV_FTIME = 1.5s</text>
+    <text x="135" y="96" text-anchor="end" fill="#0f172a" font-size="7.4" font-weight="700" font-family="Consolas, monospace">OUT □</text>
+    <rect x="118" y="113" width="20" height="13" rx="2" fill="#e2e8f0"/><text x="128" y="123" text-anchor="middle" font-size="7.6" font-weight="800" font-family="Consolas, monospace">#1</text>
+
+    <!-- #2 PID1 -->
+    <rect x="208" y="34" width="194" height="108" rx="2" fill="#ffffff" stroke="#0f766e" stroke-width="1.7"/>
+    <rect x="209" y="35" width="192" height="16" fill="#ccfbf1"/>
+    <text x="305" y="46" text-anchor="middle" fill="#115e59" font-size="8.6" font-weight="800" font-family="Consolas, monospace">PID1 (FIC-101 • AUTO)</text>
+    <text x="215" y="94" fill="#0f172a" font-size="7.4" font-weight="700" font-family="Consolas, monospace">□ IN</text>
+    <text x="215" y="114" fill="#475569" font-size="7.4" font-weight="700" font-family="Consolas, monospace">□ BKCAL_IN</text>
+    <text x="215" y="132" fill="#b91c1c" font-size="7.4" font-weight="700" font-family="Consolas, monospace">□ TRK_IN_D</text>
+    <text x="395" y="94" text-anchor="end" fill="#0f172a" font-size="7.4" font-weight="700" font-family="Consolas, monospace">OUT □</text>
+    <text x="305" y="72" text-anchor="middle" fill="#1e293b" font-size="7.6" font-weight="700">SP: 80 | PV: 75 → OUT: 57%</text>
+    <text x="305" y="85" text-anchor="middle" fill="#475569" font-size="7.2">Reverse Acting • Track En</text>
+    <rect x="378" y="125" width="20" height="13" rx="2" fill="#e2e8f0"/><text x="388" y="135" text-anchor="middle" font-size="7.6" font-weight="800" font-family="Consolas, monospace">#2</text>
+
+    <!-- #3 AO1 -->
+    <rect x="466" y="46" width="150" height="92" rx="2" fill="#ffffff" stroke="#1e3a8a" stroke-width="1.5"/>
+    <rect x="467" y="47" width="148" height="16" fill="#dbeafe"/>
+    <text x="541" y="58" text-anchor="middle" fill="#1e3a8a" font-size="8.4" font-weight="800" font-family="Consolas, monospace">AO1 (FV-101 • CAS)</text>
+    <text x="473" y="94" fill="#0f172a" font-size="7.4" font-weight="700" font-family="Consolas, monospace">□ CAS_IN</text>
+    <text x="610" y="84" text-anchor="end" fill="#0f172a" font-size="7.4" font-weight="700" font-family="Consolas, monospace">OUT □</text>
+    <text x="610" y="114" text-anchor="end" fill="#475569" font-size="7.4" font-weight="700" font-family="Consolas, monospace">BKCAL_OUT □</text>
+    <text x="541" y="100" text-anchor="middle" fill="#334155" font-size="7.5">4–20 mA → 57%</text>
+    <rect x="592" y="122" width="20" height="13" rx="2" fill="#e2e8f0"/><text x="602" y="132" text-anchor="middle" font-size="7.6" font-weight="800" font-family="Consolas, monospace">#3</text>
+
+    <!-- IO_OUT Box -->
+    <rect x="634" y="70" width="46" height="24" fill="#dcfce7" stroke="#16a34a"/>
+    <text x="657" y="85" text-anchor="middle" font-size="7.4" font-weight="800" fill="#14532d" font-family="Consolas, monospace">IO_OUT</text>
+
+    <!-- Forward Solid Wires -->
+    <line x1="142" y1="92" x2="208" y2="92" stroke="#16a34a" stroke-width="2.4"/>
+    <line x1="402" y1="92" x2="466" y2="92" stroke="#16a34a" stroke-width="2.4"/>
+    <line x1="616" y1="82" x2="634" y2="82" stroke="#16a34a" stroke-width="2.4"/>
+
+    <!-- REAL GRAY DOTTED FEEDBACK WIRE (#3 AO1/BKCAL_OUT -> #2 PID1/BKCAL_IN) -->
+    <path d="M 616 112 L 626 112 L 626 172 L 182 172 L 182 112 L 208 112" fill="none" stroke="#475569" stroke-width="1.8" stroke-dasharray="2,3"/>
+    <rect x="260" y="162" width="290" height="17" rx="2" fill="#ffffff" stroke="#94a3b8"/>
+    <text x="405" y="173" text-anchor="middle" font-size="7.8" font-weight="800" fill="#334155" font-family="Consolas, monospace">GRAY DOTTED FEEDBACK WIRE: #3 AO1/BKCAL_OUT → #2 PID1/BKCAL_IN</text>
+  </svg>
+  <div class="diagram-caption">Figure 8.1: Standard Analog Loop (FIC_101) — Notice why AO1/BKCAL_OUT → PID1/BKCAL_IN is drawn as a gray dotted feedback wire in real DeltaV: AO1 (#3) executes AFTER PID1 (#2), so back-calculation arrives on the next scan!</div>
+</div>
+
+<h3>8.2 All 8 <code>PID</code> Operating Modes &amp; Real-Plant Mode Shedding (<em>FBR</em> pp. 239–241)</h3>
+<p>Unlike a discrete <code>DC</code> block (which has only <code>AUTO</code>, <code>CAS</code>, and <code>LO</code>), the Emerson <strong><code>PID</code></strong> block supports <strong>all 8 DeltaV operating modes</strong>. Memorize which ones an operator can select vs. which ones the controller forces automatically:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="width:17%;">Mode (Keyword)</th>
+      <th style="width:16%;">Selectable Target?</th>
+      <th>What the <code>PID</code> Block Actually Does on Every Scan</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td><strong><code>OOS</code></strong> (<code>OS</code> in expr)</td><td>Yes (always)</td><td>Out of Service — block stops executing. <strong>Critical rule:</strong> <code>CONTROL_OPTS</code> (like <code>Direct Acting</code>, <code>Track Enable</code>) and <code>STATUS_OPTS</code> can <em>only</em> be changed in <code>OOS</code>!</td></tr>
+    <tr><td><strong><code>IMan</code></strong></td><td><strong>NO</strong> (Auto only)</td><td><strong>Initialization Manual:</strong> Forced automatically whenever the downstream block (<code>AO1</code> or Slave <code>PID</code>) is <em>not</em> in <code>CAS</code> (sending <code>Not Invited</code> / <code>Bad</code> on <code>BKCAL_IN</code>). <code>PID1/OUT</code> tracks <code>BKCAL_IN</code> bumplessly!</td></tr>
+    <tr><td><strong><code>LO</code></strong></td><td><strong>NO</strong> (Auto only)</td><td><strong>Local Override:</strong> Forced automatically when <code>TRK_IN_D = True</code> (and <code>Track Enable = True</code>). <code>PID1/OUT</code> locks onto <code>TRK_VAL</code> (e.g., <code>0.0%</code> safe close)!</td></tr>
+    <tr><td><strong><code>Man</code></strong></td><td>Yes</td><td>Operator types <code>OUT</code> directly (<code>0–100%</code>). <strong>Automatic Mode Shed (<em>FBR</em> p. 240):</strong> If <code>AI1/OUT.ST</code> goes <code>BAD</code>, a <code>PID</code> in <code>AUTO</code> automatically sheds actual mode to <code>MAN</code>! (If <code>STATUS_OPTS: Target to Manual if Bad IN</code> is checked, <em>target</em> mode also changes to <code>MAN</code> so it won't auto-resume when the sensor recovers!)</td></tr>
+    <tr><td><strong><code>Auto</code></strong></td><td>Yes</td><td>Normal closed-loop control: operator types <code>SP</code>; <code>PID</code> computes <code>OUT</code> from <code>PV</code> vs. <code>SP</code>.</td></tr>
+    <tr><td><strong><code>Cas</code></strong></td><td>Yes</td><td>Cascade: <code>SP</code> comes continuously from an upstream Master <code>PID</code>'s <code>OUT</code> wired into <code>CAS_IN</code>.</td></tr>
+    <tr><td><strong><code>RCas</code> / <code>ROut</code></strong></td><td>Yes (if permitted)</td><td>Remote Cascade (supervisory computer/APC writes <code>RCAS_IN</code> setpoint) / Remote Out (supervisory computer writes <code>ROUT_IN</code> valve output directly).</td></tr>
+  </tbody>
+</table>
+
+<div class="callout warn">
+  <div class="callout-title">Three Hidden <code>PID</code> / <code>AO</code> Gotchas Directly From the Emerson FBR</div>
+  <ul style="margin:4px 0 0;">
+    <li><strong>1. <code>IO_IN</code> Beats Wired <code>IN</code> (<em>FBR</em> p. 232):</strong> If a <code>PID</code> block has <em>both</em> an I/O channel configured in <code>IO_IN</code> AND a wire connected to its <code>IN</code> pin, <strong><code>IO_IN</code> wins and the wired <code>IN</code> pin is completely ignored!</strong></li>
+    <li><strong>2. Deviation Alarms Suppress on SP Step Changes (<em>FBR</em> p. 240):</strong> When an operator steps <code>SP</code> up by 20 gpm, <code>DV_HI_LIM</code> / <code>DV_LO_LIM</code> alarms are automatically suppressed until <code>PV</code> enters the band (or <code>OUT</code> / <code>BKCAL_IN</code> hits a limit).</li>
+    <li><strong>3. <code>AO</code> Fail-Open Valves (<code>Increase to close</code>, <em>FBR</em> p. 108):</strong> Checking <code>IO_OPTS: Increase to close</code> inverts the 4–20 mA channel so <code>100%</code> implied valve position outputs <code>4 mA</code> (fully open on an Air-to-Close valve)—except in <code>MAN</code> mode where <code>OUT</code> sets the output directly. Also check <code>FSTATE_TIME</code> &amp; <code>FSTATE_VAL</code> for how <code>AO</code> reacts when <code>CAS_IN</code> goes Bad!</li>
+  </ul>
+</div>
+
+<h3>8.3 <code>BKCAL_OUT → BKCAL_IN</code>: Why That Gray Dotted Feedback Wire Saves Your Plant</h3>
+<p>Imagine your flow control valve (<code>AO1</code>) is stuck or saturated at <strong><code>100%</code> open</strong> while flow is still below setpoint (<code>PV = 60</code>, <code>SP = 80</code>). Without back-calculation, a naive PID's integral ("reset") term would keep winding up to <code>+500%</code> inside memory; later, when flow rises above 80 gpm, the valve would stay slammed wide open for minutes waiting for the wound-up integral to unwind!</p>
+<p>DeltaV solves both <strong>integral windup</strong> and <strong>bumpless transfer</strong> with one wire—<code>AO1/BKCAL_OUT</code> looped back to <code>PID1/BKCAL_IN</code> (drawn <strong>gray dotted</strong> because <code>#3</code> feeds back to <code>#2</code> for the next scan!):</p>
+<ol>
+  <li><strong><code>GoodCascade: Non-Limited</code>:</strong> Valve is freely moving in <code>CAS</code> → <code>PID1</code> integrates normally in <code>AUTO</code>.</li>
+  <li><strong><code>GoodCascade: Limited High</code> (or <code>Limited Low</code>):</strong> <code>AO1</code> hit <code>OUT_HI_LIM</code> (100%) or <code>OUT_LO_LIM</code> (0%). <code>PID1</code> freezes integral accumulation in the limited direction (<em>FBR</em> p. 239)—<strong>zero reset windup!</strong></li>
+  <li><strong><code>GoodCascade: Not Invited</code> (Init Request):</strong> An operator switched <code>AO1</code> to <code>MAN</code> (say 42%). <code>AO1</code> sends <code>42% + Not Invited</code> backwards on <code>BKCAL_OUT</code> → <code>PID1</code> immediately drops to <strong><code>IMan</code></strong> and forces <code>PID1/OUT := 42%</code>! The instant the operator returns <code>AO1</code> to <code>CAS</code>, <code>PID1</code> resumes <code>AUTO</code> from <code>42%</code> with <strong>zero valve bump!</strong></li>
+  <li><strong><code>Bad: Out of Service</code>:</strong> <code>AO1</code> is in <code>OOS</code> or faulted → <code>PID1</code> holds in <code>IMan</code> until the downstream block is healthy again.</li>
+</ol>
+
+<!-- WORKSHOP 9 -->
+<div class="workshop">
+  <div class="workshop-head">
+    <span class="ws-title">Workshop 9: Single-Loop PID, BKCAL Anti-Windup &amp; Mode Shedding in <code>FIC_101</code></span>
+    <span class="ws-badge">Hands-On Lab • 6 Min</span>
+  </div>
+  <div class="workshop-body">
+    <div class="workshop-setup">
+      <strong>Setup:</strong> In <strong>Visual Explorer</strong>, switch the top-left module dropdown to <code>FIC_101 (Analog PID + BKCAL &amp; Track — Ch. 8 &amp; 10)</code>, verify <strong>On-Line</strong> is selected, and click <strong>Reset Loop</strong>.
+    </div>
+    <ol>
+      <li><strong>Trace Normal Closed-Loop Flow &amp; Reverse Action:</strong> On Tab <strong>1. Main PID Diagram</strong>, spot the unwired <code>MODE (Int Ref → PID1)</code> box on the top-left (<em>7017</em> p. 243) and the real <strong>gray dotted <code>BKCAL</code> feedback wire</strong> looping from <code>AO1 (#3)</code> back to <code>PID1 (#2)</code>. Drag <strong>Flow PV</strong> down from <code>75</code> to <code>55 gpm</code> (below <code>80 gpm</code> SP)—watch Reverse-Acting <code>PID1</code> drive <code>OUT</code> higher to open the valve!</li>
+      <li><strong>Trigger Bumpless <code>IMan</code> Tracking:</strong> Change <strong>AO1 Target</strong> from <code>CAS</code> to <strong><code>MAN (forces PID IMan!)</code></strong>.
+        <br/><em>Observe:</em> Even though <code>PID1</code>'s Target is still <code>AUTO</code>, <code>PID1</code>'s <code>MODE.ACTUAL</code> instantly drops to <strong><code>IMan</code></strong> and <code>PID1/OUT</code> snaps to <code>42%</code> (matching <code>AO1</code>'s manual valve position!). Switch to Tab <strong>2. BKCAL &amp; Windup X-Ray</strong> to see the active green row: <code>GoodCascade: Not Invited (Init Req)</code>! Return <code>AO1</code> to <code>CAS</code>.</li>
+      <li><strong>Trigger Anti-Reset Windup (<code>LimHigh</code>):</strong> Click <strong>Valve: Normal</strong> → <strong>Valve: HI-LIM 100%!</strong>. Watch the gray dotted <code>BKCAL</code> wire carry <code>100% | LimHigh</code> back to <code>PID1</code> and check Tab 2 to verify <code>Integral: CLAMPED (Anti-Windup!)</code>. Restore Valve to Normal.</li>
+      <li><strong>Trigger Bad Sensor Mode Shed:</strong> Click <strong>AI1 .ST: GOOD</strong> → <strong>BAD</strong>. Notice the Red <code>✕</code> appear on <code>AI1</code> and <code>PID1</code>, and watch <code>PID1</code> automatically shed actual mode from <code>AUTO</code> to <strong><code>MAN</code></strong> (<em>FBR</em> p. 240)!</li>
+    </ol>
+    <div class="workshop-takeaway">
+      <strong>What You Are Supposed to Learn From This Workshop:</strong> Anytime you open an unfamiliar PID loop in a plant and see <code>MODE.ACTUAL = IMan</code>, <em>do not blame the PID block</em>—follow its gray dotted <code>BKCAL_IN</code> wire downstream! Something downstream (an <code>AO</code> in <code>MAN</code>/<code>OOS</code>, or a Slave <code>PID</code> out of <code>CAS</code>) is refusing Cascade!
+    </div>
+  </div>
+</div>
+
+<!-- =====================================================================
+     CHAPTER 9: CASCADE CONTROL & CTLSL OVERRIDE CONTROL
+     ===================================================================== -->
+<h2 class="page-break">Chapter 9: Cascade Control &amp; <code>CTLSL</code> Override Control (<code>CASCADE_201</code>)</h2>
+
+<h3>9.1 Master → Slave Cascade &amp; The Double <code>BKCAL</code> Chain (<code>TIC_201 → FIC_201 → AO_VLV</code>)</h3>
+<p>In a reactor or heat exchanger, temperature changes slowly (minutes), while steam header pressure can fluctuate in seconds. Rather than letting the slow Temperature PID directly wrestle the steam valve, engineers nest a <strong>fast Slave Flow PID (<code>PID_FIC</code>)</strong> inside a <strong>slow Master Temperature PID (<code>PID_TIC</code>)</strong>:</p>
+<ul>
+  <li><strong>Forward Path (Left → Right):</strong> Master <code>PID_TIC (#2, AUTO)</code> outputs a desired <em>Steam Flow Setpoint (gpm)</em> into Slave <code>PID_FIC (#3, CAS)/CAS_IN</code>, which drives <code>AO_VLV (#4, CAS)/CAS_IN</code>. If steam supply pressure suddenly dips, the fast Slave <code>FIC</code> opens the valve in 2 seconds before reactor temperature ever budges!</li>
+  <li><strong>Backward Path (Double Gray Dotted <code>BKCAL</code> Feedback Chain):</strong> <code>AO_VLV/BKCAL_OUT (#4 → #3)</code> feeds <code>PID_FIC/BKCAL_IN</code>, and <code>PID_FIC/BKCAL_OUT (#3 → #2)</code> feeds <code>PID_TIC/BKCAL_IN</code>!
+    <ul>
+      <li><strong>Operator puts Slave <code>FIC</code> in <code>AUTO</code> or <code>MAN</code>:</strong> Slave sends <code>Not Invited</code> up <code>#3 → #2</code> → Master <code>TIC</code> immediately drops to <strong><code>IMan</code></strong> and tracks the Slave's actual flow setpoint/PV bumplessly!</li>
+      <li><strong>Operator puts <code>AO_VLV</code> in <code>MAN</code>:</strong> <code>Not Invited</code> ripples backwards through <em>both</em> gray dotted wires → <strong>BOTH Slave <code>FIC</code> AND Master <code>TIC</code> drop to <code>IMan</code>!</strong></li>
+      <li><strong>Valve saturates at <code>100%</code>:</strong> <code>Limited High</code> ripples up <em>both</em> gray dotted wires → integral windup freezes on <strong>both</strong> PIDs!</li>
+      <li><strong>Pro Tip (<code>Dynamic Reset Limit</code>, <em>FBR</em> p. 238):</strong> Checking <code>FRSIPID_OPTS: Dynamic Reset Limit</code> on Master <code>PID_TIC</code> feeds Slave <code>FIC</code>'s actual flow <code>PV</code> directly into Master's reset network—preventing windup even if the steam valve is wide open or a manual isolation valve upstream is half-shut!</li>
+    </ul>
+  </li>
+</ul>
+
+<div class="diagram-box">
+  <svg viewBox="0 0 690 156" width="100%" height="148" xmlns="http://www.w3.org/2000/svg">
+    <rect width="690" height="156" fill="url(#g_p1)" rx="4"/>
+    <rect x="14" y="28" width="96" height="62" rx="2" fill="#ffffff" stroke="#1e3a8a" stroke-width="1.4"/>
+    <rect x="15" y="29" width="94" height="14" fill="#dbeafe"/><text x="62" y="39" text-anchor="middle" fill="#1e3a8a" font-size="7.8" font-weight="800" font-family="Consolas, monospace">AI_TT (#1)</text>
+    <text x="62" y="64" text-anchor="middle" fill="#334155" font-size="7.6">176 °C</text>
+
+    <rect x="150" y="22" width="146" height="74" rx="2" fill="#ffffff" stroke="#0f766e" stroke-width="1.6"/>
+    <rect x="151" y="23" width="144" height="14" fill="#ccfbf1"/><text x="223" y="33" text-anchor="middle" fill="#115e59" font-size="7.8" font-weight="800" font-family="Consolas, monospace">PID_TIC Master (#2)</text>
+    <text x="223" y="54" text-anchor="middle" fill="#0f172a" font-size="7.5" font-weight="700">AUTO • SP 180 °C</text>
+    <text x="223" y="69" text-anchor="middle" fill="#334155" font-size="7.3">OUT → Flow SP (74 gpm)</text>
+
+    <rect x="342" y="22" width="146" height="74" rx="2" fill="#ffffff" stroke="#0f766e" stroke-width="1.6"/>
+    <rect x="343" y="23" width="144" height="14" fill="#ccfbf1"/><text x="415" y="33" text-anchor="middle" fill="#115e59" font-size="7.8" font-weight="800" font-family="Consolas, monospace">PID_FIC Slave (#3)</text>
+    <text x="415" y="54" text-anchor="middle" fill="#0f172a" font-size="7.5" font-weight="700">CAS • SP 74 gpm</text>
+    <text x="415" y="69" text-anchor="middle" fill="#334155" font-size="7.3">OUT → Valve (58%)</text>
+
+    <rect x="534" y="28" width="136" height="62" rx="2" fill="#ffffff" stroke="#1e3a8a" stroke-width="1.4"/>
+    <rect x="535" y="29" width="134" height="14" fill="#dbeafe"/><text x="602" y="39" text-anchor="middle" fill="#1e3a8a" font-size="7.8" font-weight="800" font-family="Consolas, monospace">AO_VLV (#4 • CAS)</text>
+    <text x="602" y="64" text-anchor="middle" fill="#334155" font-size="7.6">Steam Vlv: 58%</text>
+
+    <line x1="110" y1="58" x2="150" y2="58" stroke="#16a34a" stroke-width="2.2"/>
+    <line x1="296" y1="58" x2="342" y2="58" stroke="#16a34a" stroke-width="2.2"/>
+    <line x1="488" y1="58" x2="534" y2="58" stroke="#16a34a" stroke-width="2.2"/>
+
+    <!-- Double Gray Dotted BKCAL wires -->
+    <path d="M 670 76 L 680 76 L 680 118 L 324 118 L 324 78 L 342 78" fill="none" stroke="#475569" stroke-width="1.6" stroke-dasharray="2,3"/>
+    <path d="M 488 78 L 502 78 L 502 140 L 132 140 L 132 78 L 150 78" fill="none" stroke="#475569" stroke-width="1.6" stroke-dasharray="2,3"/>
+    <text x="515" y="114" text-anchor="middle" font-size="7.4" font-weight="800" fill="#334155" font-family="Consolas, monospace">BKCAL #4 → #3 (Valve → Slave)</text>
+    <text x="315" y="136" text-anchor="middle" font-size="7.4" font-weight="800" fill="#334155" font-family="Consolas, monospace">BKCAL #3 → #2 (Slave → Master)</text>
+  </svg>
+  <div class="diagram-caption">Figure 9.1: Double BKCAL Feedback Chain — Any mode change or valve clamp at AO_VLV (#4) or PID_FIC (#3) ripples backwards through both gray dotted wires to protect every upstream PID from windup.</div>
+</div>
+
+<h3>9.2 Override Control Using DeltaV's <code>CTLSL</code> (Control Selector — <em>FBR</em> pp. 185–189)</h3>
+<p>Suppose a pump normally runs on <strong>Flow Control (<code>PID_FLOW</code>)</strong>, but if discharge pressure climbs above <strong><code>8.5 bar</code></strong> (say a downstream filter plugs up), you want a <strong>High-Pressure Override Controller (<code>PID_HI_PRESS</code>)</strong> to smoothly take over the control valve and pinch flow back before bursting a line—without tripping the whole plant!</p>
+<ul>
+  <li><strong>Real DeltaV Block Name:</strong> <strong><code>CTLSL</code> (Control Selector)</strong> — accepts up to 3 PID outputs on <code>SEL_1</code>, <code>SEL_2</code>, <code>SEL_3</code> plus <code>BKCAL_IN</code> from <code>AO_VLV</code>, and picks the winner using <strong><code>SEL_TYPE</code></strong> (<code>LOW</code>, <code>HIGH</code>, or <code>MIDDLE</code>).</li>
+  <li><strong>Why You MUST Use <code>CTLSL</code> (and NOT <code>XFR</code> or <code>CALC</code>) for PID Overrides:</strong> <code>CTLSL</code> has <strong>three dedicated back-calculation outputs: <code>BKCAL_SEL1</code>, <code>BKCAL_SEL2</code>, and <code>BKCAL_SEL3</code>!</strong> While <code>PID_FLOW</code> is winning <code>LOW</code>-select in normal operation, <code>CTLSL</code> sends the winning output + <code>Limited High</code> back on <code>BKCAL_SEL2</code> so <code>PID_HI_PRESS</code> stays primed right at the current valve position with <strong>zero windup</strong>. The instant pressure crosses <code>8.5 bar</code>, <code>PID_HI_PRESS</code> drops below <code>PID_FLOW</code> and takes over smoothly on the very next scan while <code>BKCAL_SEL1</code> clamps <code>PID_FLOW</code>!</li>
+  <li><strong>2:00 AM Plant Gotcha (<em>FBR</em> p. 187):</strong> <code>CTLSL</code> supports 4 modes (<code>OOS</code>, <code>IMan</code>, <code>Man</code>, <code>Auto</code>). <strong>If ANY connected <code>SEL_1</code>, <code>SEL_2</code>, or <code>SEL_3</code> input goes <code>Bad</code> while <code>CTLSL</code> is in <code>Auto</code>, <code>CTLSL</code> automatically sheds its actual mode to <code>Man</code></strong> (holding the valve steady until the sensor recovers, when it resumes <code>Auto</code>)!</li>
+</ul>
+
+<!-- WORKSHOP 10 -->
+<div class="workshop">
+  <div class="workshop-head">
+    <span class="ws-title">Workshop 10: Cascade IMan Ripple &amp; <code>CTLSL</code> Pressure-Override Labs in <code>CASCADE_201</code></span>
+    <span class="ws-badge">Hands-On Lab • 7 Min</span>
+  </div>
+  <div class="workshop-body">
+    <div class="workshop-setup">
+      <strong>Setup:</strong> In <strong>Visual Explorer</strong>, switch the top-left module dropdown to <code>CASCADE_201 (Cascade + CTLSL Override — Ch. 9)</code> and click <strong>Reset Cascade</strong>.
+    </div>
+    <ol>
+      <li><strong>Lab A — Break Cascade at the Slave vs. at the Valve:</strong> On Tab <strong>1. Master → Slave Cascade</strong>, change <strong>FIC (Slave)</strong> from <code>CAS</code> to <strong><code>AUTO</code></strong>. Watch <code>BKCAL #3 → #2</code> send <code>NotInvited</code> up to Master <code>PID_TIC</code>, dropping <code>TIC</code> into <strong><code>IMan</code></strong>! Restore <code>FIC</code> to <code>CAS</code>, then change <strong>AO1</strong> to <strong><code>MAN</code></strong>—watch <code>NotInvited</code> ripple up <em>both</em> gray dotted wires, forcing <strong>BOTH</strong> Slave <code>FIC</code> and Master <code>TIC</code> into <code>IMan</code>! Click <strong>Reset Cascade</strong>.</li>
+      <li><strong>Lab B — Watch Dual Anti-Windup on Valve Saturation:</strong> Click <strong>Valve: Normal</strong> → <strong>Valve: HI-LIM 100%!</strong>. Observe <code>LimHigh</code> propagate up both <code>BKCAL #4 → #3</code> and <code>BKCAL #3 → #2</code> so neither PID winds up. Click <strong>Reset Cascade</strong>.</li>
+      <li><strong>Lab C — Trigger <code>CTLSL1</code> High-Pressure Override:</strong> Switch to Tab <strong>2. CTLSL Low-Select Override</strong>. Notice <code>PID_FLOW (72.4%)</code> currently wins <code>LOW</code>-select while <code>PID_HI_PRESS</code> sits in standby clamped by <code>BKCAL_SEL2</code>. Now drag <strong>Disch Press</strong> slowly from <code>6.5</code> up to <strong><code>9.5 bar</code></strong> (above <code>8.5 bar</code> limit)!
+        <br/><em>Observe:</em> <code>PID_HI_PRESS</code> drops below <code>PID_FLOW</code>, seamlessly wins <code>CTLSL1</code>'s <code>LOW</code>-select to pinch the valve down to <code>43%</code>, and <code>BKCAL_SEL1</code> immediately clamps <code>PID_FLOW</code> so it cannot wind up!</li>
+      <li><strong>Lab D — Trigger the FBR p. 187 Bad-Input Mode Shed:</strong> Click <strong>Press .ST: GOOD</strong> → <strong>BAD</strong>. Watch <code>CTLSL1</code> automatically shed <code>MODE.ACTUAL</code> from <code>AUTO</code> to <strong><code>MAN</code></strong>!</li>
+    </ol>
+    <div class="workshop-takeaway">
+      <strong>What You Are Supposed to Learn From This Workshop:</strong> Always trace gray dotted <code>BKCAL</code> wires <em>upstream</em> to understand why a Master PID is in <code>IMan</code>—and on any multi-PID override loop, look for <code>CTLSL</code>'s individual <code>BKCAL_SEL1..3</code> wires keeping every standby controller windup-free!
+    </div>
+  </div>
+</div>
+
+<!-- =====================================================================
+     CHAPTER 10: INTERLOCKS, OUTPUT TRACKING, INPUT SELECTORS & COMPOSITES
+     ===================================================================== -->
+<h2 class="page-break">Chapter 10: Safety Interlocks, Output Tracking, <code>ISEL</code> &amp; Composite Blocks</h2>
+
+<h3>10.1 Analog Output Tracking (<code>TRK_IN_D</code> / <code>TRK_VAL</code> → <code>LO</code>) vs. Discrete Interlocks</h3>
+<p>Every continuous plant needs hard, unambiguous ways for safety logic to override normal PID or valve control:</p>
+<table>
+  <thead>
+    <tr>
+      <th style="width:24%;">Interlock Mechanism</th>
+      <th style="width:25%;">Block &amp; Pins (Verified FBR)</th>
+      <th>Exact Controller Behavior on Trip</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Analog PID Tracking</strong><br/><em>(FBR p. 234)</em></td>
+      <td><code>PID</code>: <code>TRK_IN_D</code> + <code>TRK_VAL</code> (+ <code>CONTROL_OPTS: Track Enable</code>)</td>
+      <td>When <code>TRK_IN_D = True</code>, actual mode drops to <strong><code>LO</code> (Local Override)</strong> and <code>OUT</code> forces to <code>TRK_VAL</code> (e.g., <code>0.0%</code> closed). Check <code>Track in Manual</code> if the interlock must also override an operator in <code>MAN</code>!</td>
+    </tr>
+    <tr>
+      <td><strong>Analog Output Fail-Safe</strong><br/><em>(FBR p. 111)</em></td>
+      <td><code>AO</code>: <code>FSTATE_TIME</code>, <code>FSTATE_VAL</code>, <code>IO_OPTS</code></td>
+      <td>If <code>CAS_IN</code> goes Bad (or loses comm) for <code>FSTATE_TIME</code> seconds (with <code>Fault State to value</code> enabled), <code>AO</code> drives the valve to preset <code>FSTATE_VAL</code>.</td>
+    </tr>
+    <tr>
+      <td><strong>Discrete Valve/Motor Interlocks</strong><br/><em>(FBR p. 427)</em></td>
+      <td><code>DC</code>: <code>SHUTDOWN_D</code>, <code>INTERLOCK_D</code>, <code>PERMISSIVE_D</code>, <code>TRK_IN_D</code></td>
+      <td><code>SHUTDOWN_D = True</code> or <code>INTERLOCK_D = False</code> (when enabled) immediately forces actual mode to <strong><code>LO</code></strong> and drives the device to <strong>Passive</strong> (closed/stopped) even while running! <code>PERMISSIVE_D = False</code> blocks <em>starting</em> (when already Passive) without tripping a running motor!</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>10.2 Choosing the Right Selector Block: <code>XFR</code> vs. <code>ISEL</code> vs. <code>CTLSL</code></h3>
+<p>Real plant sheets use three different selector blocks—never confuse them:</p>
+<ul>
+  <li><strong><code>XFR</code> (Transfer — <em>FBR</em> p. 453):</strong> 2 analog inputs (<code>IN_1</code>, <code>IN_2</code>) + discrete <code>SELECTOR</code> + <code>BAL_TIME</code> linear ramp. Best for bumplessly switching between 2 setpoints or 2 sensors using a Boolean flag.</li>
+  <li><strong><code>ISEL</code> (Input Selector — <em>FBR</em> pp. 201–202):</strong> Up to <strong>4 redundant sensors</strong> (<code>IN_1..IN_4</code>) with individual <code>DISABLE_1..DISABLE_4</code> bypasses, manual <code>OP_SELECT</code> (1–4, or <code>0</code> for auto), and <code>SELECT_TYPE</code> = <strong><code>MAX</code>, <code>MIN</code>, <code>MID</code> (median of 3!), <code>FIRST_GOOD</code>, or <code>AVG</code></strong>. Automatically ignores any sensor whose status is <code>Bad</code> or <code>DISABLE = True</code>! Ideal for 2-out-of-3 redundant reactor thermocouples or level transmitters!</li>
+  <li><strong><code>CTLSL</code> (Control Selector — <em>FBR</em> p. 185):</strong> Up to 3 <strong>PID outputs</strong> (<code>SEL_1..SEL_3</code>) with dedicated <code>BKCAL_SEL1..3</code> anti-windup feedback wires. Always use <code>CTLSL</code> (never <code>ISEL</code> or <code>XFR</code>) when selecting between competing PID controllers!</li>
+</ul>
+
+<h3>10.3 Reading Embedded vs. Linked Composite Blocks (<em>CONFIG</em> pp. 377–381)</h3>
+<p>As plant Control Modules grow, engineers fold repeated logic (like a standard Pump Start Interlock or 3-Sensor Median Filter) into a <strong>Composite Block</strong> so the parent diagram stays clean. When you see a composite block on a Control Studio sheet, know two verified facts from <em>DeltaV Configuration</em> (pp. 377–381):</p>
+<ol>
+  <li><strong>Embedded vs. Linked Composite:</strong>
+    <ul>
+      <li><strong>Embedded Composite:</strong> Lives <em>only</em> inside that single module—editing it affects only that module.</li>
+      <li><strong>Linked Composite:</strong> Stored in the DeltaV <strong>Library</strong> and referenced across dozens of modules—editing the library template updates <em>every</em> module that uses it!</li>
+    </ul>
+  </li>
+  <li><strong>How Composite Pins Work:</strong> Inside a Composite, engineers drop Input Parameters and Output Parameters from the Special Items palette; those automatically become the visible hollow square pins (<code>□</code>) on the Composite block in the parent FBD diagram! On-Line, simply <strong>double-click (step into)</strong> the Composite block (or expand it in the left Hierarchy Explorer tree) to view its internal FBD/SFC live!</li>
+</ol>
+
+<!-- WORKSHOP 11 -->
+<div class="workshop">
+  <div class="workshop-head">
+    <span class="ws-title">Workshop 11: PID Tracking Interlock (<code>LO</code>) &amp; 5-Module Plant Cold-Read Challenge</span>
+    <span class="ws-badge">Hands-On Lab • 5 Min</span>
+  </div>
+  <div class="workshop-body">
+    <div class="workshop-setup">
+      <strong>Setup:</strong> In <strong>Visual Explorer</strong>, select <code>FIC_101 (Analog PID + BKCAL &amp; Track — Ch. 8 &amp; 10)</code> and click <strong>Reset Loop</strong>.
+    </div>
+    <ol>
+      <li><strong>Fire the Output Tracking Interlock:</strong> Look at Strip B on Tab 1: <code>CND_INTERLOCK (#4)</code> reads <code>//PT_101/HI_HI_ACT</code> (via purple dashed learning-only line) and wires its real <code>OUT_D</code> up a gray dotted feedback wire (<code>#4 → #2</code>) into <code>PID1/TRK_IN_D</code>. Click <strong>TRK_IN_D: Clear</strong> → <strong>TRK_IN_D: TRIP (LO)!</strong>.
+        <br/><em>Observe:</em> <code>PID1</code> immediately overrides <code>AUTO</code>, drops <code>MODE.ACTUAL</code> to <strong><code>LO</code></strong>, and slams <code>OUT</code> to <code>TRK_VAL = 0.0%</code>—driving <code>AO1</code> shut! Try changing <strong>PID1 Target</strong> to <code>MAN</code> while tripped: because <code>Track in Manual = True</code>, the safety interlock <em>still</em> holds <code>LO (0.0%)</code>!</li>
+      <li><strong>5-Module Cold-Read Drill (No Training Wheels!):</strong> Flip through all 5 modules in the top-left picker and answer one question per sheet in under 15 seconds:
+        <ul>
+          <li><code>FIC_101</code>: Why is <code>BKCAL</code> gray dotted? Which block sets <code>IMan</code> vs. <code>LO</code> vs. <code>MAN</code>?</li>
+          <li><code>CASCADE_201</code>: On Tab 1, what happens to Master <code>TIC</code> if Slave <code>FIC</code> goes to <code>AUTO</code>? On Tab 2, what happens to <code>CTLSL1</code> if Pressure <code>.ST</code> goes <code>BAD</code>?</li>
+          <li><code>EM_2STAGE_VLV</code>: Why do <code>BULK_CMD</code> &amp; <code>DRIBBLE_CMD</code> stay <code>(not written)</code> in <code>Auto Mode</code>?</li>
+          <li><code>EM_XFER_HDR</code> &amp; <code>EM_TANK_CHARGE</code>: Open each Full Control Studio tab with the 4-Pattern Lens <strong>OFF</strong> and trace execution order <code>#1 → #N</code> cold!</li>
+        </ul>
+      </li>
+    </ol>
+    <div class="workshop-takeaway">
+      <strong>What You Are Supposed to Learn From This Workshop:</strong> You can now walk up to virtually any non-batch Control Studio sheet in a real Emerson DeltaV plant—discrete valve/motor CMs, Command-Driven EMs, State-Driven manifolds, single-loop PIDs, Master-Slave Cascades, <code>CTLSL</code> overrides, or Tracking interlocks—and diagnose mode, status, <code>BKCAL</code>, and execution order cold!
+    </div>
+  </div>
+</div>
+
+<!-- =====================================================================
+     FUNCTION BLOCK DEEP-DIVE FIELD GUIDE (ALL ACTIVE BLOCKS)
      ===================================================================== -->
 <h2 class="page-break">Field Guide: Function Block Deep-Dive — The 6 Active Blocks in Our Modules</h2>
 <p>Every rule, pin name, mode list, status trap, and failure code below is verified directly against Emerson's official <strong><em>DeltaV Function Block Reference</em> (FBR)</strong>. Use this section as your pin-by-pin desk manual whenever you double-click a block in Control Studio or <strong>Visual Explorer</strong>.</p>
@@ -1708,7 +2000,7 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
 <!-- =====================================================================
      APPENDIX B: MASTERY SELF-EXAM
      ===================================================================== -->
-<h2>Appendix B: Control Studio Mastery Check (Chapters 1–7)</h2>
+<h2>Appendix B: Control Studio Mastery Check (Chapters 1–10)</h2>
 <ol>
   <li>In Control Studio On-Line, what does a <strong>dashed connection wire</strong> actually mean—and why does reversing badges so <code>CND3</code> is <code>#1</code> and <code>CALC1</code> is <code>#2</code> cause batch weight overshoot?</li>
   <li>Inside <code>EM_TANK_CHARGE</code>, which of the 4 patterns steps through time, and what are the other 3 patterns doing while the EM sits in <code>S0_IDLE</code>?</li>
@@ -1722,6 +2014,10 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
   <li>In <code>EM_2STAGE_VLV</code>, why are <code>BULK_CMD</code> and <code>DRIBBLE_CMD</code> left as <strong><code>(not written)</code></strong> inside the <code>Auto Mode (4)</code> column instead of writing <code>= CLOSE</code>?</li>
   <li>On <code>XFR1</code> (Transfer block), both <code>IN_1</code> and <code>IN_2</code> have <code>Good</code> status, yet <code>XFR1/OUT.ST</code> suddenly turns <code>Bad</code> (Red <code>✕</code>). What is the hidden cause—and what does <code>BAL_TIME</code> do when <code>SELECTOR</code> flips?</li>
   <li>During 2:00 AM troubleshooting, a <code>CND</code> block's Expression Tree shows all green <code>✓</code>, yet its <code>OUT_D</code> stays stuck at <code>0</code>; meanwhile, on another sheet, an <code>ACT</code> block keeps firing even though its <code>IN_D</code> wire shows a Red <code>✕</code> (Bad status). Explain both behaviors from the Emerson FBR!</li>
+  <li>You open <code>FIC_101</code> On-Line and see <code>PID1/MODE.TARGET = AUTO</code> while <code>PID1/MODE.ACTUAL = IMan</code>. Where do you look first—and what is the gray dotted wire carrying?</li>
+  <li>In a Temperature-to-Flow Cascade (<code>TIC_201 → FIC_201 → AO_VLV</code>), an operator puts <code>AO_VLV</code> into <code>MAN</code> at 45%. What happens to <code>PID_FIC</code> and <code>PID_TIC</code>, and why won't the valve bump when <code>AO_VLV</code> returns to <code>CAS</code>?</li>
+  <li>Why must a High-Pressure Override loop use DeltaV's <code>CTLSL</code> block instead of <code>XFR</code> or <code>ISEL</code>—and what happens to <code>CTLSL</code> if one of its connected <code>SEL_1..3</code> inputs goes <code>Bad</code>?</li>
+  <li>How do you force a <code>PID</code> block to slam a control valve to <code>0%</code> on a safety trip—even if an operator has the PID in <code>MAN</code>—and what mode must the PID be in to edit <code>CONTROL_OPTS</code>?</li>
 </ol>
 
 <div class="callout good">
@@ -1737,12 +2033,16 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
   <p style="margin-bottom:4px;"><strong>9.</strong> Discrete State-Driven EMs skip <code>XFR</code>/<code>CALC</code> analog math (Pattern 3), folding <code>MODE.TARGET</code> writes straight into table rows alongside Pattern 1 (state column select) and Pattern 4 (Write + Readback → <code>A_PV</code>). Only Pattern 2 (every-Scan health watchdogs and safe-close interlocks) stays on the FBD sheet.</p>
   <p style="margin-bottom:4px;"><strong>10.</strong> Leaving <code>BULK_CMD</code> and <code>DRIBBLE_CMD</code> unchecked (<code>(not written)</code>) lets <code>Auto Mode</code> hand both valves back to operator faceplate control (<code>MODE.TARGET := AUTO</code>) <em>without</em> moving or slamming the valves—and DeltaV skips readback checks on unchecked cells so <code>A_PV</code> confirms <code>Auto Mode</code> immediately!</p>
   <p style="margin-bottom:4px;"><strong>11.</strong> <code>XFR</code> sets <code>OUT.ST</code> to the <strong>worse status of the selected input AND <code>SELECTOR</code></strong> (<em>FBR</em> p. 454), so a <code>Bad</code> <code>SELECTOR</code> forces <code>OUT.ST = Bad</code>! <code>BAL_TIME</code> (seconds) linearly ramps <code>OUT</code> from the old input to the newly selected input (<code>0</code> = instant snap).</p>
-  <p style="margin:0;"><strong>12.</strong> On <code>CND</code>, either <strong><code>DISABLE = True</code></strong> is bypassing <code>OUT_D</code> (check <code>PRE_OUT_D</code>, which still reads True!) or <strong><code>TIME_DURATION</code></strong> hasn't finished counting (<em>FBR</em> p. 414). On <code>ACT</code>, DeltaV completely <strong>ignores <code>IN_D.ST</code></strong>—it fires every scan whenever <code>IN_D.CV = 1</code> regardless of Bad status (<em>FBR</em> p. 401)!</p>
+  <p style="margin-bottom:4px;"><strong>12.</strong> On <code>CND</code>, either <strong><code>DISABLE = True</code></strong> is bypassing <code>OUT_D</code> (check <code>PRE_OUT_D</code>, which still reads True!) or <strong><code>TIME_DURATION</code></strong> hasn't finished counting (<em>FBR</em> p. 414). On <code>ACT</code>, DeltaV completely <strong>ignores <code>IN_D.ST</code></strong>—it fires every scan whenever <code>IN_D.CV = 1</code> regardless of Bad status (<em>FBR</em> p. 401)!</p>
+  <p style="margin-bottom:4px;"><strong>13.</strong> Follow the gray dotted <code>BKCAL_IN</code> wire <em>downstream</em> to <code>AO1</code>: <code>AO1</code> is out of <code>CAS</code> (in <code>MAN</code> or <code>OOS</code>) and is sending its current valve position + <code>Not Invited</code> (or <code>Bad: OOS</code>) backwards on <code>BKCAL_OUT</code> so <code>PID1</code> tracks bumplessly in <code>IMan</code>!</p>
+  <p style="margin-bottom:4px;"><strong>14.</strong> <code>Not Invited</code> ripples backwards up <em>both</em> gray dotted <code>BKCAL</code> wires: <strong>both</strong> Slave <code>PID_FIC</code> and Master <code>PID_TIC</code> drop to <code>IMan</code> and track current valve/flow values, so returning <code>AO_VLV</code> to <code>CAS</code> is 100% bumpless with zero windup.</p>
+  <p style="margin-bottom:4px;"><strong>15.</strong> <code>CTLSL</code> provides individual <code>BKCAL_SEL1..3</code> back-calculation wires back to every upstream PID so unselected PIDs stay windup-free (<em>FBR</em> p. 186). If any connected <code>SEL_1..3</code> input goes <code>Bad</code> while in <code>Auto</code>, <code>CTLSL</code> automatically sheds its actual mode to <code>Man</code> (<em>FBR</em> p. 187).</p>
+  <p style="margin:0;"><strong>16.</strong> Wire the trip into <code>PID1/TRK_IN_D</code> with <code>TRK_VAL = 0.0%</code> and enable both <code>Track Enable</code> and <code>Track in Manual</code> in <code>CONTROL_OPTS</code> (forcing <code>MODE.ACTUAL = LO</code> — <em>FBR</em> p. 234). <code>CONTROL_OPTS</code> can only be changed while the PID is in <strong><code>OOS</code></strong> mode!</p>
 </div>
 
 <div class="footer-note">
   <span>Emerson DeltaV Control Studio — Complete Study Textbook &amp; Workshop Manual</span>
-  <span>Edition v2.2 (Verified vs. Official Emerson Docs • Chapters 1–7 + 8 Labs • 3 Modules) • Paired with Visual Explorer</span>
+  <span>Edition v3.0 (Verified vs. Official Emerson Docs • Chapters 1–10 + 11 Labs • 5 Interactive Modules) • Paired with Visual Explorer</span>
 </div>
 
 </body>
