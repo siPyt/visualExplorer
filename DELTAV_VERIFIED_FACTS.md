@@ -1,8 +1,9 @@
 # DeltaV Control Studio — Verified Facts (from `pdf reference/`)
 
-Every line below was read directly in the Emerson PDFs in `pdf reference/`. Page numbers are **PDF page numbers**.
-Doc keys: **FBR** = Function Block Reference · **CONFIG** = DeltaV Configuration · **7009** = Implementation I (v15.LTS) ·
+Every line below was read directly in the Emerson PDFs in `pdf reference/` and `additionalPDFs/`. Page numbers are **PDF page numbers**.
+Doc keys (`pdf reference/`): **FBR** = Function Block Reference · **CONFIG** = DeltaV Configuration · **7009** = Implementation I (v15.LTS) ·
 **7009-8** = 7009 SFC chapter · **7017** = Implementation II · **7016** = Batch · **PDS** = Control Studio On-line data sheet.
+Doc keys (`additionalPDFs/`): **LIVE** = Hatch/Lakeside DeltaV Live Training (`837038695`) · **GS22** = Getting Started with Your DeltaV Software Feb 2022 (`684095348`) · **TIPS** = Users Exchange Tips & Tricks (`256307806`) · **PID4** = DeltaV PID Function Block (`406981499`) · **PLAN** = Planning & Designing DeltaV 2015 (`409873456`) · **COURSE** = DeltaV DCS Course (`782854867`) · **VIM** = Virtual I/O Module (`235392189`).
 
 Anything NOT in this file is either our own training design (labeled as such in Visual Explorer) or unverified.
 
@@ -122,7 +123,65 @@ to return control of the module to the operator." (7016 p40)
 
 ## 7. Known items we could NOT verify (do not teach as fact)
 
-- What the `MONITOR` item in a command-driven EM contains.
 - Exact On-Line watch text for MODE values (e.g. `CAS` vs `Cascade`) — the state table shows `= Cascade/` (7016 p140).
 - Whether the calculator icon beside a transition means "currently evaluating" (seen only next to the active transition, PDS p5).
 - Version/theme differences beyond the screenshots in these PDFs.
+
+---
+
+## 8. DeltaV Live (Standard HMI — v14.3+) — LIVE, GS22
+
+- **Suite applications (GS22 p91):** **DeltaV Live Administration** (workstations, health, SQL databases), **Graphics Studio** (editor, replaces Operate Configure; runs side-by-side with DeltaV Live), **DeltaV Live** (operator runtime, replaces Operate Run). Supported on ProfessionalPLUS & Operator Stations (and Remote Client sessions) — NOT Application Stations (GS22 p98).
+- **Nomenclature vs. legacy Operate (LIVE p4, GS22 pp93–97):** `GEM` (Graphical Element, class-based Linked vs. Unlinked) = Dynamo; `Contextual Displays` = Faceplates/Detail/Popups; `Library Functions` (`F_...`) = Lookup/Animation Tables; `Standards` (`S_...`) = Global Variables; `Publishing` = Download; `TypeScript` = VBA scripting (LIVE p75).
+- **Data source path notation (LIVE pp16, 51, 63; GS22 p111):**
+  - Static: `DLSYS["MTR-102/DC1/SP_D.CV"]`
+  - Inside a GEM: `DLSYS[Gem.ModName + "/DC1/SP_D.CV"]`
+  - Inside a Contextual Display / Faceplate: `DLSYS[Dsp.Tag + "/PID1/SP.CV"]`
+- **High-Performance GEM Status Icons & Masking Priority (LIVE p46):**
+  - **Mode:** PID `MODE.ACTUAL ≠ MODE.NORMAL` or `MODE.TARGET`; DC `MODE.TARGET` or `MODE.ACTUAL ≠ MODE.NORMAL` **or Permissive is active**.
+  - **Not Running:** `MSTATUS` is `Out of Service`, `Breakpoint Set`, or `Not Running`.
+  - **Bad IO:** `BLOCK_ERR` has `Out of Service`, `Readback Failed`, `Output Failure`, `Input Failure`, or `Other Error` (**hidden** when Not Running is visible).
+  - **Simulate Active:** Block is simulated (**hidden** when Not Running or Bad IO is visible).
+  - **No Permit:** Permissive condition is active.
+  - **Interlock Bypassed:** `BYPASSED` parameter is active.
+  - **Interlocked:** `DC_STATE` is `Shutdown/Interlocked`.
+- **Three critical DeltaV Live operational rules:**
+  1. **Quick Online View is LIVE, NOT simulated** — parameter writes hit the real controller (LIVE p22)!
+  2. **Manual Refresh Rule:** Already-open displays do NOT change automatically on Publish; the operator must click **Refresh Configuration** (GS22 p127).
+  3. **Backup/Restore vs. Export/Import:** SQL Backup/Restore is disaster recovery **only on the exact same DeltaV version + hotfix bundle**; moving across versions/systems MUST use **XML Export/Import** (GS22 p93).
+
+## 9. Alarms (`ALARMS[1-5]`), Priorities & Consolidation — COURSE pp277–293, GS22 pp47–48
+
+- **Priorities:** Up to 12 alarm levels (`4` lowest … `15` highest) + `LOG (3)` log-only. Defaults: **CRITICAL = 15**, **WARNING = 11**, **ADVISORY = 7**, **LOG = 3**. Time-stamped in the controller (COURSE pp277–278).
+- **Exact 4-tier Ranking Tie-Breaker (COURSE p279):** (1) Unacknowledged > Acknowledged → (2) Active > Inactive → (3) Higher numeric priority → (4) Newer timestamp.
+- **Alarm Fields (COURSE pp285–290):** `CUALM` (current alarm), `LAALM` (latched alarm, same as `CV`), `NALM` (new unack), `PRI`, `ENAB`, `INV`, `OPSUP` (suppression), `SUPTMO` / `SUPTMR` (timeout/timer). **`ALARMS[1]`** holds the highest-priority active alarm on the module; **`ALARMS.F_MACK`** (=1) acknowledges all alarms in the module (auto-resets to 0); **`ALARMS.F_ENAB`** (=0) disables all module alarms; **`ALARMS.F_PRIAD`** adjusts priority (0–12).
+- **Workstation Alarm Consolidation (COURSE p291):** An alarm appears on a workstation's banner only for the **intersection** of (Plant Areas configured on the workstation's Alarms & Events subsystem) **AND** (Plant Areas where `THISUSER` has any attribute security write keys).
+- **`AREA_A` System Area (GS22 pp47–48):** Default system area cannot be deleted (may be renamed); must be assigned to Alarms & Events on workstations/remote sessions so system-wide events (logins, downloads) record properly.
+
+## 10. Download / Upload / Cold Restart & Class Traps — COURSE pp272–273, 317–319; TIPS pp4, 21–24, 40
+
+- **Partial Download Behavior (COURSE p273):** Three module-property choices govern what happens to online `Mode` (critical block param) and `SP` (user-defined param) during a partial download:
+  - *Preserve critical block values* → keeps online `Mode`, **overwrites** user-defined `SP` with config DB default!
+  - *Preserve user-defined and critical block values* → keeps **both** online `Mode` and online `SP`.
+  - *Use configured values* → **overwrites both** with config DB defaults!
+- **Upload-Before-Download "Select None" Trap (COURSE pp318–319):** Clicking **OK** on the Download Upload prompt uploads **zero parameters by default** (`Select None`) — you must explicitly select parameters if you want online tuning/setpoint changes saved back to the config database!
+- **Cold Restart NVM Persistence (COURSE p272):** To keep the current operating value across a controller **Cold Restart** (stored in NVM instead of resetting to Default), you must check **BOTH** the parameter-level *Restore parameter value after restart* **AND** the module-level *Restore parameter values after restart*.
+- **Class Module Parameter Rename Trap (TIPS pp21–24):** Renaming a parameter inside a Module Class leaves the old **Parameter Shortcut** name visible in DeltaV Explorer until you open the module Configuration → **Parameters** tab at the **class level**, select the parameter, and click **`Default Name`**.
+- **Dynamic Reference CPU-Killer Rule (TIPS p40):** Do **not** build more than **3 simultaneous Dynamic References** in a single action (can drop controller Free Time to ~0%); stagger in groups of 3. Also beware cross-controller dynamic references if a remote controller drops comms.
+- **Control Studio Max Sessions (TIPS p4):** Default limit is **4** concurrent Control Studio sessions; changeable via registry key `MaxMdeApp`.
+- **Promoted Parameters (GS22 pp60, 63):** Dragging an Output parameter from the `Special Items` palette promotes a block output to the module level (e.g., `LI-101/PV` instead of `LI-101/AI1/OUT`).
+
+## 11. PID Internals, `DC` `STATE_MASKS` & `BFI` — PID4 pp2–3; COURSE pp300, 304; GS22 p62; TIPS pp17, 50–52
+
+- **PID Equation & Anti-Kick (PID4 pp2–3):** Supports **Standard** and **Series** forms, external reset `L(s)` (`BKCAL_IN` or `OUT`), feedforward `F(s)`, and `Direct_Acting` in `CONTROL_OPTS` (`+` reverse / `-` direct). **`STRUCTURE`** + **`BETA`** / **`GAMMA`** weight proportional & derivative action on SP changes (eliminating SP kick). **`GAINa`** is normalized from `PV` scale to `OUT` scale. **`Use_Nonlinear_Gain_Modification`** in `FRSIPID_OPTS` applies nonlinear gain `KNL` (error-squared / notched gain) to **P + I only, NOT D** (key for pH loops!).
+- **AI Scaling & Field Traps:** `L_TYPE` must remain **`Indirect`** to define Engineering Units in `OUT_SCALE` (GS22 p62). A HART transmitter can be re-ranged from DeltaV; set EU to null/`-` when using `HART_FIELD_VAL` (`OUT_SCALE` for Direct, `XD_SCALE` for Indirect — TIPS p17). Replacing a **Fisher DVC** whose input units default to `4–20 mA` instead of `%` causes **`Bad ConfigErr`** and stops valve control (TIPS pp50–52).
+- **`DC` `STATE_MASKS` Decoder (COURSE p300):** Empty box = `0` on I/O channel; Check mark = `1`; Light-gray stippled check = *don't care*; Dark-gray stippled check = *not available*. (`Passive = 0`, `Active1 = 1` in named set.)
+- **`BFI` (Boolean Fan Input) First-Out Trap (COURSE p304):** Standard motor/interlock templates pair `CND` blocks with **`BFI`** for first-out trip indication and an `OR` block for bypassed-interlock indication.
+- **Pulse Action Confirmation (AGITATE 7016 pp9–12):** Only the **`P` (Pulse)** SFC qualifier supports the **Confirm** option (`CONFIRM_FAIL`, `FAILED_CONFIRMS`, `PENDING_CONFIRMS`).
+
+## 12. Modern Plant I/O (`CHARMs`, `EIOC`, `VIM`) & DST Licensing — PLAN pp30–33, 61–67; VIM pp1–15; COURSE p309
+
+- **DST Licensing Hierarchy (PLAN pp30–33, COURSE p309):** Signal-bearing I/O parameters consume one DST license per channel/dataset regardless of how many modules reference it. Cost hierarchy (highest → lowest): **`AO > AI > DO > DI`** (higher-tier DSTs substitute downward).
+- **CHARMs / CIOC (PLAN pp61–64):** Electronic marshalling for S-series controllers (`SD Plus`/`SX`+). Up to **8 baseplates × 12 CHARMs = 96 CHARMs per CIOC**; default update rate **50 ms** (300 ms terminal-to-terminal at 100 ms module scan). One CHARM belongs to one controller, but one CIOC can split CHARMs across up to **4 controllers**; max 16 remote I/O nodes per controller.
+- **EIOC — Ethernet I/O Card (PLAN pp65–67):** Network node for **Modbus TCP/IP**, **EtherNet/IP**, and **IEC 61850 MMS**. Runs control modules directly on the EIOC (max **26 PIDs**, **4 State Transition**, **4 Step Sequence**, **256 `DCC`**, **256 `EDC`**; does **NOT** support the standard `DC` block!).
+- **VIM / VIMNet (VIM pp1–15, 22):** Virtual I/O Module interfaces S-series controllers to Modbus TCP/IP or EtherNet/IP PLCs/MCCs/scales. Each VIM simulates **4 serial cards** (slots `57–60` / `61–64`, max 128 datasets × 100 16-bit registers; floats/32-bit ints take 2 registers → max 50 values/dataset). **Addressing trap:** DeltaV serial registers are **1-based** (`R1..R100`) while PLC registers are **0-based**; **Special Data 1 (`0..3`)** controls 32-bit float byte/word swapping.

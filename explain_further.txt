@@ -38,4 +38,7 @@ Set  = read/written by expressions, SFCs, or HMIs!
 / ON to watch all 4 invisible controller tunnels light up
 
 
+-explain what this is: child Control Modules ( CM_FEED_XV/DC1/MODE.TARGET ).
+
+
 

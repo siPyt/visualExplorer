@@ -1,7 +1,8 @@
 ================================================================================
 DELTAV CONTROL STUDIO MASTERY — PROGRESS & MISSION TRACKER
-Last Updated: 2026-11-23 (Edition v3.2 — Visual QA Polish, Deep 3WT-0001-NEUT
-                          Photo Audit, Unwired Parameter Boxes X-Ray & 27 Drills)
+Last Updated: 2026-11-23 (Edition v3.3 — 14 Additional DeltaV Manuals Audited;
+                          DeltaV Live HMI Diagnostics, Alarms, Download Safety &
+                          Modern I/O [Ch. 12] + Verified Facts Sections 8–12)
 Repository:   https://github.com/siPyt/visualExplorer.git
 Site Note:    Non-Batch plant focus (steer clear of Batch Unit Phases unless asked)
 ================================================================================
@@ -41,15 +42,18 @@ HOW THIS WORKSPACE OPERATES (SYNCED ACROSS MACHINES)
      split-range 0% acid dump, A_COMMAND=Undefined vs A_PV, State-Driven Int Ref)
    - Mode 4: On-Line Tree (6 live presets + 9 live sliders/selectors incl. 3WT-0001)
 
-3. Textbook & Lab Manual (DeltaV_Study_Guide.html -> DeltaV_Study_Guide.pdf, v3.2):
-   Full in-depth native DeltaV handbook: Chapters 1–11 (incl. new Section 2.5
-   Unwired Parameter Boxes Deep-Dive + Fig. 2.2), 7-Block FBR Field Guide (XFR,
-   CALC, CND, ACT, DC, AI, RET & AT), 12 step-by-step Visual Explorer Workshops,
-   and 18-Question Mastery Exam. Rebuild anytime via: .\build-pdf.ps1
+3. Textbook & Lab Manual (DeltaV_Study_Guide.html -> DeltaV_Study_Guide.pdf, v3.3):
+   Full in-depth native DeltaV handbook: Chapters 1–12 (incl. Section 2.5 Unwired
+   Parameter Boxes, Section 3.2 DC LO vs. OOS, and NEW Ch. 12: DeltaV Live HMI
+   Diagnostics, Alarms, Download Safety & Modern Plant I/O), 7-Block FBR Field
+   Guide (XFR, CALC, CND, ACT, DC, AI, RET & AT), 12 Visual Explorer Workshops,
+   and 21-Question Mastery Exam. Rebuild anytime via: .\build-pdf.ps1
 
-4. Verified Truth Source (DELTAV_VERIFIED_FACTS.md + pdf reference/):
-   Every Control Studio fact cited by exact PDF + page number across 12 official
-   Emerson manuals (FBR, CONFIG, 7009, 7016, 7017, Online PDS, FILL, Tutorial).
+4. Verified Truth Source (DELTAV_VERIFIED_FACTS.md + pdf reference/ + additionalPDFs/):
+   Every Control Studio & DeltaV Live fact cited by exact PDF + page number
+   across 12 core Emerson manuals in pdf reference/ + 7 high-value verified
+   manuals selected from the 14 PDFs in additionalPDFs/ (filtering out legacy
+   Operate-only & Batch-only clutter).
 
 5. Session Tracker (WHERE_WE_ARE.txt — this file):
    Single source of truth for continuity across all machines & sessions.
@@ -118,16 +122,43 @@ HOW THIS WORKSPACE OPERATES (SYNCED ACROSS MACHINES)
          TRK_VAL=50% contrast, 3WT-0001-NEUT AT/OPR_CMD_MASK/A_TIME checks, and
          all new Expression Forge drills.
 
+[DONE] v3.3 — 14 Additional Manuals Audited (additionalPDFs/) & Blind Spots Plugged
+       - Indexed and evaluated all 14 PDFs in additionalPDFs/, keeping DeltaV Live
+         (v14.3+) as the HMI standard and filtering out legacy Operate/Batch bloat.
+       - Added Sections 8–12 to DELTAV_VERIFIED_FACTS.md and NEW Chapter 12 +
+         targeted callouts (Ch. 2.5.1, 3.2, 8.1, App. A & B Q19–Q21) to Study Guide:
+         * DeltaV Live (837038695 + Feb 2022 Getting Started 684095348): Live vs.
+           Operate nomenclature, DLSYS[Gem.ModName + "..."] & Dsp.Tag paths, all
+           7 High-Performance GEM Status Icons & masking priority, Quick Online
+           View LIVE-write warning, Refresh Configuration manual update rule, and
+           SQL Backup/Restore hotfix trap vs. XML Export/Import.
+         * Alarms (782854867): Priorities 4..15 + LOG(3), exact 4-tier Alarm
+           Ranking tie-breaker, ALARMS[1-5] & ALARMS.F_MACK, Workstation Alarm
+           Consolidation (Workstation Areas ∩ User Write-Key Areas), AREA_A rule.
+         * Download / Upload / Restart & Class Traps (782854867 + Users Exchange
+           256307806): Partial Download 3-mode truth table, Upload "Select None"
+           trap, 2-checkbox Cold Restart NVM persistence, Class Parameter Rename
+           "Default Name" fix, Dynamic Ref <=3 CPU-killer rule, MaxMdeApp tweak.
+         * PID & DC Internals (406981499 + 782854867 + 256307806): STRUCTURE /
+           BETA / GAMMA SP anti-kick, Nonlinear Gain KNL (P+I only, not D — pH!),
+           AI L_TYPE=Indirect, HART_FIELD_VAL re-range trap, Fisher DVC 4-20mA
+           Bad ConfigErr trap, DC STATE_MASKS 4-symbol decoder & BFI first-out.
+         * Modern Plant I/O (Planning 2015 409873456 + VIMnet 235392189): CHARMs
+           (CIOC 96ch, 50ms, up to 4 controllers), EIOC (runs modules on-card,
+           max 26 PIDs, uses DCC/EDC not DC), VIM (4 virtual serial cards, 1-based
+           vs. 0-based PLC regs, Special Data 1 byte-swapping), DST AO>AI>DO>DI.
+
 ================================================================================
 2. WHERE WE ARE RIGHT NOW
 ================================================================================
-- Edition v3.2 is built, self-tested (JS syntax, DOM IDs, all 27 Expression Forge
+- Edition v3.3 is built, self-tested (JS syntax, DOM IDs, all 27 Expression Forge
   drills, 0 stray backticks in HTML, PDF regenerated cleanly), and visually
   QA-verified across all 6 Visual Explorer modules (20 interactive views).
 - Local workspace changes ready to commit/push (index.html, ex.html,
-  DeltaV_Study_Guide.html, DeltaV_Study_Guide.pdf, WHERE_WE_ARE.txt, README.md).
-- Note on local plant photos: PW_Neutralization/ (44 JPEGs) and 30001.png live
-  locally for reference; check before pushing if you want them kept local-only.
+  DeltaV_Study_Guide.html, DeltaV_Study_Guide.pdf, DELTAV_VERIFIED_FACTS.md,
+  WHERE_WE_ARE.txt, README.md).
+- Note on local folders: PW_Neutralization/, additionalPDFs/, 30001.png, and
+  explain_further.txt live locally for reference (do not push without asking).
 
 ================================================================================
 3. WHERE WE ARE GOING NEXT (ROADMAP — NON-BATCH PLANT MASTERY)
