@@ -389,9 +389,9 @@
   <h1>Reading &amp; Troubleshooting DeltaV Control Studio</h1>
   <p class="subtitle">Complete in-depth native DeltaV lessons, pin-by-pin Control Studio schematics, real-plant engineering nuances, and step-by-step interactive workshops paired with <strong>Visual Explorer</strong>.</p>
   <div class="meta-strip">
-    <span class="meta-pill">Edition: v3.4 (Verified vs. Official Emerson Docs + Real Plant PCSD EM &amp; Split-Range pH)</span>
+    <span class="meta-pill">Edition: v3.5 (Verified vs. Official Emerson Docs + Real Plant PCSD EM, Split-Range pH &amp; DC Safety Lab)</span>
     <span class="meta-pill">Control Studio Logic Mastery (EM • CM • EPH)</span>
-    <span class="meta-pill">7 Modules: EM_TANK_CHARGE • EM_XFER_HDR • EM_2STAGE_VLV • FIC_101 • CASCADE_201 • 3WT-0001-NEUT • 3WT-0001-AIC002</span>
+    <span class="meta-pill">8 Modules: EM_TANK_CHARGE • EM_XFER_HDR • EM_2STAGE_VLV • FIC_101 • CASCADE_201 • 3WT-0001-NEUT • 3WT-0001-AIC002 • CM_PMP_101</span>
     <span class="meta-pill">Launch Lab App: type "run" in terminal</span>
   </div>
 </div>
@@ -760,6 +760,22 @@
   <li><strong>On-Line Status Icons (<em>CONFIG</em> p. 368, <em>PDS</em> p. 3):</strong> White value boxes sit beside pins On-Line. A red <strong><code>✕</code></strong> marks <strong>Bad</strong> status (<code>.ST &lt;= 63</code>), a blue <strong><code>?</code></strong> marks <strong>Uncertain</strong> status (<code>64..127</code>), and a yellow highlighted <strong><code>?</code></strong> indicates non-zero <code>BLOCK_ERR</code>.</li>
   <li><strong>SFC Elements &amp; Action Qualifiers (<em>7009-8</em> pp. 4–24, <em>PDS</em> p. 5):</strong> Double-bordered Initial Step (<code>S0_IDLE</code>), bright green border on the active step On-Line, <strong>elapsed seconds printed under every step</strong>, Transition cross (<code>┼</code>) with <code>True</code> / <code>False</code> underneath, and a Termination bar (<code>═╧═</code>) at the bottom. Key qualifiers: <code>[P]</code> (Pulse — runs on first scan of the step only) and <code>[N]</code> (Non-stored — runs every scan while active; <strong>in DeltaV, <code>[N]</code> <code>:=</code> assignments keep their written value after the step ends!</strong>).</li>
 </ol>
+
+<div class="callout">
+  <div class="callout-title">Plain-English Decoder: What Are "Child Control Modules" &amp; What Is <code>CM_FEED_XV/DC1/MODE.TARGET</code>?</div>
+  <p style="margin:2px 0 6px;"><strong>1. Plain-English Job (Casual Term vs. Official DeltaV):</strong> Engineers casually call the individual valves, pumps, and transmitters commanded by an Equipment Module (<code>EM</code>) its <strong>"child Control Modules"</strong> because they sit one tier <em>underneath</em> the EM and obey its orders. In <strong>Official DeltaV</strong>, a Control Module connects under an EM in one of two ways:</p>
+  <ul style="margin:0 0 6px;">
+    <li><strong>Subordinate (Nested) CM Inside the EM (<em>Course 7017</em> pp. 237, 245):</strong> You drag the CM directly <em>inside</em> the EM in DeltaV Explorer so it lives underneath the EM in the tree (e.g., <code>EM_TANK_CHARGE → CM_FEED_XV</code>). EM expressions reach it with a relative path like <code>'^/CM_FEED_XV/CAS_SP.CV'</code>.</li>
+    <li><strong>Standalone / Shared CM in the Plant Area (<em>Course 7016</em> pp. 37–40 &amp; real plant <code>3WT-0001-NEUT</code>):</strong> The CM lives beside the EM in the Plant Area folder so multiple EMs or operators can share it (via <code>ACQ_REL</code>). EM expressions reach it with a double-slash external path like <code>'//CM_FEED_XV/CAS_SP.CV'</code>.</li>
+  </ul>
+  <p style="margin:0 0 4px;"><strong>2. Reading <code>CM_FEED_XV/DC1/MODE.TARGET</code> Left-to-Right:</strong></p>
+  <ul style="margin:0 0 6px;">
+    <li><code>CM_FEED_XV</code> = The Control Module for the Tank Feed On/Off Valve (<code>CM</code> = Control Module, <code>XV</code> = On/Off Valve).</li>
+    <li><code>/DC1</code> = The <strong>Device Control (<code>DC</code>)</strong> function block inside that valve module that opens/closes it and checks limit switches.</li>
+    <li><code>/MODE.TARGET</code> = The <strong>requested operating mode</strong> of <code>DC1</code> (remember: <code>DC</code> only allows <code>CAS</code> = obey the EM's <code>CAS_IN_D</code> command, or <code>AUTO</code> = hand control back to the operator's DeltaV Live faceplate; <code>.ACTUAL</code> shows the mode it is <em>currently</em> in). <em>Note: If <code>CM_FEED_XV</code> has a module-level <code>MODE</code> Internal Reference (Section 2.5), you can write the shorter path <code>CM_FEED_XV/MODE.TARGET</code> instead!</em></li>
+  </ul>
+  <p style="margin:0;"><strong>3. Exact Click Paths to Check Live:</strong> In <strong>DeltaV Explorer</strong>, expand <code>Control Strategies → [Plant Area] → [EM]</code> to see whether CMs are nested inside the EM or sitting alongside it. To inspect <code>DC1/MODE.TARGET</code>, open <code>CM_FEED_XV</code> in <strong>Control Studio</strong> → click <code>DC1</code> in <em>Diagram View</em> → scroll <em>Parameter View</em> at the bottom → double-click <code>MODE</code>.</p>
+</div>
 
 <h3 class="page-break">2.5 Deep-Dive: Why Real Plant Diagrams Have Unwired Parameter Boxes on the Left (and Right!)</h3>
 <p>One of the biggest shocks when opening a live plant Control Studio diagram for the first time is seeing <strong>rectangular Parameter Reference boxes parked neatly along the left edge (or right edge) with ZERO wires coming off them</strong>—and <code>CND</code> blocks sitting in the middle of the sheet with nothing wired into their left side. Your instinct says, <em>"Those boxes aren't connected—must be unused!"</em> <strong>In DeltaV, that instinct is almost always wrong!</strong></p>
@@ -1219,7 +1235,9 @@
   Suppose a pump's <code>SP_D</code> is <code>START</code>, and <code>INTERLOCK_D</code> drops to <code>0</code> (slamming the pump off in <code>LO</code>). What happens 5 minutes later when <code>INTERLOCK_D</code> returns to <code>1</code>?
   <ul style="margin:4px 0 0 0;">
     <li>If <strong>both <code>SP Track</code> and <code>Reset Required</code> are UNCHECKED</strong>, <code>SP_D</code> stayed at <code>START</code>—so the instant <code>INTERLOCK_D</code> turns back to <code>1</code>, <strong>the pump restarts automatically with zero delay!</strong></li>
-    <li>Checking <strong><code>SP Track</code></strong> copies <code>OUT_D</code> (<code>Passive</code>) into <code>SP_D</code> whenever <code>MODE.ACTUAL = LO</code> (<em>FBR</em> p. 419), so clearing the interlock leaves the pump safely stopped until commanded again. Checking <strong><code>Reset Required</code></strong> additionally latches <code>DC_STATE = Locked</code> (staying in <code>LO</code>) until an operator explicitly pulses <code>RESET_D</code>!</li>
+    <li>Checking <strong><code>SP Track</code></strong> copies <code>OUT_D</code> (<code>Passive</code>) into <code>SP_D</code> whenever <code>MODE.ACTUAL = LO</code> (<em>FBR</em> p. 419), so clearing the interlock leaves the pump safely stopped until commanded again.</li>
+    <li>Checking <strong><code>Reset Required</code></strong> additionally latches <code>DC_STATE = Locked</code> (staying in <code>LO</code>) until an operator explicitly pulses <code>RESET_D</code>—<em>note (FBR p. 421): if <code>Reset Required</code> is checked WITHOUT <code>SP Track</code>, pulsing <code>RESET_D</code> immediately resumes the pump because <code>SP_D</code> stayed <code>START</code>! Check BOTH for gold-standard motor safety.</em></li>
+    <li><strong>Try It Live Now:</strong> In <strong>Visual Explorer</strong>, click the top-left module dropdown and select <strong><code>CM_PMP_101 (DC Safety: LO, SP Track &amp; Reset — Ch. 3.2)</code></strong> to test all 4 checkbox combinations + all 4 safety pins live!</li>
   </ul>
 </div>
 
@@ -1297,17 +1315,62 @@
         </ul>
       </li>
       <li><strong>Try Starting the Charge Anyway:</strong> Click Tab <strong>1. Step Flow (SFC)</strong>—notice the calculator icon next to <code>T10_START_OK</code> reading <code>False</code>—and click <strong>Next Step ▶</strong>. Read the yellow diagnostic banner explaining why <code>T10_START_OK</code> refused to advance.</li>
-      <li><strong>Restore Cascade:</strong> Switch <code>CM_FEED_XV</code> back to <strong>MODE: CAS</strong> and watch <code>CND1</code>'s Expression tree flip to all green <code>✓</code> and <code>T10_START_OK</code> flip to <code>True</code>.</li>
-      <li><strong>Lab: Contrast <code>LO</code> (Alive Safety Shield) vs. <code>OOS</code> (Offline Red <code>✕</code>) &amp; Test Syntax in Expression Forge:</strong>
-        <ul>
-          <li>Switch to <code>FIC_101</code> Tab 1 and first set <strong>AO1 TARGET</strong> to <strong>OOS</strong>—observe <code>Bad: Out of Service</code> shutting down the loop. Return AO1 to <code>CAS</code>, then click <strong>TRK_IN_D: Clear → TRIP (LO)!</strong>—observe <code>MODE.ACTUAL</code> drop to <strong><code>LO</code></strong> while <code>MODE.TARGET</code> remains <code>AUTO</code> (alive and actively enforcing safe output!).</li>
-          <li>Quiz yourself cold on the <code>DC</code> safety pin polarity flip from Section 3.2: <em>Why does <code>SHUTDOWN_D = 1</code> trip a running motor while <code>INTERLOCK_D = 0</code> trips it—and why will <code>PERMISSIVE_D = 0</code> NOT trip a motor that is already running?</em></li>
-          <li>Open <strong>Expression Forge</strong> (<code>run ex</code>) and complete <strong>Decode 9</strong> (unwired <code>MODE</code> Internal Reference) and <strong>Bug Hunt 7</strong> (State-Driven module-level <code>MODE.TARGET</code>)!</li>
-        </ul>
-      </li>
+      <li><strong>Restore Cascade &amp; Expression Forge Check:</strong> Switch <code>CM_FEED_XV</code> back to <strong>MODE: CAS</strong> and watch <code>CND1</code>'s Expression tree flip to all green <code>✓</code> and <code>T10_START_OK</code> flip to <code>True</code>. Then open <strong>Expression Forge</strong> (<code>run ex</code>) and complete <strong>Decode 9</strong> (unwired <code>MODE</code> Internal Reference) and <strong>Bug Hunt 7</strong> (State-Driven module-level <code>MODE.TARGET</code>)!</li>
     </ol>
     <div class="workshop-takeaway">
-      <strong>What You Are Supposed to Learn From This Workshop:</strong> On a real DeltaV plant floor, (1) a discrete <code>DC1</code> valve/motor uses <strong><code>AUTO</code></strong> (not <code>MAN</code>) for operator control; (2) always test <code>MODE.ACTUAL = CAS</code> (never <code>MODE.TARGET</code>) and <code>.ST &gt;= GOOD</code>; and (3) a purple <strong><code>LO</code></strong> border means a live safety/tracking/permissive pin or <code>Locked</code> state is actively overriding the device—not an offline <code>OOS</code> fault!
+      <strong>What You Are Supposed to Learn From This Workshop:</strong> On a real DeltaV plant floor, (1) a discrete <code>DC1</code> valve/motor uses <strong><code>AUTO</code></strong> (not <code>MAN</code>) for operator control, and (2) always test <code>MODE.ACTUAL = CAS</code> (never <code>MODE.TARGET</code>) and <code>.ST &gt;= GOOD</code>!
+    </div>
+  </div>
+</div>
+
+<!-- WORKSHOP 3B -->
+<div class="workshop">
+  <div class="workshop-head">
+    <span class="ws-title">Workshop 3B: The 2:00 AM Unattended Auto-Restart Trap (CM_PMP_101 — SP Track, Reset Required &amp; All 4 DC Safety Pins)</span>
+    <span class="ws-badge">Hands-On Lab • 6 Min</span>
+  </div>
+  <div class="workshop-body">
+    <div class="workshop-setup">
+      <strong>Setup:</strong> Launch <strong>Visual Explorer</strong> (<code>run</code>), click the <strong>top-left module dropdown</strong>, and select <strong><code>CM_PMP_101 (DC Safety: LO, SP Track &amp; Reset — Ch. 3.2)</code></strong>. Confirm you are on Tab <strong><code>1. Live DC1 Safety &amp; Auto-Restart Lab</code></strong> and click <strong>Reset Lab</strong>. <em>(Starts <code>RUNNING</code> in <code>AUTO</code> with <code>SP Track: OFF</code> &amp; <code>Reset Req: OFF</code>.)</em>
+    </div>
+    <ol>
+      <li><strong>Trigger the Unattended Auto-Restart Trap (<code>SP Track = OFF</code>, <code>Reset Req = OFF</code>):</strong>
+        <ul>
+          <li>Click <strong><code>INTERLOCK_D: 1</code></strong> so it drops to <strong><code>0 (TRIP!)</code></strong>. <em>Observe:</em> <code>PMP-101</code> stops, DeltaV Live shows a <strong>purple <code>LO</code> border</strong>, <code>DC_STATE = Shutdown/Interlocked</code>—but look inside <code>DC1</code>: <strong><code>SP_D</code> stayed stuck at <code>START ⚠️</code>!</strong></li>
+          <li>Now pretend 5 minutes passed and the interlock clears: click <strong><code>INTERLOCK_D: 0 (TRIP!)</code></strong> back to <strong><code>1</code></strong>. <em>Observe:</em> The instant <code>INTERLOCK_D</code> returns to <code>1</code>, <code>PMP-101</code> fires the red <strong><code>⚡ UNATTENDED AUTO-RESTART!!</code></strong> alert and restarts with zero delay!</li>
+        </ul>
+      </li>
+      <li><strong>Test the Subtle Half-Fix (<code>SP Track = OFF</code>, <code>Reset Req = ON</code> — <em>FBR</em> p. 421):</strong>
+        <ul>
+          <li>Click <strong><code>Reset Req: OFF</code> → <code>ON ✓</code></strong> (keep <code>SP Track: OFF</code>). Watch Row 2 highlight in the bottom Truth Matrix.</li>
+          <li>Trip <strong><code>INTERLOCK_D</code> (<code>1 → 0</code>)</strong>, then clear it <strong>(<code>0 → 1</code>)</strong>. <em>Observe:</em> Unlike Step 1, the pump stays safely OFF in <strong><code>DC_STATE = Locked (LO)</code></strong>!</li>
+          <li>Now click <strong><code>⚡ Pulse RESET_D (UNLOCK!)</code></strong>. <em>Observe the FBR p. 421 catch:</em> Because <code>SP Track</code> was OFF, <code>SP_D</code> was still <code>START</code>—so unlocking immediately resumes the pump!</li>
+        </ul>
+      </li>
+      <li><strong>Test <code>SP Track</code> Alone (<code>SP Track = ON</code>, <code>Reset Req = OFF</code>):</strong>
+        <ul>
+          <li>Click <strong><code>SP Track: OFF</code> → <code>ON ✓</code></strong> and <strong><code>Reset Req: ON ✓</code> → <code>OFF</code></strong>. (Ensure pump is <code>RUNNING</code>; click <strong><code>SP_D: START</code></strong> if stopped.)</li>
+          <li>Trip <strong><code>INTERLOCK_D</code> (<code>1 → 0</code>)</strong>—watch <code>SP Track</code> immediately overwrite <code>SP_D</code> from <code>START</code> to <strong><code>STOP</code></strong> in the Sequence Log! Clear <strong><code>INTERLOCK_D</code> (<code>0 → 1</code>)</strong>: <code>DC1</code> returns to <code>AUTO</code> and stays <strong>safely STOPPED</strong> (no <code>RESET_D</code> needed).</li>
+        </ul>
+      </li>
+      <li><strong>Test Gold-Standard Motor Safety (<code>SP Track = ON</code> AND <code>Reset Req = ON</code>):</strong>
+        <ul>
+          <li>Click <strong><code>Reset Req: OFF</code> → <code>ON ✓</code></strong> (both ON — Row 4 highlighted green!) and click <strong><code>SP_D: START</code></strong> so the pump runs.</li>
+          <li>Trip <strong><code>SHUTDOWN_D: 0</code> → <code>1 (E-STOP!)</code></strong> (note: Active-High = <code>1</code>, NOT optional!), then clear <strong><code>SHUTDOWN_D</code> (<code>1 → 0</code>)</strong>. <em>Observe:</em> <code>SP_D</code> is now <code>STOP</code> <strong>AND</strong> <code>DC_STATE = Locked (LO)</code>!</li>
+          <li>Click <strong><code>⚡ Pulse RESET_D (UNLOCK!)</code></strong>. <em>Observe:</em> Unlocks cleanly to <code>AUTO / Confirmed Passive</code> and <strong>STAYS STOPPED</strong> until an operator deliberately clicks <strong><code>SP_D: START</code></strong>!</li>
+        </ul>
+      </li>
+      <li><strong>Prove Start-Only <code>PERMISSIVE_D</code> &amp; Local <code>TRK_IN_D</code>:</strong>
+        <ul>
+          <li>Click <strong><code>SP_D: START</code></strong> so <code>PMP-101</code> is running. Now click <strong><code>PERMISSIVE_D: 1</code> → <code>0 (NO PERMIT)</code></strong>. <em>Observe:</em> <strong>ZERO trip while already running</strong> (<em>FBR</em> p. 419)!</li>
+          <li>Click <strong><code>SP_D: STOP</code></strong>—the instant the pump enters Passive, <code>PERMISSIVE_D = 0</code> forces <strong><code>LO</code></strong> and blocks clicking <strong><code>START</code></strong> until you restore <strong><code>PERMISSIVE_D: 1</code></strong>!</li>
+          <li>Finally toggle <strong><code>TRK_IN_D: 0</code> → <code>1 (LOCAL)</code></strong> to see Field Hand tracking force <code>LO</code>, then clear it back to <code>0</code>.</li>
+        </ul>
+      </li>
+      <li><strong>Trace the Live State Machine (Tab 2):</strong> Click Tab <strong><code>2. 4-Pin Polarity &amp; State Machine X-Ray</code></strong>, trip and clear <strong><code>INTERLOCK_D</code></strong> once more, and watch the active highlight move from <code>Confirmed Active 1</code> → <code>Shutdown/Interlocked</code> → <code>Locked (LO)</code> → <code>Confirmed Passive</code> (and read the exact Control Studio click path at the bottom: <em>Diagram View → click <code>DC1</code> → Parameter View → double-click <code>DEVICE_OPTS</code></em>!).</li>
+    </ol>
+    <div class="workshop-takeaway">
+      <strong>What You Are Supposed to Learn From This Workshop:</strong> On any real plant motor <code>DC</code> block, check <strong>BOTH <code>SP Track</code> AND <code>Reset Required</code></strong> inside <code>DEVICE_OPTS</code>—leaving both unchecked causes instant unattended auto-restarts, and checking only <code>Reset Required</code> still auto-resumes on <code>RESET_D</code>! Also memorize the polarity split: <strong>Active-High (<code>1</code>)</strong> = <code>SHUTDOWN_D</code> &amp; <code>TRK_IN_D</code> vs. <strong>Fail-Safe Low (<code>0</code>)</strong> = <code>INTERLOCK_D</code> (continuous) &amp; <code>PERMISSIVE_D</code> (Passive start-only).
     </div>
   </div>
 </div>
@@ -2827,7 +2890,7 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
 
 <div class="footer-note">
   <span>Emerson DeltaV Control Studio — Complete Study Textbook &amp; Workshop Manual</span>
-  <span>Edition v3.4 (Verified vs. Emerson Docs + Real Plant 3WT-0001-NEUT &amp; Split-Range AIC002 • Ch. 1–12 + 13 Labs • 7 Modules)</span>
+  <span>Edition v3.5 (Verified vs. Emerson Docs + Real Plant 3WT-0001-NEUT, Split-Range AIC002 &amp; DC Safety Lab • Ch. 1–12 + 14 Labs • 8 Modules)</span>
 </div>
 
 </body>

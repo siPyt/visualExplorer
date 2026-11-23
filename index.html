@@ -638,6 +638,7 @@
         <option value="cascade">CASCADE_201 (Cascade + CTLSL Override — Ch. 9)</option>
         <option value="pwneut">3WT-0001-NEUT (Real Plant PCSD EM — Ch. 11)</option>
         <option value="splt">3WT-0001-AIC002 (Split-Range pH — SPLTR + 50% Track)</option>
+        <option value="dcsafe">CM_PMP_101 (DC Safety: LO, SP Track &amp; Reset — Ch. 3.2)</option>
       </select>
       <span id="algPill" class="alg-pill">Algorithm: Command-Driven</span>
     </div>
@@ -651,7 +652,7 @@
       <button id="btnOnline" class="active">On-Line</button>
     </div>
     <a class="btn-util" href="ex.html" target="_blank" style="text-decoration:none; background:#b45309; border-color:#f59e0b; color:#fff;" title="Open Expression Forge — Interactive DeltaV Expression &amp; Parameter Trainer">⚡ Expression Forge</a>
-    <a class="btn-util" href="DeltaV_Study_Guide.html" target="_blank" style="text-decoration:none; background:#0369a1; border-color:#38bdf8;" title="Open the full 11-Chapter Textbook &amp; 12 Workshops in a clean large-text browser tab">📘 Study Guide</a>
+    <a class="btn-util" href="DeltaV_Study_Guide.html" target="_blank" style="text-decoration:none; background:#0369a1; border-color:#38bdf8;" title="Open the full 12-Chapter Textbook &amp; 14 Workshops in a clean large-text browser tab">📘 Study Guide</a>
     <a class="btn-util" href="DeltaV_Study_Guide.pdf" target="_blank" style="text-decoration:none;" title="Open the print-ready PDF textbook &amp; workshop manual in your browser">📄 PDF</a>
     <button class="btn-util" id="btnVocab">Session Vocab</button>
   </div>
@@ -911,6 +912,33 @@
   </div>
 </div>
 
+<!-- Sim Bar 8: CM_PMP_101 (DC Block Safety Lab: LO, SP Track, Reset Required & 4 Safety Pins — Ch. 3.2) -->
+<div class="sim-bar hidden" id="simBarDcSafe">
+  <div class="sim-group">
+    <span class="sim-label">DC1</span>
+    <span id="dcSafePill" class="state-pill state-RUNNING">RUNNING (AUTO)</span>
+    <span class="sim-label" style="margin-left:4px;">SP_D:</span>
+    <button class="sim-btn ok" id="btnDcStart" title="Operator faceplate command: SP_D := 'mtr2-sp:START'">START</button>
+    <button class="sim-btn" id="btnDcStop" title="Operator faceplate command: SP_D := 'mtr2-sp:STOP'">STOP</button>
+  </div>
+
+  <div class="sim-group">
+    <span class="sim-label">DEVICE_OPTS:</span>
+    <button class="sim-btn" id="btnDcSpTrack" title="FBR p. 419: Copies OUT_D (STOP) into SP_D whenever MODE.ACTUAL = LO">SP Track: OFF</button>
+    <button class="sim-btn" id="btnDcResetReq" title="FBR p. 421: Latches DC_STATE = Locked (LO) after trip clears until RESET_D is pulsed">Reset Req: OFF</button>
+  </div>
+
+  <div class="sim-group">
+    <span class="sim-label">Safety Pins:</span>
+    <button class="sim-btn ok" id="btnDcIlock" title="Fail-Safe Low (FBR p. 421): 0 = TRIP running pump &amp; block start">INTERLOCK_D: 1</button>
+    <button class="sim-btn" id="btnDcSdn" title="Active-High (FBR p. 421): 1 = E-STOP trip (always active, not optional!)">SHUTDOWN_D: 0</button>
+    <button class="sim-btn ok" id="btnDcPerm" title="Fail-Safe Low Start-Only (FBR p. 419): 0 = blocks Passive start, ZERO effect if already running!">PERMISSIVE_D: 1</button>
+    <button class="sim-btn" id="btnDcTrk" title="Active-High (FBR p. 426): 1 = Local Hand switch (LO, OUT_D tracks FV_D)">TRK_IN_D: 0</button>
+    <button class="sim-btn primary" id="btnDcPulseReset" title="FBR p. 421: Pulse RESET_D = 1 to unlock DC_STATE = Locked">Pulse RESET_D</button>
+    <button class="sim-btn" id="btnDcReset">Reset Lab</button>
+  </div>
+</div>
+
 <div class="diag-banner" id="diagBanner">
   <span id="diagText">Ready. Click any block, state, SFC step, transition, or margin flag to inspect its DeltaV path and plain-English role.</span>
   <div class="diag-metrics" id="diagMetrics"></div>
@@ -1050,6 +1078,10 @@ const MODULE_TABS = {
   splt: [
     { id: "sp1", label: "1. Split-Range FBD (SPLTR1)", kind: "FBD", defaultSel: "SP_SPLTR_BLK" },
     { id: "sp2", label: "2. 50% Track & BKCAL X-Ray", kind: "X-RAY", defaultSel: "SP_TRK_COMPARE" }
+  ],
+  dcsafe: [
+    { id: "dc1", label: "1. Live DC1 Safety & Auto-Restart Lab", kind: "FBD", defaultSel: "DC_SAFE_BLK" },
+    { id: "dc2", label: "2. 4-Pin Polarity & State Machine X-Ray", kind: "X-RAY", defaultSel: "DC_PIN_TABLE" }
   ]
 };
 
@@ -1163,7 +1195,21 @@ const state = {
   spPh: 8.0,                      // pH PV (SP = 8.0 pH = TP003)
   spTrkTrip: false,               // TRK_IN_D = True -> PID1 LO mode
   spTrkSafe: true,                // true = 50% Safe Deadband (real plant!) | false = 0% Rookie Acid Dump!
-  spAiSt: "GOOD"                  // GOOD | BAD (AI02AVG probe failure)
+  spAiSt: "GOOD",                 // GOOD | BAD (AI02AVG probe failure)
+
+  // Module 8: CM_PMP_101 (DC Block Safety Lab: LO, SP Track, Reset Required & 4 Safety Pins — Ch. 3.2)
+  dcSpD: "START",                 // START | STOP (starts RUNNING so user can trip INTERLOCK_D immediately!)
+  dcRunning: true,                // Actual pump running state (OUT_D / FV_D)
+  dcSpTrack: false,               // DEVICE_OPTS: SP Track (FBR p. 419)
+  dcResetReq: false,              // DEVICE_OPTS: Reset Required (FBR p. 421)
+  dcIlock: true,                  // INTERLOCK_D (Fail-Safe Low: 1=OK, 0=TRIP)
+  dcSdn: false,                   // SHUTDOWN_D (Active-High: 0=OK, 1=E-STOP)
+  dcPerm: true,                   // PERMISSIVE_D (Fail-Safe Low, Start-Only: 1=OK, 0=No Permit while Passive)
+  dcTrk: false,                   // TRK_IN_D (Active-High: 0=Off, 1=Local Hand tracking FV_D=STOP)
+  dcLocked: false,                // DC_STATE = Locked latch (waiting for RESET_D pulse)
+  dcWasTripped: false,            // Remembers trip so clearing detects Unattended Auto-Restart!
+  dcAutoRestartAlert: false,      // True when clearing trip or RESET_D restarts pump with SP_D still START!
+  dcLog: ["1. Pump RUNNING: SP_D = START → Confirmed Active 1 (AUTO). Try clicking INTERLOCK_D: 1 → 0!"]
 };
 
 function computeChargeDerived() {
@@ -1640,8 +1686,129 @@ function computeSpltDerived() {
   };
 }
 
+function pushDcLog(msg) {
+  const n = state.dcLog.length + 1;
+  state.dcLog.push(`${n}. ${msg}`);
+  if (state.dcLog.length > 4) state.dcLog.shift();
+}
+
+function evalDcSafeAction(reason, isPulseReset = false) {
+  // Official Emerson FBR pp. 419-427 DC Block state machine!
+  const tripActive = state.dcSdn || !state.dcIlock;
+  if (state.dcTrk) {
+    state.dcRunning = false;
+    state.dcAutoRestartAlert = false;
+    if (state.dcSpTrack && state.dcSpD !== "STOP") {
+      state.dcSpD = "STOP";
+      pushDcLog(`${reason} → LO Tracking (FV_D=STOP); SP Track copied STOP → SP_D!`);
+    } else {
+      pushDcLog(`${reason} → LO Tracking (OUT_D := FV_D = STOP).`);
+    }
+    return;
+  }
+  if (tripActive) {
+    state.dcRunning = false;
+    state.dcWasTripped = true;
+    state.dcAutoRestartAlert = false;
+    if (state.dcResetReq) state.dcLocked = true;
+    if (state.dcSpTrack && state.dcSpD !== "STOP") {
+      state.dcSpD = "STOP";
+      pushDcLog(`${reason} → LO Trip! SP Track overwrote SP_D := STOP${state.dcResetReq ? " + armed Locked" : ""}.`);
+    } else {
+      pushDcLog(`${reason} → LO Trip! SP_D STAYED '${state.dcSpD}'${state.dcResetReq ? " (Locked armed)" : " (NO SP Track!)"}.`);
+    }
+    return;
+  }
+  // Trip is NOT active:
+  if (isPulseReset) {
+    if (!state.dcLocked) {
+      pushDcLog(`RESET_D pulsed (no Locked state active).`);
+      return;
+    }
+    state.dcLocked = false;
+    if (state.dcSpD === "START" && state.dcPerm) {
+      state.dcRunning = true;
+      state.dcAutoRestartAlert = true;
+      state.dcWasTripped = false;
+      pushDcLog(`RESET_D unlocked Locked — SP Track was OFF so SP_D stayed START → ⚡ PUMP AUTO-RESUMED (FBR p421)!`);
+      return;
+    } else {
+      state.dcRunning = false;
+      state.dcAutoRestartAlert = false;
+      state.dcWasTripped = false;
+      pushDcLog(`RESET_D unlocked Locked → AUTO / Confirmed Passive (SAFE: SP_D = ${state.dcSpD})!`);
+      return;
+    }
+  }
+  if (state.dcLocked && state.dcResetReq) {
+    state.dcRunning = false;
+    state.dcAutoRestartAlert = false;
+    pushDcLog(`${reason} → DC_STATE = Locked (STAYS IN LO until operator pulses RESET_D!).`);
+    return;
+  }
+  state.dcLocked = false;
+  // Permissive check (FBR p. 419: ONLY blocks starting while Passive — ZERO effect once Active!)
+  if (!state.dcRunning && !state.dcPerm) {
+    state.dcRunning = false;
+    state.dcAutoRestartAlert = false;
+    state.dcWasTripped = false;
+    pushDcLog(`${reason} → PERMISSIVE_D = 0 while Passive → LO (Start BLOCKED!).`);
+    return;
+  }
+  if (state.dcSpD === "START") {
+    if (state.dcWasTripped) {
+      state.dcRunning = true;
+      state.dcAutoRestartAlert = true;
+      state.dcWasTripped = false;
+      pushDcLog(`${reason} → ⚡ UNATTENDED AUTO-RESTART! SP_D stayed START → pump restarted immediately!`);
+    } else {
+      const permNote = (!state.dcPerm && state.dcRunning) ? " (PERMISSIVE_D=0 ignored while ALREADY RUNNING — FBR p419!)" : "";
+      state.dcRunning = true;
+      state.dcAutoRestartAlert = false;
+      pushDcLog(`${reason} → RUNNING (Confirmed Active 1)${permNote}`);
+    }
+  } else {
+    state.dcRunning = false;
+    state.dcAutoRestartAlert = false;
+    state.dcWasTripped = false;
+    pushDcLog(`${reason} → STOPPED (Confirmed Passive, AUTO).`);
+  }
+}
+
+function computeDcSafeDerived() {
+  const tripActive = state.dcSdn || !state.dcIlock;
+  const lockedNow = !state.dcTrk && !tripActive && state.dcLocked && state.dcResetReq;
+  const noPermitNow = !state.dcTrk && !tripActive && !lockedNow && !state.dcRunning && !state.dcPerm;
+  const isLo = state.dcTrk || tripActive || lockedNow || noPermitNow;
+  const modeActual = isLo ? "LO" : "AUTO";
+  const outD = state.dcRunning ? "START (1)" : "STOP (0)";
+
+  let dcState = state.dcRunning ? "Confirmed Active 1" : "Confirmed Passive";
+  let loCause = "None (Normal AUTO)";
+  if (state.dcTrk) { dcState = "Tracking FV_D"; loCause = "TRK_IN_D = 1 (Local Hand Switch)"; }
+  else if (state.dcSdn) { dcState = "Shutdown/Interlocked"; loCause = "SHUTDOWN_D = 1 (Active-High E-Stop)"; }
+  else if (!state.dcIlock) { dcState = "Shutdown/Interlocked"; loCause = "INTERLOCK_D = 0 (Fail-Safe Low Trip)"; }
+  else if (lockedNow) { dcState = "Locked"; loCause = "Reset Required Latch (Pulse RESET_D!)"; }
+  else if (noPermitNow) { dcState = "Confirmed Passive"; loCause = "PERMISSIVE_D = 0 while Passive (Start-Only)"; }
+
+  let pill = state.dcRunning ? "RUNNING (AUTO)" : "STOPPED (AUTO)";
+  let pillCls = state.dcRunning ? "state-RUNNING" : "state-IDLE";
+  if (state.dcAutoRestartAlert) { pill = "⚡ AUTO-RESTARTED!!"; pillCls = "state-FAILED"; }
+  else if (tripActive) { pill = "TRIPPED (LO)"; pillCls = "state-FAILED"; }
+  else if (lockedNow) { pill = "LOCKED (LO — RESET!)"; pillCls = "state-HELD"; }
+  else if (state.dcTrk) { pill = "TRACKING (LO)"; pillCls = "state-HELD"; }
+  else if (noPermitNow) { pill = "NO PERMIT (LO)"; pillCls = "state-HELD"; }
+
+  const comboIdx = (state.dcSpTrack ? 2 : 0) + (state.dcResetReq ? 1 : 0);
+  // 0: Track=OFF, Reset=OFF | 1: Track=OFF, Reset=ON | 2: Track=ON, Reset=OFF | 3: Track=ON, Reset=ON
+  return {
+    tripActive, lockedNow, noPermitNow, isLo, modeActual, outD,
+    dcState, loCause, pill, pillCls, comboIdx
+  };
+}
+
 // =========================================================================
-// 2. SESSION VOCABULARY DATA (CHAPTERS 1–7)
+// 2. SESSION VOCABULARY DATA (CHAPTERS 1–12)
 // =========================================================================
 const VOCAB = [
   { term: "Unit Phase (\"EPH\")", full: "Phase Class / Unit Phase (7016 p70)", desc: "The Recipe Boss above the EM. ISA-88 calls this an EPH; DeltaV Explorer calls it a Phase Class / Unit Phase with RUN_LOGIC, HOLD_LOGIC, RESTART_LOGIC, STOP_LOGIC, ABORT_LOGIC, and FAIL_MONITOR." },
@@ -1665,8 +1832,12 @@ const VOCAB = [
   { term: "Golden Tare Rule", full: "START_WT.CV [P] Snapshot", desc: "Capture '^/START_WT.CV' := '//CM_TANK_WT/AI1/OUT.CV' with [P] on S0_IDLE → S10_CHARGE_OPEN ONLY. Never overwrite START_WT.CV in RESTART_LOGIC or you will overfill the tank!" },
   { term: "PID & AO Modes", full: "Analog Loop Modes (FBR pp. 110, 239)", desc: "PID supports all 8 modes (OOS, IMan, LO, Man, Auto, Cas, RCas, ROut). Bad PV sheds PID actual mode to Man; AO not in CAS forces PID into IMan; TRK_IN_D = True forces PID into LO." },
   { term: "BKCAL_OUT → BKCAL_IN", full: "Back-Calculation Feedback Wire (FBR p. 106, 238)", desc: "The #1 real-plant gray dotted feedback wire (#3 AO → #2 PID, or Slave → Master)! Carries downstream valve position & status backwards every scan to prevent integral windup (Limited High/Low) and provide bumpless IMan tracking." },
-  { term: "TRK_IN_D / TRK_VAL", full: "PID Output Tracking (FBR p. 234)", desc: "When CONTROL_OPTS Track Enable = True and TRK_IN_D = True, PID actual mode drops to LO (Local Override) and OUT tracks TRK_VAL (e.g., 0% safe close)!" },
-  { term: "CTLSL (Control Selector)", full: "Override Selector Block (FBR pp. 185–189)", desc: "Selects High, Low, or Middle of up to 3 PID outputs (SEL_1..3) and sends individual BKCAL_SEL1..3 feedback wires back to every PID so unselected controllers NEVER wind up! Bad input sheds CTLSL to Man." }
+  { term: "TRK_IN_D / TRK_VAL", full: "PID Output Tracking (FBR p. 234)", desc: "When CONTROL_OPTS Track Enable = True and TRK_IN_D = True, PID actual mode drops to LO (Local Override) and OUT tracks TRK_VAL (0% safe close on single valves, but 50% safe deadband on split-range Acid/Base loops like 3WT-0001-AIC002!)." },
+  { term: "CTLSL (Control Selector)", full: "Override Selector Block (FBR pp. 185–189)", desc: "Selects High, Low, or Middle of up to 3 PID outputs (SEL_1..3) and sends individual BKCAL_SEL1..3 feedback wires back to every PID so unselected controllers NEVER wind up! Bad input sheds CTLSL to Man." },
+  { term: "SPLTR (Splitter)", full: "1-In / 2-Out Split-Range Block (FBR pp. 302–313)", desc: "Takes one CAS_IN (0–100%) and splits it across OUT_1 & OUT_2 via IN_ARRAY/OUT_ARRAY + LOCKVAL with slope-aware BKCAL_IN_1/2 → BKCAL_OUT & BAL_TIME. Modes: OOS, IMan, Auto, Cas ONLY (no Man!)." },
+  { term: "SP Track & Reset Required", full: "DC DEVICE_OPTS Auto-Restart Guard (FBR pp. 419, 421)", desc: "On a DC block, SP Track copies OUT_D (Passive/STOP) into SP_D in LO; Reset Required latches DC_STATE = Locked (LO) until RESET_D = 1. Check BOTH on motors so clearing an interlock or pulsing RESET_D never causes an unattended auto-restart!" },
+  { term: "DC 4 Safety Pins", full: "SHUTDOWN_D, INTERLOCK_D, PERMISSIVE_D, TRK_IN_D (FBR pp. 419–427)", desc: "Active-High (1 = active): SHUTDOWN_D (always on!) & TRK_IN_D (tracks FV_D). Fail-Safe Low (0 = trips/blocks): INTERLOCK_D (trips running & blocks start) & PERMISSIVE_D (blocks Passive start ONLY — zero effect once Active!)." },
+  { term: "Unwired Boxes & Internal Ref", full: "Module-Level Front Door (7017 p. 243; CONFIG pp. 57, 70)", desc: "Unwired boxes on Control Studio sheets are intentional: Internal Reference punches a module-level tunnel (MODE → PID1/MODE) required by State-Driven tables & DeltaV Live GEMs; Parameter Shortcuts ($) expose Class settings without breaking inheritance; □ on Right = Input IN, □ on Left = Output OUT." }
 ];
 
 // =========================================================================
@@ -4526,9 +4697,180 @@ function renderSpltTab2(vp, sp) {
 }
 
 // =========================================================================
+// MODULE 8: CM_PMP_101 (DC BLOCK SAFETY LAB: LO, SP TRACK, RESET REQUIRED)
+// =========================================================================
+function renderDcSafeTab1(vp, dc) {
+  drawSectionStrip(vp, 22, 14, 896, 344, "OFFICIAL DELTAV DC BLOCK SAFETY LAB: CM_PMP_101/DC1 (SP TRACK, RESET REQUIRED & ALL 4 SAFETY PINS • FBR pp. 417–433)", "#1e3a8a");
+
+  // Left Column: 4 Official Safety Pins + RESET_D
+  drawFlag(vp, { id: "DC_PIN_SDN", x: 34, y: 74, w: 188, h: 32, side: "left", label: "SHUTDOWN_D (1=Trip)", sub: "Active-High • Always On", liveText: state.dcSdn ? "1 (TRIP!)" : "0 (OK)", status: state.dcSdn ? "bad" : "ok" });
+  drawFlag(vp, { id: "DC_PIN_ILOCK", x: 34, y: 126, w: 188, h: 32, side: "left", label: "INTERLOCK_D (0=Trip)", sub: "Fail-Safe Low • Trips Run", liveText: state.dcIlock ? "1 (OK)" : "0 (TRIP!)", status: state.dcIlock ? "ok" : "bad" });
+  drawFlag(vp, { id: "DC_PIN_PERM", x: 34, y: 178, w: 188, h: 32, side: "left", label: "PERMISSIVE_D (0=Block)", sub: "Start-Only in Passive!", liveText: state.dcPerm ? "1 (OK)" : (state.dcRunning ? "0 (Ignored)" : "0 (BLOCK!)"), status: state.dcPerm ? "ok" : (state.dcRunning ? "normal" : "warn") });
+  drawFlag(vp, { id: "DC_PIN_TRK", x: 34, y: 230, w: 188, h: 32, side: "left", label: "TRK_IN_D (1=Local)", sub: "Copies FV_D → OUT_D", liveText: state.dcTrk ? "1 (LOCAL)" : "0 (Off)", status: state.dcTrk ? "warn" : "normal" });
+  drawFlag(vp, { id: "DC_PIN_RESET", x: 34, y: 282, w: 188, h: 32, side: "left", label: "RESET_D (Unlock)", sub: "Clears DC_STATE=Locked", liveText: dc.lockedNow ? "PULSE ME!" : "0 (Idle)", status: dc.lockedNow ? "warn" : "normal" });
+
+  // Center: Authentic Official DC1 Block (FBR p. 417 exact pins!)
+  drawFbdBlock(vp, {
+    id: "DC_SAFE_BLK", x: 266, y: 54, w: 288, h: 286, cls: "DC", name: "DC1 (CM_PMP_101 • FBR p417)", execNum: 1,
+    inputs: [
+      { name: "SHUTDOWN_D", dy: 36 },
+      { name: "INTERLOCK_D", dy: 88 },
+      { name: "PERMISSIVE_D", dy: 140 },
+      { name: "TRK_IN_D", dy: 192 },
+      { name: "RESET_D", dy: 244 }
+    ],
+    outputs: [{ name: "OUT_D", dy: 140 }],
+    bodyLines: [
+      `TGT: AUTO | ACT: ${dc.modeActual}`,
+      `SP_D: ${state.dcSpD}${(!state.dcSpTrack && dc.tripActive && state.dcSpD === "START") ? " ⚠️ STUCK!" : ""}`,
+      `STATE: ${dc.dcState}`,
+      `OUT_D: ${dc.outD}`,
+      `SP Track: ${state.dcSpTrack ? "ON ✓" : "OFF"} | Reset: ${state.dcResetReq ? "ON ✓" : "OFF"}`
+    ],
+    status: state.dcAutoRestartAlert || dc.tripActive ? "bad" : (dc.isLo ? "warn" : (state.dcRunning ? "ok" : "normal")),
+    liveBadge: dc.modeActual
+  });
+
+  // Solid FBD wires from left boxes into DC1 pins
+  drawWire(vp, [[222, 90], [266, 90]], { active: state.dcSdn, fault: state.dcSdn });
+  drawWire(vp, [[222, 142], [266, 142]], { active: state.dcIlock, fault: !state.dcIlock });
+  drawWire(vp, [[222, 194], [266, 194]], { active: state.dcPerm, fault: dc.noPermitNow });
+  drawWire(vp, [[222, 246], [266, 246]], { active: state.dcTrk });
+  drawWire(vp, [[222, 298], [266, 298]], { active: false });
+
+  // Output wire DC1/OUT_D -> Right Field Pump Preview
+  drawWire(vp, [[554, 194], [600, 194]], { active: state.dcRunning, fault: state.dcAutoRestartAlert, label: state.dcRunning ? "START" : "STOP", labelPos: [577, 178] });
+
+  // Right Top: DeltaV Live HMI Gem & Field Pump Card (STUDY AID)
+  const gPmp = el("g", { class: "clickable" + (state.selectedId === "DC_HMI_CARD" ? " selected" : ""), "data-id": "DC_HMI_CARD" });
+  const pStroke = state.dcAutoRestartAlert ? "#dc2626" : (dc.isLo ? "#9333ea" : (state.dcRunning ? "#16a34a" : "#64748b"));
+  const pFill = state.dcAutoRestartAlert ? "#fef2f2" : (dc.isLo ? "#faf5ff" : (state.dcRunning ? "#f0fdf4" : "#f8fafc"));
+  gPmp.appendChild(el("rect", { x: 600, y: 46, width: 304, height: 158, rx: 6, fill: pFill, stroke: pStroke, "stroke-width": dc.isLo || state.dcAutoRestartAlert ? 3 : 1.6 }));
+  gPmp.appendChild(el("rect", { x: 601, y: 47, width: 302, height: 24, rx: 5, fill: state.dcAutoRestartAlert ? "#991b1b" : (dc.isLo ? "#7e22ce" : "#0f172a") }));
+  gPmp.appendChild(el("text", { x: 612, y: 63, "font-size": 9.4, "font-weight": 800, fill: "#ffffff" }, state.dcAutoRestartAlert ? "⚡ DANGER: UNATTENDED AUTO-RESTART!!" : (dc.isLo ? "DELTAV LIVE HMI: PURPLE LO BORDER!" : "DELTAV LIVE GEM PREVIEW (STUDY AID)")));
+
+  // Pump motor icon
+  const cx = 648, cy = 122;
+  gPmp.appendChild(el("circle", { cx, cy, r: 24, fill: state.dcRunning ? (state.dcAutoRestartAlert ? "#ef4444" : "#22c55e") : "#cbd5e1", stroke: "#0f172a", "stroke-width": 1.8 }));
+  gPmp.appendChild(el("text", { x: cx, y: cy + 4, "text-anchor": "middle", "font-size": 10.5, "font-weight": 800, fill: state.dcRunning ? "#ffffff" : "#334155" }, state.dcRunning ? "RUN" : "OFF"));
+  gPmp.appendChild(el("text", { x: 686, y: 98, "font-size": 10.2, "font-weight": 800, fill: "#0f172a", "font-family": "ui-monospace, monospace" }, `PMP-101: ${state.dcRunning ? "RUNNING!" : "STOPPED"}`));
+  gPmp.appendChild(el("text", { x: 686, y: 118, "font-size": 9.2, "font-weight": 700, fill: dc.isLo ? "#7e22ce" : "#334155", "font-family": "ui-monospace, monospace" }, `MODE.ACTUAL: ${dc.modeActual}`));
+  gPmp.appendChild(el("text", { x: 686, y: 136, "font-size": 8.8, fill: "#334155", "font-family": "ui-monospace, monospace" }, `SP_D: ${state.dcSpD} | OUT_D: ${state.dcRunning ? "1" : "0"}`));
+  gPmp.appendChild(el("text", { x: 612, y: 170, "font-size": 8.8, "font-weight": 700, fill: state.dcAutoRestartAlert ? "#b91c1c" : "#475569" }, `LO Cause: ${dc.loCause}`));
+  gPmp.appendChild(el("text", { x: 612, y: 190, "font-size": 8.4, fill: "#0369a1", "font-weight": 700 }, dc.lockedNow ? "👉 Click 'Pulse RESET_D' in top bar to unlock!" : (dc.tripActive ? "👉 Now clear the trip (click INTERLOCK_D/SHUTDOWN_D)!" : "👉 Try: Click INTERLOCK_D (1→0), then (0→1)!")));
+  vp.appendChild(gPmp);
+
+  // Right Bottom: Live Event Timeline (Last 4 Clicks!)
+  const gLog = el("g", { class: "clickable", "data-id": "DC_SAFE_BLK" });
+  gLog.appendChild(el("rect", { x: 600, y: 214, width: 304, height: 126, rx: 5, fill: "#ffffff", stroke: "#cbd5e1", "stroke-width": 1.3 }));
+  gLog.appendChild(el("rect", { x: 601, y: 215, width: 302, height: 22, rx: 4, fill: "#1e293b" }));
+  gLog.appendChild(el("text", { x: 612, y: 230, "font-size": 8.8, "font-weight": 800, fill: "#f8fafc" }, "LIVE SEQUENCE LOG (WATCH WHAT HAPPENS STEP BY STEP!)"));
+  state.dcLog.forEach((entry, idx) => {
+    const isLatest = idx === state.dcLog.length - 1;
+    const clipped = entry.length > 56 ? entry.slice(0, 55) + "…" : entry;
+    gLog.appendChild(el("text", { x: 610, y: 254 + idx * 22, "font-size": 8.3, "font-weight": isLatest ? 800 : 500, fill: entry.includes("AUTO-RESTART") || entry.includes("AUTO-RESUMED") ? "#b91c1c" : (isLatest ? "#0f172a" : "#475569") }, clipped));
+  });
+  vp.appendChild(gLog);
+
+  // Bottom Strip: LIVE 4-COMBINATION TRUTH MATRIX (SP Track x Reset Required — FBR pp. 419, 421, 427!)
+  const gMat = el("g", { class: "clickable" + (state.selectedId === "DC_OPT_MATRIX" ? " selected" : ""), "data-id": "DC_OPT_MATRIX" });
+  drawSectionStrip(vp, 22, 368, 896, 206, "LIVE 4-COMBINATION MATRIX: SP TRACK × RESET REQUIRED (OFFICIAL FBR pp. 419, 421, 427) — ACTIVE ROW HIGHLIGHTED!", "#6b21a8");
+  const cols = [42, 148, 256, 594];
+  const hdrs = ["SP Track", "Reset Req", "When INTERLOCK_D Clears (0 → 1)", "When Operator Pulses RESET_D"];
+  gMat.appendChild(el("rect", { x: 34, y: 394, width: 872, height: 22, fill: "#e2e8f0" }));
+  hdrs.forEach((h, i) => gMat.appendChild(el("text", { x: cols[i], y: 409, "font-size": 8.8, "font-weight": 800, fill: "#0f172a" }, h)));
+
+  const rows = [
+    ["OFF (0)", "OFF (0)", "⚡ AUTO-RESTARTS IMMEDIATELY! (SP_D stayed START!)", "Not used (no Locked latch)"],
+    ["OFF (0)", "ON (1)",  "Stays in LO (DC_STATE = Locked); pump stays OFF", "⚡ PUMP AUTO-RESUMES! (SP_D stayed START — p421)"],
+    ["ON (1)",  "OFF (0)", "Returns to AUTO & STAYS STOPPED (SP_D became STOP!)", "Not used — operator must command START again"],
+    ["ON (1)",  "ON (1)",  "Stays in LO (Locked) & SP_D = STOP (GOLD STANDARD!)", "✓ Unlocks to AUTO & STAYS STOPPED until START!"]
+  ];
+  rows.forEach((r, idx) => {
+    const ry = 420 + idx * 36;
+    const isNow = idx === dc.comboIdx;
+    const bg = isNow ? (idx === 0 ? "#fee2e2" : (idx === 3 ? "#dcfce7" : "#dbeafe")) : (idx % 2 ? "#f8fafc" : "#ffffff");
+    const bd = isNow ? (idx === 0 ? "#dc2626" : (idx === 3 ? "#16a34a" : "#2563eb")) : "#e2e8f0";
+    gMat.appendChild(el("rect", { x: 34, y: ry, width: 872, height: 32, rx: 4, fill: bg, stroke: bd, "stroke-width": isNow ? 2 : 1 }));
+    r.forEach((cell, ci) => {
+      const col = (ci >= 2 && cell.includes("⚡")) ? "#b91c1c" : ((ci >= 2 && cell.includes("✓")) ? "#15803d" : (isNow ? "#0f172a" : "#334155"));
+      gMat.appendChild(el("text", { x: cols[ci], y: ry + 20, "font-size": 8.8, "font-weight": isNow || ci < 2 ? 800 : 600, fill: col, "font-family": ci < 2 ? "ui-monospace, monospace" : "inherit" }, (isNow && ci === 0 ? "▶ " : "") + cell));
+    });
+  });
+  vp.appendChild(gMat);
+}
+
+function renderDcSafeTab2(vp, dc) {
+  drawSectionStrip(vp, 22, 14, 896, 560, "ALL 4 DC SAFETY PINS (POLARITY & OPTIONALITY) + OFFICIAL DC_STATE LOCKED FLOW (FBR pp. 419–427)", "#1e3a8a");
+
+  // Top Table: 4 Safety Pins + Locked Latch
+  const gTbl = el("g", { class: "clickable" + (state.selectedId === "DC_PIN_TABLE" ? " selected" : ""), "data-id": "DC_PIN_TABLE" });
+  gTbl.appendChild(el("rect", { x: 36, y: 44, width: 868, height: 244, rx: 6, fill: "#ffffff", stroke: "#475569", "stroke-width": 1.4 }));
+  gTbl.appendChild(el("rect", { x: 37, y: 45, width: 866, height: 26, rx: 5, fill: "#0f172a" }));
+  gTbl.appendChild(el("text", { x: 50, y: 62, "font-size": 9.8, "font-weight": 800, fill: "#ffffff" }, "OFFICIAL DELTAV DC SAFETY PINS — ACTIVE CAUSE OF LO HIGHLIGHTED LIVE (FBR pp. 419–427)"));
+
+  const cols = [48, 174, 304, 434, 588];
+  const hdrs = ["Pin / Cause", "Trips When", "DEVICE_OPTS?", "While Running?", "Exact Effect on DC1"];
+  gTbl.appendChild(el("rect", { x: 38, y: 71, width: 864, height: 22, fill: "#e2e8f0" }));
+  hdrs.forEach((h, i) => gTbl.appendChild(el("text", { x: cols[i], y: 86, "font-size": 8.8, "font-weight": 800, fill: "#0f172a" }, h)));
+
+  const pRows = [
+    { act: state.dcSdn, c: ["SHUTDOWN_D", "= 1 (Active-High)", "NO (Always On!)", "YES — Slams OFF!", "LO + OUT_D=Passive + Shutdown/Interlocked"] },
+    { act: !state.dcIlock, c: ["INTERLOCK_D", "= 0 (Fail-Safe Low)", "Yes: Interlock", "YES — Slams OFF!", "LO + OUT_D=Passive + Shutdown/Interlocked"] },
+    { act: dc.noPermitNow, c: ["PERMISSIVE_D", "= 0 (Passive ONLY)", "Yes: Permissive", "NO — ZERO effect!", "Blocks Passive start (LO); ignores if Active!"] },
+    { act: state.dcTrk, c: ["TRK_IN_D", "= 1 (Active-High)", "Always available", "YES — Tracks FV_D", "LO + OUT_D := FV_D (+ SP_D if SP Track)"] },
+    { act: dc.lockedNow, c: ["DC_STATE=Locked", "Post-trip latch", "Yes: Reset Req", "Holds OFF in LO", "Needs operator RESET_D=1 pulse to unlock!"] }
+  ];
+  pRows.forEach((row, idx) => {
+    const ry = 96 + idx * 37;
+    gTbl.appendChild(el("rect", { x: 42, y: ry, width: 856, height: 33, rx: 4, fill: row.act ? "#fae8ff" : (idx % 2 ? "#f8fafc" : "#ffffff"), stroke: row.act ? "#9333ea" : "#e2e8f0", "stroke-width": row.act ? 2 : 1 }));
+    row.c.forEach((txt, ci) => {
+      gTbl.appendChild(el("text", { x: cols[ci], y: ry + 20, "font-size": 8.8, "font-weight": (row.act || ci === 0) ? 800 : 600, fill: row.act ? "#6b21a8" : "#1e293b", "font-family": ci < 2 ? "ui-monospace, monospace" : "inherit" }, (row.act && ci === 0 ? "▶ " : "") + txt));
+    });
+  });
+  vp.appendChild(gTbl);
+
+  // Bottom State Machine Flow Diagram (Official FBR p. 421)
+  const gSm = el("g", { class: "clickable" + (state.selectedId === "DC_OPT_MATRIX" ? " selected" : ""), "data-id": "DC_OPT_MATRIX" });
+  gSm.appendChild(el("rect", { x: 36, y: 306, width: 868, height: 252, rx: 6, fill: "#ffffff", stroke: "#475569", "stroke-width": 1.4 }));
+  gSm.appendChild(el("rect", { x: 37, y: 307, width: 866, height: 26, rx: 5, fill: "#1e3a8a" }));
+  gSm.appendChild(el("text", { x: 50, y: 324, "font-size": 9.8, "font-weight": 800, fill: "#ffffff" }, "OFFICIAL DC_STATE TRANSITION PATH (FBR p. 421) — WATCH THE ACTIVE NODE MOVE AS YOU TRIP & CLEAR!"));
+
+  const drawStateBox = (x, y, w, h, title, sub, active, color) => {
+    gSm.appendChild(el("rect", { x, y, width: w, height: h, rx: 6, fill: active ? color.bg : "#f8fafc", stroke: active ? color.bd : "#94a3b8", "stroke-width": active ? 3 : 1.4 }));
+    gSm.appendChild(el("text", { x: x + w / 2, y: y + 24, "text-anchor": "middle", "font-size": 9.6, "font-weight": 800, fill: active ? color.fg : "#334155" }, title));
+    gSm.appendChild(el("text", { x: x + w / 2, y: y + 42, "text-anchor": "middle", "font-size": 8.4, fill: active ? color.fg : "#64748b", "font-family": "ui-monospace, monospace" }, sub));
+  };
+
+  drawStateBox(56, 366, 178, 60, "Confirmed Active 1", "RUNNING (AUTO)", state.dcRunning && !dc.isLo, { bg: "#dcfce7", bd: "#16a34a", fg: "#14532d" });
+  drawStateBox(288, 366, 198, 60, "Shutdown/Interlocked", "MODE = LO | OUT_D = 0", dc.tripActive, { bg: "#fee2e2", bd: "#dc2626", fg: "#991b1b" });
+  drawStateBox(540, 366, 152, 60, "Locked (LO)", "Wait for RESET_D!", dc.lockedNow, { bg: "#fae8ff", bd: "#9333ea", fg: "#6b21a8" });
+  drawStateBox(738, 366, 148, 60, "Confirmed Passive", "STOPPED (SAFE)", !state.dcRunning && !dc.tripActive && !dc.lockedNow, { bg: "#dbeafe", bd: "#2563eb", fg: "#1e3a8a" });
+
+  // Safe bypass footer inside card before appending card, then draw wires ON TOP!
+  gSm.appendChild(el("rect", { x: 56, y: 500, width: 830, height: 44, rx: 4, fill: "#eff6ff", stroke: "#93c5fd" }));
+  gSm.appendChild(el("text", { x: 68, y: 518, "font-size": 9.2, "font-weight": 800, fill: "#1e3a8a" }, "Control Studio Click Path (How to Check This on a Real Plant Motor CM):"));
+  gSm.appendChild(el("text", { x: 68, y: 535, "font-size": 8.9, fill: "#1e293b" }, "Open CM in Control Studio → Click DC1 in Diagram View → Look in Parameter View at bottom → Double-click DEVICE_OPTS → Check ☑ SP Track & ☑ Reset Required!"));
+  vp.appendChild(gSm);
+
+  // Arrows between states (drawn AFTER gSm so they sit cleanly on top!)
+  drawWire(vp, [[234, 396], [288, 396]], { active: dc.tripActive, fault: dc.tripActive, label: "Trip", labelPos: [261, 382] });
+  drawWire(vp, [[486, 396], [540, 396]], { active: dc.lockedNow, label: "Reset=ON", labelPos: [513, 382] });
+  drawWire(vp, [[692, 396], [738, 396]], { active: !dc.lockedNow && !state.dcRunning && !dc.tripActive, label: "RESET_D", labelPos: [715, 382] });
+
+  // Danger Auto-Restart Loopback arrow underneath (when SP Track = OFF!)
+  drawWire(vp, [[387, 426], [387, 472], [145, 472], [145, 426]], {
+    active: state.dcAutoRestartAlert,
+    fault: state.dcAutoRestartAlert || (!state.dcSpTrack && !state.dcResetReq),
+    label: "⚡ SP Track=OFF & Reset=OFF: Trip Clears → INSTANT UNATTENDED AUTO-RESTART!",
+    labelPos: [380, 472]
+  });
+}
+
+// =========================================================================
 // 5. CONTEXTUAL INSPECTOR DATABASE (BOTH MODULES — VERIFIED FACTS)
 // =========================================================================
-function getInspectorInfo(id, d, h, ts, pid, cas, pw, sp) {
+function getInspectorInfo(id, d, h, ts, pid, cas, pw, sp, dc) {
   const map = {
     // --- MODULE 1: EM_TANK_CHARGE ---
     EPH_HANDSHAKE: {
@@ -5496,11 +5838,85 @@ function getInspectorInfo(id, d, h, ts, pid, cas, pw, sp) {
       paths: [["1 AO in MAN/OOS", "SPLTR1 tracks it, keeps the other valve in CAS, & limits BKCAL_OUT"], ["Both AOs in MAN/OOS", "SPLTR1 drops to IMan → sends NotInvited → PID1 drops to IMan"]],
       expr: `(* FBR p307: Slope sign flips limit direction! *)\n(* Neg slope OUT_1 low-limited + OUT_2 not CAS => BKCAL_OUT = LimHigh *)\n(* Pos slope OUT_2 low-limited + OUT_1 not CAS => BKCAL_OUT = LimLow  *)`,
       live: [["Active BKCAL_OUT", sp.spltBkcalSt, sp.spltBkcalSt === "NotInvited" ? "v-warn" : "v-good"], ["PID1 Actual Mode", sp.pidActual, sp.pidActual === "AUTO" ? "v-good" : "v-warn"]]
+    },
+
+    // --- MODULE 8: CM_PMP_101 (DC SAFETY: LO, SP TRACK & RESET REQUIRED) ---
+    DC_SAFE_BLK: {
+      type: "OFFICIAL DELTAV DC BLOCK (#1 — FBR pp. 417–427)",
+      title: "DC1 (CM_PMP_101) — SP Track & Reset Required Lab",
+      role: "Plain-English Job: Runs a 2-state pump (STOP/START) with only AUTO & CAS selectable target modes (NO MAN!). Any safety trip drops MODE.ACTUAL to LO (Local Override) and forces OUT_D = Passive (STOP). Without SP Track checked, SP_D stays at START—so clearing the interlock immediately restarts the pump!",
+      paths: [["Control Studio Click Path", "Click DC1 in Diagram View → Parameter View → Double-click DEVICE_OPTS"], ["SP Track + Reset Required", "SP Track copies OUT_D→SP_D in LO; Reset Required latches Locked until RESET_D=1"]],
+      expr: `(* FBR pp. 419, 421: Watch SP_D during an LO trip! *)\nDC1/MODE.ACTUAL = ${dc.modeActual}  |  DC1/DC_STATE = '${dc.dcState}'\nDC1/SP_D.CV = ${state.dcSpD}  |  DC1/OUT_D.CV = ${dc.outD}`,
+      live: [["MODE.ACTUAL", dc.modeActual, dc.isLo ? "v-warn" : "v-good"], ["SP_D / OUT_D", `${state.dcSpD} / ${dc.outD}`, state.dcAutoRestartAlert ? "v-bad" : "v-info"], ["DC_STATE", dc.dcState, dc.tripActive ? "v-bad" : (dc.lockedNow ? "v-warn" : "v-good")]]
+    },
+    DC_PIN_SDN: {
+      type: "OFFICIAL DC SAFETY PIN — ACTIVE-HIGH (FBR p. 421)",
+      title: "SHUTDOWN_D = 1 (Emergency Stop — NOT Optional!)",
+      role: "Plain-English Job: Emergency Stop input. Unlike INTERLOCK_D and PERMISSIVE_D, SHUTDOWN_D cannot be disabled in DEVICE_OPTS—setting SHUTDOWN_D = 1 ALWAYS slams MODE.ACTUAL to LO and OUT_D to Passive (STOP)!",
+      paths: [["Active-High Polarity", "1 (True) = TRIP! | 0 (False) = Normal"], ["Works With Reset Required", "Clearing SHUTDOWN_D (1→0) enters DC_STATE = Locked if Reset Required is ON"]],
+      expr: `DC1/SHUTDOWN_D.CV = ${state.dcSdn ? "1 (E-STOP TRIP!)" : "0 (Normal)"}`,
+      live: [["SHUTDOWN_D", state.dcSdn ? "1 (TRIP!)" : "0 (OK)", state.dcSdn ? "v-bad" : "v-good"]]
+    },
+    DC_PIN_ILOCK: {
+      type: "OFFICIAL DC SAFETY PIN — FAIL-SAFE LOW (FBR p. 421)",
+      title: "INTERLOCK_D = 0 (Trips Running Pump & Blocks Start!)",
+      role: "Plain-English Job: Continuous safety interlock (requires DEVICE_OPTS: Interlock checked). Must stay 1 (True) to stay running. Dropping to 0 (False) immediately slams a running pump off into LO—and returning 0→1 triggers the Unattended Auto-Restart Trap if SP Track & Reset Required are both OFF!",
+      paths: [["Fail-Safe Low Polarity", "0 (False) = TRIP! | 1 (True) = Healthy (broken wire fails safe to 0)"], ["Test the Trap Live", "Click INTERLOCK_D (1→0) while RUNNING, then click (0→1) with SP Track OFF vs ON!"]],
+      expr: `DC1/INTERLOCK_D.CV = ${state.dcIlock ? "1 (Healthy)" : "0 (TRIPPED — LO!)"}`,
+      live: [["INTERLOCK_D", state.dcIlock ? "1 (OK)" : "0 (TRIP!)", state.dcIlock ? "v-good" : "v-bad"]]
+    },
+    DC_PIN_PERM: {
+      type: "OFFICIAL DC SAFETY PIN — START-ONLY (FBR p. 419)",
+      title: "PERMISSIVE_D = 0 (Blocks Passive Start — ZERO Effect Once Active!)",
+      role: "Plain-English Job: Start-only permission (requires DEVICE_OPTS: Permissive checked). Dropping PERMISSIVE_D to 0 while the pump is ALREADY RUNNING does NOT trip it! Once stopped (Passive), PERMISSIVE_D = 0 forces LO and blocks restarting until it returns to 1.",
+      paths: [["Try It Live Right Now!", "While RUNNING, click PERMISSIVE_D (1→0): pump keeps running! Then click STOP → instant LO!"]],
+      expr: `(* FBR p419: No effect once DC_STATE is Active *)\nDC1/PERMISSIVE_D.CV = ${state.dcPerm ? "1 (Permitted)" : "0 (No Permit)"}`,
+      live: [["PERMISSIVE_D", state.dcPerm ? "1 (OK)" : "0 (No Permit)", state.dcPerm ? "v-good" : (state.dcRunning ? "v-info" : "v-warn")], ["Blocking Now?", dc.noPermitNow ? "YES (Passive → LO)" : "No", dc.noPermitNow ? "v-warn" : "v-good"]]
+    },
+    DC_PIN_TRK: {
+      type: "OFFICIAL DC SAFETY PIN — ACTIVE-HIGH (FBR pp. 419, 426)",
+      title: "TRK_IN_D = 1 (Local Field Switch Tracking)",
+      role: "Plain-English Job: Wired from a field MCC Hand-Off-Auto switch. When TRK_IN_D = 1, DC1 drops to LO and copies field feedback FV_D straight into OUT_D (and into SP_D too if SP Track is checked!) so DeltaV tracks local field operation bumplessly.",
+      paths: [["Active-High Polarity", "1 (True) = Track FV_D in LO | 0 (False) = Normal"]],
+      expr: `IF 'DC1/TRK_IN_D.CV' = 1 THEN OUT_D := FV_D; (* + SP_D := FV_D if SP Track *) END_IF;`,
+      live: [["TRK_IN_D", state.dcTrk ? "1 (LOCAL HAND)" : "0 (Off)", state.dcTrk ? "v-warn" : "v-good"]]
+    },
+    DC_PIN_RESET: {
+      type: "OFFICIAL DC UNLOCK PARAMETER (FBR pp. 421, 430)",
+      title: "RESET_D — Unlocks DC_STATE = Locked After Trip Clears",
+      role: "Plain-English Job: When Reset Required is checked in DEVICE_OPTS, clearing a Shutdown or Interlock leaves DC_STATE = Locked (still in LO!). An operator must deliberately pulse RESET_D = 1 to unlock it. Watch FBR p. 421's subtle catch: if SP Track was OFF, pulsing RESET_D immediately resumes the pump because SP_D stayed START!",
+      paths: [["Security Note (FBR p421)", "RESET_D defaults to the Control lock so operators can reset from the faceplate"]],
+      expr: `(* Pulse from faceplate or logic after trip clears *)\n'//CM_PMP_101/DC1/RESET_D.CV' := 1;`,
+      live: [["Locked Latch", dc.lockedNow ? "LOCKED (Pulse RESET_D!)" : "Unlocked", dc.lockedNow ? "v-warn" : "v-good"]]
+    },
+    DC_HMI_CARD: {
+      type: "DELTAV LIVE HMI PREVIEW (STUDY AID)",
+      title: "Why Operators See a Purple LO Border on DeltaV Live",
+      role: "Plain-English Job: Whenever DC1/MODE.ACTUAL drops to LO (for ANY of the 5 causes: SHUTDOWN_D, INTERLOCK_D, PERMISSIVE_D in Passive, TRK_IN_D, or DC_STATE=Locked), DeltaV Live draws a purple LO mode/interlock indicator on the pump GEM. Check DC1 in Control Studio On-Line to identify which of the 5 causes is active in 10 seconds!",
+      paths: [["Current LO Cause", dc.loCause]],
+      expr: `DLSYS["CM_PMP_101/DC1/MODE.ACTUAL"] = ${dc.modeActual}\nDLSYS["CM_PMP_101/DC1/DC_STATE.CV"] = '${dc.dcState}'`,
+      live: [["Purple LO Border?", dc.isLo ? "YES (LO Active)" : "No (Normal)", dc.isLo ? "v-warn" : "v-good"], ["Auto-Restart Alert", state.dcAutoRestartAlert ? "TRIGGERED!!" : "Clear", state.dcAutoRestartAlert ? "v-bad" : "v-good"]]
+    },
+    DC_OPT_MATRIX: {
+      type: "OFFICIAL DEVICE_OPTS TRUTH MATRIX (FBR pp. 419, 421)",
+      title: "All 4 Combinations of SP Track × Reset Required",
+      role: "Plain-English Job: Proves why industrial motor CMs check BOTH SP Track AND Reset Required in DC1/DEVICE_OPTS. Checking only Reset Required (without SP Track) still auto-restarts the pump the moment an operator hits RESET_D (FBR p. 421)! Checking BOTH guarantees the pump stays safely stopped after trip clear AND after RESET_D!",
+      paths: [["Gold Standard Motor Config", "DEVICE_OPTS: ☑ Interlock, ☑ SP Track, ☑ Reset Required"]],
+      expr: `(* Active DEVICE_OPTS in this lab: *)\nSP_Track = ${state.dcSpTrack} | Reset_Required = ${state.dcResetReq}`,
+      live: [["SP Track", state.dcSpTrack ? "ON ✓" : "OFF (Trap!)", state.dcSpTrack ? "v-good" : "v-bad"], ["Reset Required", state.dcResetReq ? "ON ✓" : "OFF", state.dcResetReq ? "v-good" : "v-warn"]]
+    },
+    DC_PIN_TABLE: {
+      type: "OFFICIAL DC SAFETY PIN REFERENCE (FBR pp. 419–427)",
+      title: "Polarity & Start-Only vs. Continuous Trip Comparison",
+      role: "Plain-English Job: Memorize the polarity split so you never wire a trip backwards: SHUTDOWN_D and TRK_IN_D are Active-High (1 = active), while INTERLOCK_D and PERMISSIVE_D are Fail-Safe Low (0 = trips/blocks, so a broken field wire fails safe!).",
+      paths: [["Active-High (1 = Active)", "SHUTDOWN_D, TRK_IN_D, RESET_D"], ["Fail-Safe Low (0 = Trip/Block)", "INTERLOCK_D (continuous), PERMISSIVE_D (Passive start-only)"]],
+      expr: `(* Live Pin States *)\nSHUTDOWN_D=${state.dcSdn?1:0} | INTERLOCK_D=${state.dcIlock?1:0} | PERMISSIVE_D=${state.dcPerm?1:0} | TRK_IN_D=${state.dcTrk?1:0}`,
+      live: [["Active LO Cause", dc.loCause, dc.isLo ? "v-warn" : "v-good"]]
     }
   };
 
   if (map[id]) return map[id];
-  const modLabel = { charge: "EM_TANK_CHARGE", header: "EM_XFER_HDR", twostage: "EM_2STAGE_VLV", pid: "FIC_101", cascade: "CASCADE_201", pwneut: "3WT-0001-NEUT", splt: "3WT-0001-AIC002" }[state.module] || state.module;
+  const modLabel = { charge: "EM_TANK_CHARGE", header: "EM_XFER_HDR", twostage: "EM_2STAGE_VLV", pid: "FIC_101", cascade: "CASCADE_201", pwneut: "3WT-0001-NEUT", splt: "3WT-0001-AIC002", dcsafe: "CM_PMP_101" }[state.module] || state.module;
   return {
     type: "CONTROL STUDIO PARAMETER REFERENCE (PDS p1)",
     title: id.replace(/^TS_FLAG_|^FLAG_/, ""),
@@ -5540,6 +5956,7 @@ function render() {
   const cas = computeCascadeDerived();
   const pw = computePwNeutDerived();
   const sp = computeSpltDerived();
+  const dc = computeDcSafeDerived();
 
   // Header module indicator & sim bars
   document.getElementById("moduleSelect").value = state.module;
@@ -5550,7 +5967,8 @@ function render() {
     pid: "Control Module: Analog PID + Tracking",
     cascade: "Control Modules: Cascade & CTLSL Override",
     pwneut: "Real Plant PCSD EM: _EM_CMD32_140",
-    splt: "Control Module: Split-Range pH (SPLTR1)"
+    splt: "Control Module: Split-Range pH (SPLTR1)",
+    dcsafe: "Control Module: DC Safety, SP Track & Reset Lab"
   };
   document.getElementById("algPill").textContent = algMap[state.module] || "Control Studio";
   document.getElementById("simBarCharge").classList.toggle("hidden", state.module !== "charge");
@@ -5560,6 +5978,7 @@ function render() {
   document.getElementById("simBarCascade").classList.toggle("hidden", state.module !== "cascade");
   document.getElementById("simBarPwNeut").classList.toggle("hidden", state.module !== "pwneut");
   document.getElementById("simBarSplt").classList.toggle("hidden", state.module !== "splt");
+  document.getElementById("simBarDcSafe").classList.toggle("hidden", state.module !== "dcsafe");
 
   const vp = document.getElementById("viewport");
   vp.innerHTML = "";
@@ -5792,7 +6211,7 @@ function render() {
     if (state.tab === "pw1") renderPwTab1(vp, pw);
     else if (state.tab === "pw2") renderPwTab2(vp, pw);
     else renderPwTab3(vp, pw);
-  } else {
+  } else if (state.module === "splt") {
     // Module 7: 3WT-0001-AIC002 (Split-Range pH CM — SPLTR1 + 50% Track)
     const spPill = document.getElementById("spltStatusPill");
     spPill.textContent = sp.pill;
@@ -5827,11 +6246,63 @@ function render() {
 
     if (state.tab === "sp1") renderSpltTab1(vp, sp);
     else renderSpltTab2(vp, sp);
+  } else {
+    // Module 8: CM_PMP_101 (DC Safety Lab: LO, SP Track, Reset Required & 4 Safety Pins)
+    const dcPill = document.getElementById("dcSafePill");
+    dcPill.textContent = dc.pill;
+    dcPill.className = "state-pill " + dc.pillCls;
+
+    document.getElementById("btnDcStart").className = state.dcSpD === "START" ? "sim-btn ok" : "sim-btn";
+    document.getElementById("btnDcStop").className = state.dcSpD === "STOP" ? "sim-btn primary" : "sim-btn";
+
+    const bSp = document.getElementById("btnDcSpTrack");
+    bSp.textContent = state.dcSpTrack ? "SP Track: ON ✓" : "SP Track: OFF";
+    bSp.className = state.dcSpTrack ? "sim-btn ok" : "sim-btn";
+
+    const bRr = document.getElementById("btnDcResetReq");
+    bRr.textContent = state.dcResetReq ? "Reset Req: ON ✓" : "Reset Req: OFF";
+    bRr.className = state.dcResetReq ? "sim-btn ok" : "sim-btn";
+
+    const bIl = document.getElementById("btnDcIlock");
+    bIl.textContent = state.dcIlock ? "INTERLOCK_D: 1" : "INTERLOCK_D: 0 (TRIP!)";
+    bIl.className = state.dcIlock ? "sim-btn ok" : "sim-btn active-toggle";
+
+    const bSd = document.getElementById("btnDcSdn");
+    bSd.textContent = state.dcSdn ? "SHUTDOWN_D: 1 (E-STOP!)" : "SHUTDOWN_D: 0";
+    bSd.className = state.dcSdn ? "sim-btn active-toggle" : "sim-btn";
+
+    const bPm = document.getElementById("btnDcPerm");
+    bPm.textContent = state.dcPerm ? "PERMISSIVE_D: 1" : "PERMISSIVE_D: 0 (NO PERMIT)";
+    bPm.className = state.dcPerm ? "sim-btn ok" : "sim-btn warn";
+
+    const bTk = document.getElementById("btnDcTrk");
+    bTk.textContent = state.dcTrk ? "TRK_IN_D: 1 (LOCAL)" : "TRK_IN_D: 0";
+    bTk.className = state.dcTrk ? "sim-btn warn" : "sim-btn";
+
+    const bPr = document.getElementById("btnDcPulseReset");
+    bPr.textContent = dc.lockedNow ? "⚡ Pulse RESET_D (UNLOCK!)" : "Pulse RESET_D";
+    bPr.className = dc.lockedNow ? "sim-btn warn" : "sim-btn primary";
+
+    const banner = document.getElementById("diagBanner");
+    const lvl = state.dcAutoRestartAlert || dc.tripActive ? "alert" : (dc.isLo ? "warn" : (state.dcRunning ? "ok" : "info"));
+    banner.className = "diag-banner" + (lvl !== "info" ? " " + lvl : "");
+    const defDcMsg = state.dcAutoRestartAlert
+      ? "⚡ 2:00 AM UNATTENDED AUTO-RESTART TRAP! SP Track was OFF, so SP_D stayed START and the pump restarted the instant the trip cleared / unlocked! Turn ON SP Track & Reset Required to prevent this!"
+      : dc.lockedNow
+        ? "LOCKED IN LO (Reset Required = ON): Trip cleared, but DC_STATE = Locked keeps the pump safely in LO until an operator explicitly clicks 'Pulse RESET_D'!"
+        : dc.tripActive
+          ? `TRIPPED IN LO (${dc.loCause}): Look at SP_D on DC1 (${state.dcSpD}) — now click the tripped pin back to normal to see what happens 5 minutes later!`
+          : `CM_PMP_101 (${dc.dcState}): Click INTERLOCK_D (1→0), then (0→1) to test the 2:00 AM Auto-Restart Trap — then repeat with SP Track & Reset Required toggled ON!`;
+    document.getElementById("diagText").textContent = state.notice || defDcMsg;
+    document.getElementById("diagMetrics").textContent = `MODE: ${dc.modeActual} | SP_D: ${state.dcSpD} | OUT_D: ${dc.outD} | DC_STATE: ${dc.dcState}`;
+
+    if (state.tab === "dc1") renderDcSafeTab1(vp, dc);
+    else renderDcSafeTab2(vp, dc);
   }
 
   applyTransform();
 
-  const info = getInspectorInfo(state.selectedId, d, h, ts, pid, cas, pw, sp);
+  const info = getInspectorInfo(state.selectedId, d, h, ts, pid, cas, pw, sp, dc);
   document.getElementById("inspType").textContent = info.type;
   document.getElementById("inspTitle").textContent = info.title;
   document.getElementById("inspRole").textContent = info.role;
@@ -5936,9 +6407,12 @@ document.getElementById("moduleSelect").addEventListener("change", (e) => {
   } else if (state.module === "pwneut") {
     state.tab = "pw1";
     state.selectedId = "PW_SFC_ACTIVE";
-  } else {
+  } else if (state.module === "splt") {
     state.tab = "sp1";
     state.selectedId = "SP_SPLTR_BLK";
+  } else {
+    state.tab = "dc1";
+    state.selectedId = "DC_SAFE_BLK";
   }
   rebuildTabs();
   render();
@@ -6303,6 +6777,66 @@ document.getElementById("btnSpltReset").addEventListener("click", () => {
   state.spPh = 8.0; state.spTrkTrip = false; state.spTrkSafe = true; state.spAiSt = "GOOD";
   state.selectedId = state.tab === "sp2" ? "SP_TRK_COMPARE" : "SP_SPLTR_BLK";
   state.notice = "Reset 3WT-0001-AIC002 to neutral deadband (pH = 8.0, PID OUT = 50%, Acid = 0%, Base = 0%).";
+  render();
+});
+
+// --- Module 8 Controls (CM_PMP_101 — DC Block Safety Lab: LO, SP Track, Reset Required) ---
+document.getElementById("btnDcStart").addEventListener("click", () => {
+  state.dcSpD = "START"; state.notice = ""; state.selectedId = "DC_SAFE_BLK";
+  evalDcSafeAction("Operator set SP_D := START"); render();
+});
+document.getElementById("btnDcStop").addEventListener("click", () => {
+  state.dcSpD = "STOP"; state.notice = ""; state.selectedId = "DC_SAFE_BLK";
+  evalDcSafeAction("Operator set SP_D := STOP"); render();
+});
+document.getElementById("btnDcSpTrack").addEventListener("click", () => {
+  state.dcSpTrack = !state.dcSpTrack; state.notice = ""; state.selectedId = "DC_OPT_MATRIX";
+  if (state.dcSpTrack && (state.dcTrk || state.dcSdn || !state.dcIlock)) {
+    state.dcSpD = "STOP";
+    pushDcLog("Enabled SP Track while in LO → copied OUT_D (STOP) into SP_D!");
+  } else {
+    pushDcLog(`Toggled DEVICE_OPTS: SP Track = ${state.dcSpTrack ? "ON" : "OFF"}.`);
+  }
+  render();
+});
+document.getElementById("btnDcResetReq").addEventListener("click", () => {
+  state.dcResetReq = !state.dcResetReq; state.notice = ""; state.selectedId = "DC_OPT_MATRIX";
+  if (state.dcResetReq && (state.dcSdn || !state.dcIlock)) state.dcLocked = true;
+  if (!state.dcResetReq && state.dcLocked) {
+    state.dcLocked = false;
+    evalDcSafeAction("Disabled Reset Required (cleared Locked)");
+  } else {
+    pushDcLog(`Toggled DEVICE_OPTS: Reset Required = ${state.dcResetReq ? "ON" : "OFF"}.`);
+  }
+  render();
+});
+document.getElementById("btnDcIlock").addEventListener("click", () => {
+  state.dcIlock = !state.dcIlock; state.notice = ""; state.selectedId = "DC_PIN_ILOCK";
+  evalDcSafeAction(state.dcIlock ? "INTERLOCK_D cleared (0 → 1)" : "INTERLOCK_D dropped (1 → 0)"); render();
+});
+document.getElementById("btnDcSdn").addEventListener("click", () => {
+  state.dcSdn = !state.dcSdn; state.notice = ""; state.selectedId = "DC_PIN_SDN";
+  evalDcSafeAction(state.dcSdn ? "SHUTDOWN_D tripped (0 → 1)" : "SHUTDOWN_D cleared (1 → 0)"); render();
+});
+document.getElementById("btnDcPerm").addEventListener("click", () => {
+  state.dcPerm = !state.dcPerm; state.notice = ""; state.selectedId = "DC_PIN_PERM";
+  evalDcSafeAction(state.dcPerm ? "PERMISSIVE_D restored (0 → 1)" : "PERMISSIVE_D dropped (1 → 0)"); render();
+});
+document.getElementById("btnDcTrk").addEventListener("click", () => {
+  state.dcTrk = !state.dcTrk; state.notice = ""; state.selectedId = "DC_PIN_TRK";
+  evalDcSafeAction(state.dcTrk ? "TRK_IN_D = 1 (Field Hand)" : "TRK_IN_D = 0 (Cleared)"); render();
+});
+document.getElementById("btnDcPulseReset").addEventListener("click", () => {
+  state.notice = ""; state.selectedId = "DC_PIN_RESET";
+  evalDcSafeAction("Operator pulsed RESET_D = 1", true); render();
+});
+document.getElementById("btnDcReset").addEventListener("click", () => {
+  state.dcSpD = "START"; state.dcRunning = true; state.dcSpTrack = false; state.dcResetReq = false;
+  state.dcIlock = true; state.dcSdn = false; state.dcPerm = true; state.dcTrk = false;
+  state.dcLocked = false; state.dcWasTripped = false; state.dcAutoRestartAlert = false;
+  state.dcLog = ["1. Reset: Pump RUNNING (SP_D=START, AUTO). Try INTERLOCK_D (1→0), then (0→1)!"];
+  state.selectedId = state.tab === "dc2" ? "DC_PIN_TABLE" : "DC_SAFE_BLK";
+  state.notice = "Reset CM_PMP_101 to RUNNING with SP Track=OFF & Reset Required=OFF (ready to test the 2:00 AM Trap!).";
   render();
 });
 

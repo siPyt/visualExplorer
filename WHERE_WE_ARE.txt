@@ -1,10 +1,12 @@
 ================================================================================
 DELTAV CONTROL STUDIO MASTERY — PROGRESS & MISSION TRACKER
-Last Updated: 2026-11-23 (Edition v3.4 — Module 7 Split-Range pH 3WT-0001-AIC002
-                          [SPLTR1 + Live V-Curve + 50% vs 0% Track + Slope-Aware
-                          BKCAL] + Study Guide Ch. 11.6 & Workshop 13)
+Last Updated: 2026-11-23 (Edition v3.5 — Module 8 CM_PMP_101 DC Safety Lab
+                          [SP Track x Reset Required Auto-Restart Trap + All 4 DC
+                          Safety Pins & RESET_D] + Study Guide Sec. 3.2 & Lab 3)
 Repository:   https://github.com/siPyt/visualExplorer.git
-Site Note:    Non-Batch plant focus (steer clear of Batch Unit Phases unless asked)
+Prime Rule:   Governed by 'pd' (Prime Directive) — Control Studio EM/CM/EPH logic
+              focus, DeltaV Live HMI standard, native DeltaV only, Official vs.
+              AI Mental Model labeling, plain-English first, exact click paths.
 ================================================================================
 
 ULTIMATE MISSION
@@ -17,7 +19,7 @@ sharpest engineer in the room — with zero made-up syntax and zero guessing.
 HOW THIS WORKSPACE OPERATES (SYNCED ACROSS MACHINES)
 ----------------------------------------------------
 1. Visual Explorer (index.html — launch anytime by typing 'run' in terminal):
-   Interactive visual Control Studio trainer with 7 selectable modules (22 views):
+   Interactive visual Control Studio trainer with 8 selectable modules (24 views):
    - EM_TANK_CHARGE (Command-Driven EM — 5 tabs incl. Full Control Studio Combo)
    - EM_XFER_HDR (State-Driven EM — 4 tabs incl. Items x States & Combo)
    - EM_2STAGE_VLV (State-Driven 2-Stage Valve, 7016 — 3 tabs, '(not written)' cells)
@@ -28,6 +30,8 @@ HOW THIS WORKSPACE OPERATES (SYNCED ACROSS MACHINES)
      Zero-Wire Main FBD w/ Hide Stubs & 4-Pattern Lens, MONITOR & TMR1 Watchdogs)
    - 3WT-0001-AIC002 (Split-Range pH CM — 2 tabs: AI02AVG->PID1->SPLTR1->2xAO +
      Live V-Curve Deadband [49-51%] & Tab 2: 50% vs 0% Track & Slope-Aware BKCAL)
+   - CM_PMP_101 (DC Safety Lab — 2 tabs: Live SP Track x Reset Required Auto-
+     Restart Trap + All 4 Safety Pins/RESET_D & Tab 2: Polarity & DC_STATE Flow)
    Wire Color Convention (Locked):
    - Solid/Bold Black (tinted Green/Red On-Line study aid) = real FBD wires
    - Gray dotted/dashed (#475569) = REAL DeltaV feedback wires (next-scan delay)
@@ -44,12 +48,13 @@ HOW THIS WORKSPACE OPERATES (SYNCED ACROSS MACHINES)
      split-range 0% acid dump, A_COMMAND=Undefined vs A_PV, State-Driven Int Ref)
    - Mode 4: On-Line Tree (6 live presets + 9 live sliders/selectors incl. 3WT-0001)
 
-3. Textbook & Lab Manual (DeltaV_Study_Guide.html -> DeltaV_Study_Guide.pdf, v3.4):
+3. Textbook & Lab Manual (DeltaV_Study_Guide.html -> DeltaV_Study_Guide.pdf, v3.5):
    Full in-depth native Control Studio logic handbook: Chapters 1–12 (incl.
-   Section 2.5 Unwired Parameter Boxes, Section 3.2 DC LO vs. OOS, Section 11.6
-   Split-Range SPLTR & 50% Tracking, and tight Ch. 12: HMI-to-Logic Triage &
-   Download Traps), 7-Block FBR Field Guide, 13 Visual Explorer Workshops, and
-   21-Question Mastery Exam. Rebuild anytime via: .\build-pdf.ps1
+   Section 2.5 Unwired Parameter Boxes, Section 3.2 DC LO vs. OOS + dedicated
+   Workshop 3B, Section 11.6 Split-Range SPLTR & 50% Tracking + Workshop 13,
+   and tight Ch. 12: HMI-to-Logic Triage & Download Traps), 7-Block FBR Field
+   Guide, 14 Visual Explorer Workshops, and 21-Question Mastery Exam.
+   Rebuild anytime via: .\build-pdf.ps1
 
 4. Verified Truth Source (DELTAV_VERIFIED_FACTS.md + pdf reference/ + additionalPDFs/):
    Every Control Studio & DeltaV Live fact cited by exact PDF + page number
@@ -57,7 +62,13 @@ HOW THIS WORKSPACE OPERATES (SYNCED ACROSS MACHINES)
    manuals selected from the 14 PDFs in additionalPDFs/ (filtering out legacy
    Operate-only & Batch-only clutter).
 
-5. Session Tracker (WHERE_WE_ARE.txt — this file):
+5. Prime Directive (pd — Governing Scope & Teaching Rules Going Forward):
+   Strict guardrails for every new PDF, edit, or tool: Control Studio EM/CM/EPH
+   logic scope only, 100% native DeltaV (zero PLC/ladder comparisons), Official
+   DeltaV vs. AI Mental Model clearly labeled, plain-English first, exact click
+   paths, zero guessed UI, and ask first before adding extras outside scope.
+
+6. Session Tracker (WHERE_WE_ARE.txt — this file):
    Single source of truth for continuity across all machines & sessions.
 
 ================================================================================
@@ -152,23 +163,42 @@ HOW THIS WORKSPACE OPERATES (SYNCED ACROSS MACHINES)
            live-highlighted official Emerson FBR p. 307 SPLTR BKCAL limit matrix.
        - Added Section 11.6 + Workshop 13 + Field Guide FB-7 SPLTR + Appendix A
          SPLTR entry to Study Guide & rebuilt PDF; added SPLTR to DELTAV_VERIFIED_FACTS.md.
+       - Added Section 2.4 Plain-English Decoder callout (from explain_further.txt):
+         "Child Control Modules" (Subordinate Nested CM vs. Standalone/Shared CM)
+         + segment-by-segment breakdown & click paths for CM_FEED_XV/DC1/MODE.TARGET.
+
+[DONE] v3.5 — Module 8: CM_PMP_101 (DC Safety Lab: LO, SP Track & Reset Required)
+       - Verified all 4 combinations of SP Track x Reset Required directly in
+         Emerson FBR pp. 419, 421, 427 (incl. subtle FBR p. 421 rule: Reset Req
+         WITHOUT SP Track still auto-resumes the pump on RESET_D!).
+       - Added Module 8 (CM_PMP_101, 2 tabs) to Visual Explorer (index.html):
+         * Tab 1: Interactive DC1 block with all 4 safety pins (SHUTDOWN_D,
+           INTERLOCK_D, PERMISSIVE_D, TRK_IN_D) + RESET_D, live DEVICE_OPTS
+           toggles (SP Track & Reset Required), live DeltaV Live purple LO GEM
+           preview, 4-step Sequence Log, and live-highlighted 4-row Truth Matrix.
+         * Tab 2: All 4 Safety Pins Polarity table + live DC_STATE transition
+           state machine (Active -> Shutdown/Interlocked -> Locked -> Passive
+           vs. Unattended Auto-Restart loopback arrow).
+       - Added dedicated standalone Workshop 3B (6-step lab for all 4 SP Track x
+         Reset Required combinations + PERMISSIVE_D start-only + Tab 2 state
+         machine) and updated Section 3.2 in Study Guide PDF (14 total labs).
 
 ================================================================================
 2. WHERE WE ARE RIGHT NOW
 ================================================================================
-- Prime Directive file (pd) governs all future additions (Control Studio EM/CM/EPH
-  logic focus, native DeltaV only, Official vs. Mental Model labeling, exact clicks).
-- Edition v3.4 is built, self-tested (JS syntax, DOM IDs, all 27 Expression Forge
-  drills, 0 stray backticks in HTML, PDF regenerated cleanly), and visually
-  QA-verified across all 7 Visual Explorer modules (22 interactive views).
-- Local workspace changes ready to commit/push (index.html, ex.html,
-  DeltaV_Study_Guide.html, DeltaV_Study_Guide.pdf, DELTAV_VERIFIED_FACTS.md,
-  WHERE_WE_ARE.txt, README.md).
-- Note on local folders: PW_Neutralization/, additionalPDFs/, 30001.png, and
-  explain_further.txt live locally for reference (do not push without asking).
+- Prime Directive file (pd) is active and governs all future work (Control Studio
+  EM/CM/EPH logic focus, DeltaV Live standard, native DeltaV only, Official vs.
+  Mental Model labeling, exact click paths; ask before adding extras).
+- Edition v3.5 is built, self-tested (check_ve.js 100%: JS syntax, DOM IDs, all
+  27 Expression Forge drills, 0 stray backticks in HTML, PDF rebuilt cleanly),
+  and visually QA-verified across all 8 Visual Explorer modules (24 views).
+- Local changes since commit '2b3185a after Prime Directive': index.html (Module 8),
+  DeltaV_Study_Guide.html, DeltaV_Study_Guide.pdf, WHERE_WE_ARE.txt.
+- Local reference scratchpads/folders: explain_further.txt (all items up through
+  line 41 answered!), PW_Neutralization/, additionalPDFs/, and 30001.png.
 
 ================================================================================
-3. WHERE WE ARE GOING NEXT (ROADMAP — NON-BATCH PLANT MASTERY)
+3. WHERE WE ARE GOING NEXT (ROADMAP — STRICTLY INSIDE 'pd')
 ================================================================================
 [NEXT] Optional 3WT-0001-NEUT Workstation Follow-Up (4 remaining drill-downs):
        Next time you're at the DeltaV engineering station, grab shots inside:
@@ -179,12 +209,12 @@ HOW THIS WORKSPACE OPERATES (SYNCED ACROSS MACHINES)
        -> We can plug those exact expressions straight into Ch. 11, Visual
           Explorer Module 6, and Expression Forge!
 
-[PHASE 5] Advanced Non-Batch Continuous & Plant Control Topics (Pick Next!):
-       - Split-Range Control Deep-Dive (SPLT / CHAR characterizer + pH titration
-         deadband & 50% track mechanics — building directly off 3WT-0001-AIC002!)
-       - Feedforward (FF_VAL) & Ratio Control (RATIO block) + Lead-Lag (LLAG)
-       - Redundant Sensor Voting & Averaging (ISEL 2oo3 MID vs. AI02AVG 2-probe)
-       - Alarm Configuration, Shelving, First-Out & Suppression in Control Studio
-       - Real-Plant Cold-Read Drills: bring photos of any other plant CM/EM
+[PHASE 5] Next Control Studio Logic Labs (Ask First / Pick Next Inside 'pd'!):
+       - Feedforward (FF_VAL) & Ratio Control (RATIO) + Lead-Lag (LLAG) / CHAR
+         Signal Characterizer (e.g., nonlinear pH titration curves)
+       - Interactive ISEL 2oo3 Redundant Sensor Voting Lab (MAX/MIN/MID/AVG +
+         Bad-sensor auto-skip vs. AI02AVG 2-probe averaging)
+       - Interactive BFI First-Out Interlock & DC STATE_MASKS Lab
+       - Real-Plant Cold-Read Drills: bring photos of any other plant EM/CM
          (pump skid, heat exchanger, CIP, boiler, header) to dissect & add!
 ================================================================================
