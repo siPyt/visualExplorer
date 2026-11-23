@@ -584,8 +584,8 @@
   <tbody>
     <tr>
       <td><strong>Pattern 1: Command, State &amp; Step Flow</strong></td>
-      <td><strong>YES (The ONLY one!)</strong></td>
-      <td>Walks sequentially through time: <code>S0_IDLE → S10_CHARGE_OPEN → S20_TRIM_CLOSE → S30_AGITATE</code>.</td>
+      <td><strong>YES (In Command EMs!)</strong></td>
+      <td>In a Command-Driven EM (<code>EM_TANK_CHARGE</code>), walks sequentially through time (<code>S0_IDLE → S10 → S20 → S30</code>); in a State-Driven EM (<code>EM_XFER_HDR</code>), uses an <code>Items × States</code> table.</td>
     </tr>
     <tr>
       <td><strong>Pattern 2: Permissives &amp; Interlocks</strong></td>
@@ -1145,7 +1145,7 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
       <li><strong>Trace It Like a Pro Across Pattern 1 → Pattern 4:</strong>
         <ul>
           <li>On Tab <strong>1 (SFC)</strong>, look below <code>S20_TRIM_CLOSE</code>: transition <code>T30_SHUT_OK</code> reads <code>False</code> waiting on <code>VALVE_SHUT_OK</code>.</li>
-          <li>Click Tab <strong>4. CM Command &amp; Feedback</strong>: look at Strip A (EM wrote <code>'vlvnc-sp:CLOSE'</code> to <code>CM_FEED_XV/CAS_SP.CV</code>, and inside the <code>DC1</code> cutaway <code>FAIL_ACTIVE = 1</code>!) versus Strip B (<code>CM_FEED_XV/PV.CV</code> reads <code>OPEN</code>!).</li>
+          <li>Click Tab <strong>4. CM Command &amp; Feedback</strong>: look at Strip A (EM wrote <code>'vlvnc-sp:CLOSE'</code> to <code>CM_FEED_XV/CAS_SP.CV</code>; inside the dashed <strong>X-Ray into Separate Module <code>CM_FEED_XV</code></strong> box—shown on Tab 4 as a cutaway into the child CM, which is why <code>DC1</code> is <em>not</em> on Tab 5's <code>EM_TANK_CHARGE</code> sheet—<code>DC1/FAIL_ACTIVE = 1</code>!) versus Strip B (<code>CM_FEED_XV/PV.CV</code> reads <code>OPEN</code>!).</li>
           <li>Click <code>CND4 (#1)</code> (blocking <code>VALVE_SHUT_OK</code>) and <code>CND5 (#2)</code> (firing <code>VALVE_MISMATCH_ALM</code> after its 10-second <code>TIME_DURATION</code> confirm delay).</li>
         </ul>
       </li>

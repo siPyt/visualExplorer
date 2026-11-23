@@ -904,6 +904,11 @@ function diagnoseDeltaVSyntax(raw, expectedKind) {
     return { ok: false, msg: "Engineering Trap: Checking MODE.TARGET only checks what was requested! Check MODE.ACTUAL to prove the block is truly in CAS." };
   }
 
+  // Warn specifically on '.ST = GOOD' instead of '>= GOOD' (CONFIG p81)
+  if (expectedKind === "cond" && /\.st'\s*=\s*good\b/i.test(s)) {
+    return { ok: false, msg: "Verified Status Trap (CONFIG p. 81): '= GOOD' only matches GoodNonCascade (128..191) and misses GoodCascade (192..255)! Always write '>= GOOD'." };
+  }
+
   return { ok: true, msg: "0 error(s), 0 warning(s) — Valid DeltaV Structured Text syntax." };
 }
 
@@ -1183,9 +1188,9 @@ function evalSandboxExpression(rawExpr) {
       return { label: c, ok: Boolean(val), detail: `${val}` };
     }
     let [, lhsRaw, op, rhsRaw] = m;
-    // Support A - B or A + B on lhs
+    // Support A - B or A + B on lhs ONLY outside single-quoted tag names (so 'LI4-1' doesn't split!)
     let lhsVal;
-    const mathMatch = lhsRaw.match(/^(.*?)\s*([+-])\s*(.+)$/);
+    const mathMatch = lhsRaw.trim().match(/^('[^']*'|\S+)\s*([+-])\s*('[^']*'|\S+)$/);
     if (mathMatch) {
       const a = Number(resolveToken(mathMatch[1]));
       const b = Number(resolveToken(mathMatch[3]));

@@ -632,7 +632,7 @@
     </div>
     <a class="btn-util" href="ex.html" target="_blank" style="text-decoration:none; background:#b45309; border-color:#f59e0b; color:#fff;" title="Open Expression Forge — Interactive DeltaV Expression &amp; Parameter Trainer">⚡ Expression Forge</a>
     <a class="btn-util" href="DeltaV_Study_Guide.html" target="_blank" style="text-decoration:none; background:#0369a1; border-color:#38bdf8;" title="Open the full 7-Chapter Textbook &amp; Workshops in a clean large-text browser tab">📘 Study Guide</a>
-    <a class="btn-util" href="DeltaV_Study_Guide.pdf" target="_blank" style="text-decoration:none;" title="Open the print-ready 18-page PDF in your browser">📄 PDF</a>
+    <a class="btn-util" href="DeltaV_Study_Guide.pdf" target="_blank" style="text-decoration:none;" title="Open the print-ready PDF textbook &amp; workshop manual in your browser">📄 PDF</a>
     <button class="btn-util" id="btnVocab">Session Vocab</button>
   </div>
 </header>
@@ -1390,7 +1390,7 @@ function renderPattern1(vp, d) {
     "stroke-width": state.selectedId === "GOLDEN_TARE" ? 3 : 1.8
   }));
   tareBox.appendChild(el("rect", { x: subX + 1, y: 316, width: subW - 2, height: 28, rx: 6, fill: state.emState === "HELD" ? "#fde68a" : "#e0f2fe" }));
-  tareBox.appendChild(el("text", { x: subX + 12, y: 334, "font-size": 11.5, "font-weight": 800, fill: "#0f172a" }, "HOLD / RESTART & GOLDEN TARE WATCH"));
+  tareBox.appendChild(el("text", { x: subX + 12, y: 334, "font-size": 11.5, "font-weight": 800, fill: "#0f172a" }, "PHASE HOLD / RESTART & GOLDEN TARE WATCH"));
 
   const rows = [
     ["START_WT.CV (Tare):", `${state.startWt.toFixed(1)} kg ${state.tareLocked ? "[LOCKED]" : "[READY]"}`],
@@ -1398,7 +1398,7 @@ function renderPattern1(vp, d) {
     ["DELIVERED_WT (Net):", `${d.deliveredWt.toFixed(1)} kg`],
     ["TARGET_WT.CV:", `${d.targetWt.toFixed(1)} kg`],
     ["REMAINING_WT.CV:", `${d.remainingWt.toFixed(1)} kg (Lead: ${state.precloseLead} kg)`],
-    ["CM_FEED_XV CAS_IN_D:", d.feedCmdText]
+    ["CM_FEED_XV/CAS_SP.CV:", d.feedCmdText]
   ];
   rows.forEach(([k, v], i) => {
     tareBox.appendChild(el("text", { x: subX + 14, y: 368 + i * 24, "font-size": 11, fill: "#475569", "font-weight": 600 }, k));
@@ -1522,25 +1522,34 @@ function renderPattern3(vp, d) {
 }
 
 function renderPattern4(vp, d) {
-  drawSectionStrip(vp, 30, 25, 860, 162, "STRIP A: HOW EMs COMMAND CMs — MODULE-LEVEL CAS_SP WIRED TO DC1/CAS_IN_D (7016 p37–40)", "#1e3a8a");
-  drawFlag(vp, { id: "FLAG_STEP_SRC_XV", x: 48, y: 65, w: 232, side: "left", label: "EM SFC / ACT1 Expression", sub: `Writes 'vlvnc-sp:${d.feedCmdText}'`, liveText: d.feedCmdText, status: d.feedCmdOpen ? "ok" : "normal" });
-  drawFlag(vp, { id: "FLAG_STEP_SRC_MTR", x: 48, y: 126, w: 232, side: "left", label: "Step S30_AGITATE [N] Action", sub: `Writes 'mtr2-sp:${d.agitCmdText}'`, liveText: d.agitCmdText, status: d.agitCmdRun ? "ok" : "normal" });
+  drawSectionStrip(vp, 30, 25, 860, 168, "STRIP A: HOW EMs COMMAND CMs — EM WRITES MODULE-LEVEL CAS_SP; INSIDE CHILD CM, CAS_SP WIRES TO DC1/CAS_IN_D", "#1e3a8a");
+  drawFlag(vp, { id: "FLAG_STEP_SRC_XV", x: 46, y: 68, w: 222, side: "left", label: "EM SFC / ACT1 Expression", sub: `Writes 'vlvnc-sp:${d.feedCmdText}'`, liveText: d.feedCmdText, status: d.feedCmdOpen ? "ok" : "normal" });
+  drawFlag(vp, { id: "FLAG_STEP_SRC_MTR", x: 46, y: 132, w: 222, side: "left", label: "Step S30_AGITATE [N] Action", sub: `Writes 'mtr2-sp:${d.agitCmdText}'`, liveText: d.agitCmdText, status: d.agitCmdRun ? "ok" : "normal" });
 
-  drawFlag(vp, { id: "FLAG_OUT_XV_CMD", x: 342, y: 65, w: 215, side: "right", label: "CM_FEED_XV/CAS_SP.CV", sub: "Module Param → DC1/CAS_IN_D", liveText: d.feedCmdText, status: d.feedCmdOpen ? "ok" : (state.valveMode !== "CAS" ? "warn" : "normal") });
-  drawFlag(vp, { id: "FLAG_OUT_MTR_CMD", x: 342, y: 126, w: 215, side: "right", label: "CM_AGIT_MTR/CAS_SP.CV", sub: "Module Param → DC1/CAS_IN_D", liveText: d.agitCmdText, status: d.agitCmdRun ? "ok" : "normal" });
+  drawFlag(vp, { id: "FLAG_OUT_XV_CMD", x: 326, y: 68, w: 214, side: "right", label: "CM_FEED_XV/CAS_SP.CV", sub: "EM Boundary → Child CM Input", liveText: d.feedCmdText, status: d.feedCmdOpen ? "ok" : (state.valveMode !== "CAS" ? "warn" : "normal") });
+  drawFlag(vp, { id: "FLAG_OUT_MTR_CMD", x: 326, y: 132, w: 214, side: "right", label: "CM_AGIT_MTR/CAS_SP.CV", sub: "EM Boundary → Child CM Input", liveText: d.agitCmdText, status: d.agitCmdRun ? "ok" : "normal" });
+
+  // Explicit X-Ray Cutaway Frame showing DC1 lives in SEPARATE Control Module CM_FEED_XV (not on Tab 5 EM sheet!)
+  vp.appendChild(el("rect", {
+    x: 582, y: 48, width: 296, height: 138, rx: 5,
+    fill: "rgba(241,245,249,0.9)", stroke: "#0284c7", "stroke-width": 1.6, "stroke-dasharray": "6,3"
+  }));
+  vp.appendChild(el("rect", { x: 583, y: 49, width: 294, height: 18, rx: 4, fill: "#e0f2fe" }));
+  vp.appendChild(el("text", { x: 730, y: 61, "text-anchor": "middle", "font-size": 8.9, "font-weight": 800, fill: "#0369a1" },
+    "X-RAY: SEPARATE MODULE CM_FEED_XV (Not on EM Tab 5)"));
 
   drawFbdBlock(vp, {
-    id: "DC1_CUTAWAY", x: 618, y: 58, w: 250, h: 116, cls: "DC (inside CM_FEED_XV)", name: "DC1", execNum: 1,
-    inputs: [{ name: "CAS_IN_D", dy: 42 }],
-    outputs: [{ name: "OUT_D", dy: 42 }, { name: "PV_D", dy: 76 }],
+    id: "DC1_CUTAWAY", x: 614, y: 80, w: 248, h: 98, cls: "DC", name: "DC1 (inside CM_FEED_XV)", execNum: 1,
+    inputs: [{ name: "CAS_IN_D", dy: 38 }],
+    outputs: [{ name: "OUT_D", dy: 38 }, { name: "PV_D", dy: 68 }],
     bodyLines: [`MODE: ${state.valveMode} (CAS/AUTO)`, `FAIL_ACTIVE: ${d.valveMismatch ? "1" : "0"}`],
     status: d.valveMismatch ? "bad" : (state.valveMode === "CAS" ? "ok" : "warn"),
     liveBadge: `PV=${d.valvePvText}`
   });
 
-  drawWire(vp, [[280, 82], [342, 82]], { ref: true, label: "expr :=", labelPos: [311, 70] });
-  drawWire(vp, [[280, 143], [342, 143]], { ref: true });
-  drawWire(vp, [[557, 82], [588, 82], [588, 100], [618, 100]], { active: d.feedCmdOpen, fault: d.valveMismatch, label: state.online ? d.feedCmdText : "CAS_IN_D", labelPos: [588, 70] });
+  drawWire(vp, [[268, 85], [326, 85]], { ref: true, label: "expr :=", labelPos: [297, 73] });
+  drawWire(vp, [[268, 149], [326, 149]], { ref: true });
+  drawWire(vp, [[540, 85], [576, 85], [576, 118], [614, 118]], { active: d.feedCmdOpen, fault: d.valveMismatch, label: state.online ? d.feedCmdText : "CAS_IN_D", labelPos: [576, 74] });
 
   drawSectionStrip(vp, 30, 205, 860, 315, "STRIP B: INBOUND READBACK (PV / PV_D) & TIME_DURATION MISMATCH WATCH (FBR p413, p422)", "#0f766e");
   drawFlag(vp, { id: "FLAG_IN_PV_D", x: 55, y: 262, w: 245, side: "left", label: "CM_FEED_XV/PV.CV (DC1/PV_D)", sub: "Expr Ref ('vlvnc-pv:CLOSED')", liveText: d.valvePvText, status: d.valveMismatch ? "bad" : (d.valveShutOk ? "ok" : "normal") });
@@ -2259,7 +2268,7 @@ function renderHeaderTab4Combo(vp, h) {
 
   // Mode Readback Callout Box (MODE.TARGET vs MODE.ACTUAL in State Table!)
   drawFlag(vp, { id: "FLAG_FEED_MODE_TGT", x: 556, y: 342, w: 320, h: 32, side: "right", label: "CM_HDR_XV102/MODE.TARGET (Item 2 Write)", sub: "", liveText: "CAS", status: "ok" });
-  drawFlag(vp, { id: "FLAG_XV102_PV", x: 920, y: 342, w: 340, h: 32, side: "left", label: "CM_HDR_XV102/MODE.ACTUAL (Item 2 Readback)", sub: "", liveText: state.xv102Mode, status: state.xv102Mode === "CAS" ? "ok" : "bad" });
+  drawFlag(vp, { id: "FLAG_XV102_MODE", x: 920, y: 342, w: 340, h: 32, side: "left", label: "CM_HDR_XV102/MODE.ACTUAL (Item 2 Readback)", sub: "", liveText: state.xv102Mode, status: state.xv102Mode === "CAS" ? "ok" : "bad" });
 
   // #5 CALC_PV_STATE -> #6 CND_ALIGN_ALM (A_PV & Timeout)
   drawFlag(vp, { id: "FLAG_T3_PMP", x: 556, y: 500, w: 185, h: 30, side: "left", label: "CM_XFER_PMP/PV.CV", sub: "", liveText: h.pmpPv, status: h.pmpMatch ? "ok" : "warn" });
@@ -2529,12 +2538,52 @@ function getInspectorInfo(id, d, h) {
       live: [["MODE.TARGET", "CAS", "v-good"], ["DC1 MODE.ACTUAL", state.valveMode, state.valveMode === "CAS" ? "v-good" : "v-bad"]]
     },
     DC1_CUTAWAY: {
-      type: "INSIDE CM_FEED_XV — DEVICE CONTROL BLOCK (FBR p417–436)",
-      title: "CM_FEED_XV / DC1",
-      role: "Inside CM_FEED_XV, module-level parameter CAS_SP is wired to DC1/CAS_IN_D, and DC1/PV_D is wired out to module-level PV (7016 p37–40). DC1 also has its OWN built-in travel confirm timers (CFM_ACT1_TIME, CFM_PASS_TIME, TRAVEL_TIMER) that automatically set DC1/FAIL_ACTIVE = True if DC_STATE fails to confirm in time (FBR p422)!",
+      type: "X-RAY INTO CHILD CM — CM_FEED_XV / DC1 (FBR p417–436)",
+      title: "CM_FEED_XV / DC1 (Separate Module Window)",
+      role: "DC1 does NOT live inside EM_TANK_CHARGE (which is why DC1 is not on Tab 5)! DC1 lives inside child Control Module CM_FEED_XV, where module parameter CAS_SP wires into DC1/CAS_IN_D and DC1/PV_D wires out to PV (7016 p37–40). DC1 also has its own built-in confirm timers (CFM_ACT1_TIME, CFM_PASS_TIME, TRAVEL_TIMER) that set DC1/FAIL_ACTIVE = True on travel timeout (FBR p422).",
       paths: [["DC1/CAS_IN_D", "Wired from CM_FEED_XV/CAS_SP"], ["DC1/PV_D", "Confirmed state from field limit switches (FV_D)"], ["DC1/FAIL_ACTIVE", "Built-in DC confirm failure alarm (CFM_PASS_TIME / CFM_ACT1_TIME)"]],
-      expr: `(* Standard CM wiring — 7016 p40 *)\nCAS_SP  -->  DC1/CAS_IN_D\nDC1/PV_D --> PV`,
+      expr: `(* Inside separate Control Module CM_FEED_XV — 7016 p40 *)\nCAS_SP  -->  DC1/CAS_IN_D\nDC1/PV_D --> PV`,
       live: [["DC1 Mode", state.valveMode, state.valveMode === "CAS" ? "v-good" : "v-warn"], ["PV_D", d.valvePvText, d.valveMismatch ? "v-bad" : "v-good"], ["FAIL_ACTIVE", d.valveMismatch ? "True (Failed Confirm)" : "False", d.valveMismatch ? "v-bad" : "v-good"]]
+    },
+    FLAG_OUT_XV_CMD: {
+      type: "EXTERNAL CM PARAMETER — CAS_SP (7016 p37–40)",
+      title: "CM_FEED_XV/CAS_SP.CV",
+      role: "Module-level Cascade Setpoint parameter on CM_FEED_XV (Named Set 'vlvnc-sp'). EM_TANK_CHARGE writes 'vlvnc-sp:OPEN' or 'vlvnc-sp:CLOSE' here; inside CM_FEED_XV, CAS_SP is wired straight to DC1/CAS_IN_D!",
+      paths: [["//CM_FEED_XV/CAS_SP.CV", "Module input wired internally to DC1/CAS_IN_D"]],
+      expr: `'//CM_FEED_XV/CAS_SP.CV' := 'vlvnc-sp:${d.feedCmdText}';`,
+      live: [["CAS_SP.CV", d.feedCmdText, d.feedCmdOpen ? "v-good" : "v-info"], ["DC1 Mode", state.valveMode, state.valveMode === "CAS" ? "v-good" : "v-bad"]]
+    },
+    FLAG_IN_PV_D: {
+      type: "EXTERNAL CM READBACK — PV (7016 p39)",
+      title: "CM_FEED_XV/PV.CV (from DC1/PV_D)",
+      role: "Module-level discrete PV readback on CM_FEED_XV (Named Set 'vlvnc-pv'), wired internally from DC1/PV_D (confirmed physical limit switches).",
+      paths: [["//CM_FEED_XV/PV.CV", "Confirmed physical valve state ('vlvnc-pv:OPEN' / 'vlvnc-pv:CLOSED')"]],
+      expr: `'//CM_FEED_XV/PV.CV' = 'vlvnc-pv:CLOSED'`,
+      live: [["PV.CV", d.valvePvText, d.valveMismatch ? "v-bad" : "v-good"]]
+    },
+    FLAG_SCALE_ST_P2A: {
+      type: "SIGNAL STATUS (.ST) — THE >= GOOD RULE (CONFIG p81, PDS p3)",
+      title: "CM_TANK_WT/AI1/OUT.ST",
+      role: "Carries signal quality alongside OUT.CV: Bad (<= 63, Red ✕), Uncertain (64..127, Blue ?), GoodNonCascade (128..191 = GOOD), and GoodCascade (192..255). Always test '>= GOOD' so GoodCascade signals pass!",
+      paths: [["//CM_TANK_WT/AI1/OUT.ST", "Signal status tag riding beside AI1/OUT.CV"]],
+      expr: `'//CM_TANK_WT/AI1/OUT.ST' >= GOOD`,
+      live: [["OUT.ST", state.scaleSt, state.scaleSt === "BAD" ? "v-bad" : "v-good"], ["OUT.CV", `${state.currentWt.toFixed(1)} kg`, "v-info"]]
+    },
+    FLAG_SCALE_ST_P2B: {
+      type: "SIGNAL STATUS (.ST) — ACTIVE BAD TRIP (CONFIG p81)",
+      title: "CM_TANK_WT/AI1/OUT.ST (<= BAD)",
+      role: "Watched every Scan by CND2: if the scale transmitter fails or AI1 goes Out of Service (OS), OUT.ST drops <= BAD (Red ✕) and trips ACT1 immediately.",
+      paths: [["//CM_TANK_WT/AI1/OUT.ST", "<= BAD (0..63) triggers CND2 -> ACT1"]],
+      expr: `'//CM_TANK_WT/AI1/OUT.ST' <= BAD`,
+      live: [["OUT.ST", state.scaleSt, state.scaleSt === "BAD" ? "v-bad" : "v-good"]]
+    },
+    FLAG_XV102_MODE: {
+      type: "STATE TABLE ITEM 2 READBACK — MODE.ACTUAL (7016 p140, FBR p427)",
+      title: "CM_HDR_XV102/MODE.ACTUAL",
+      role: "Readback parameter path for row XV102_MODE in EM_XFER_HDR's Items × States table. Discrete DC blocks support only AUTO (operator) and CAS (cascade) target modes: if an operator leaves XV102 in AUTO, this readback fails ('AUTO != Cascade/') and keeps A_PV at Idle!",
+      paths: [["CM_HDR_XV102/MODE.TARGET", "Write path ('= Cascade/')"], ["CM_HDR_XV102/MODE.ACTUAL", "Readback path (CAS vs AUTO)"]],
+      expr: `(* State Table Row XV102_MODE *)\nWrite: CM_HDR_XV102/MODE.TARGET = Cascade/\nReadback: CM_HDR_XV102/MODE.ACTUAL`,
+      live: [["MODE.ACTUAL", state.xv102Mode, state.xv102Mode === "CAS" ? "v-good" : "v-bad"], ["EM A_PV", h.aPv, h.stateAligned ? "v-good" : "v-bad"]]
     },
     CND4: {
       type: "PATTERN 4 — FBD CONDITION BLOCK (#1)",
