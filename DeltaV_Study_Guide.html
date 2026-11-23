@@ -1296,81 +1296,78 @@
 <span class="str">'//CM_FEED_XV/CAS_SP.CV'</span> <span class="kw">:=</span> <span class="str">'vlvnc-sp:OPEN'</span>;</div>
 
 <!-- WORKSHOP 3 -->
-<div class="workshop">
-  <div class="workshop-head">
+<div class="workshop" style="margin-top:8px;">
+  <div class="workshop-head" style="padding:6px 12px;">
     <span class="ws-title">Workshop 3: Breaking the Cascade Chain (DC1 AUTO vs. CAS &amp; Bad Status ✕)</span>
     <span class="ws-badge">Hands-On Lab • 4 Min</span>
   </div>
-  <div class="workshop-body">
-    <div class="workshop-setup">
+  <div class="workshop-body" style="padding:8px 12px; font-size:9.3pt; line-height:1.34;">
+    <div class="workshop-setup" style="margin-bottom:6px; padding:5px 8px;">
       <strong>Setup:</strong> In <strong>Visual Explorer</strong>, select <code>EM_TANK_CHARGE</code>, click <strong>On-Line</strong>, and click <strong>Reset</strong> (confirming <code>Phase / EM = IDLE</code>).
     </div>
-    <ol>
-      <li><strong>Simulate an Operator Taking Control of the Feed Valve (<code>DC1 = AUTO</code>):</strong> On the Simulation Bar under <code>CM_FEED_XV</code>, change <code>MODE: CAS</code> to <strong>MODE: AUTO (operator)</strong>. <em>(Remember: discrete <code>DC</code> blocks use <code>AUTO</code>—not <code>MAN</code>—for operator faceplate control!)</em></li>
-      <li><strong>Check Pattern 3 vs. Pattern 2 (TARGET vs. ACTUAL — How Real Control Studio Shows It!):</strong>
-        <ul>
+    <ol style="margin:0 0 6px; padding-left:18px;">
+      <li style="margin-bottom:3px;"><strong>Simulate an Operator Taking Control of the Feed Valve (<code>DC1 = AUTO</code>):</strong> On the Simulation Bar under <code>CM_FEED_XV</code>, change <code>MODE: CAS</code> to <strong>MODE: AUTO (operator)</strong>. <em>(Remember: discrete <code>DC</code> blocks use <code>AUTO</code>—not <code>MAN</code>—for operator faceplate control!)</em></li>
+      <li style="margin-bottom:3px;"><strong>Check Pattern 3 vs. Pattern 2 (TARGET vs. ACTUAL — How Real Control Studio Shows It!):</strong>
+        <ul style="margin:2px 0;">
           <li>Click Tab <strong>3. Mode &amp; Setpoint Routing</strong> and look at Strip B at the bottom: <code>ACT2 (#4)</code> has <code>IN_D</code> only (no output pins) and writes <code>CAS</code> to <code>CM_FEED_XV/DC1/MODE.TARGET</code>, which <em>still</em> reads <code>CAS</code>! Right below it, the separate readback parameter <code>CM_FEED_XV/DC1/MODE.ACTUAL</code> reads <code>AUTO</code>.</li>
           <li>Now click Tab <strong>2. Permissives &amp; Interlocks</strong> and click <strong><code>CND1</code></strong> (notice <code>CND1</code> has <code>OUT_D</code> only and zero input pins): look at the <strong>Control Studio On-Line <code>Expression [CND1]</code></strong> window at the top of the right-hand Inspector. Just like real Control Studio On-Line (<em>CONFIG</em> p. 371), it displays a red <code>✗</code> next to <code>'//CM_FEED_XV/DC1/MODE.ACTUAL' = CAS</code> and shows <code>//CM_FEED_XV/DC1/MODE.ACTUAL | AUTO | GoodNonCascade</code> in the watch table!</li>
           <li>Notice there is <em>no</em> red <code>✕</code> inside the wire value box for <code>AUTO</code> because status is still Good—now click <strong>.ST: GOOD</strong> under <code>CM_TANK_WT</code> so it flips to <strong>.ST: BAD</strong> to see the authentic DeltaV red <strong><code>✕</code></strong> appear inside the live value boxes on Tab 2 and Tab 3 (<code>CALC1/OUT1</code> via <code>'OUT1.ST' := 'IN2.ST'</code>)! Click <strong>.ST: BAD</strong> back to <strong>.ST: GOOD</strong>.</li>
         </ul>
       </li>
-      <li><strong>Try Starting the Charge Anyway:</strong> Click Tab <strong>1. Step Flow (SFC)</strong>—notice the calculator icon next to <code>T10_START_OK</code> reading <code>False</code>—and click <strong>Next Step ▶</strong>. Read the yellow diagnostic banner explaining why <code>T10_START_OK</code> refused to advance.</li>
-      <li><strong>Restore Cascade &amp; Expression Forge Check:</strong> Switch <code>CM_FEED_XV</code> back to <strong>MODE: CAS</strong> and watch <code>CND1</code>'s Expression tree flip to all green <code>✓</code> and <code>T10_START_OK</code> flip to <code>True</code>. Then open <strong>Expression Forge</strong> (<code>run ex</code>) and complete <strong>Decode 9</strong> (unwired <code>MODE</code> Internal Reference) and <strong>Bug Hunt 7</strong> (State-Driven module-level <code>MODE.TARGET</code>)!</li>
+      <li style="margin-bottom:3px;"><strong>Try Starting the Charge Anyway:</strong> Click Tab <strong>1. Step Flow (SFC)</strong>—notice the calculator icon next to <code>T10_START_OK</code> reading <code>False</code>—and click <strong>Next Step ▶</strong>. Read the yellow diagnostic banner explaining why <code>T10_START_OK</code> refused to advance.</li>
+      <li style="margin-bottom:0;"><strong>Restore Cascade &amp; Expression Forge Check:</strong> Switch <code>CM_FEED_XV</code> back to <strong>MODE: CAS</strong> and watch <code>CND1</code>'s Expression tree flip to all green <code>✓</code> and <code>T10_START_OK</code> flip to <code>True</code>. Then open <strong>Expression Forge</strong> (<code>run ex</code>) and complete <strong>Decode 9</strong> (unwired <code>MODE</code> Internal Reference) and <strong>Bug Hunt 7</strong> (State-Driven module-level <code>MODE.TARGET</code>)!</li>
     </ol>
-    <div class="workshop-takeaway">
+    <div class="workshop-takeaway" style="margin-top:6px; padding:6px 10px;">
       <strong>What You Are Supposed to Learn From This Workshop:</strong> On a real DeltaV plant floor, (1) a discrete <code>DC1</code> valve/motor uses <strong><code>AUTO</code></strong> (not <code>MAN</code>) for operator control, and (2) always test <code>MODE.ACTUAL = CAS</code> (never <code>MODE.TARGET</code>) and <code>.ST &gt;= GOOD</code>!
     </div>
   </div>
 </div>
 
 <!-- WORKSHOP 3B -->
-<div class="workshop">
-  <div class="workshop-head">
+<div class="workshop page-break" style="margin-top:0;">
+  <div class="workshop-head" style="padding:7px 12px;">
     <span class="ws-title">Workshop 3B: The 2:00 AM Unattended Auto-Restart Trap (CM_PMP_101 — SP Track, Reset Required &amp; All 4 DC Safety Pins)</span>
     <span class="ws-badge">Hands-On Lab • 6 Min</span>
   </div>
-  <div class="workshop-body">
-    <div class="workshop-setup">
-      <strong>Setup:</strong> Launch <strong>Visual Explorer</strong> (<code>run</code>), click the <strong>top-left module dropdown</strong>, and select <strong><code>CM_PMP_101 (DC Safety: LO, SP Track &amp; Reset — Ch. 3.2)</code></strong>. Confirm you are on Tab <strong><code>1. Live DC1 Safety &amp; Auto-Restart Lab</code></strong> and click <strong><code>Reset Lab</code></strong> at the far right of the <strong>dark Simulation Bar</strong>. <em>(Starts <code>RUNNING</code> in <code>AUTO</code> with <code>SP Track: OFF</code> &amp; <code>Reset Req: OFF</code>. Tip: Every safety pin and Truth Matrix row can be clicked EITHER in the dark top Simulation Bar OR directly on the white diagram!)</em>
+  <div class="workshop-body" style="padding:8px 12px; font-size:9.0pt; line-height:1.30;">
+    <div class="workshop-setup" style="margin-bottom:6px; padding:5px 8px;">
+      <strong>Setup:</strong> Launch <strong>Visual Explorer</strong> (<code>run</code>), click the <strong>top-left module dropdown</strong>, and select <strong><code>CM_PMP_101 (DC Safety: LO, SP Track &amp; Reset — Ch. 3.2)</code></strong>. Confirm you are on Tab <strong><code>1. Live DC1 Safety &amp; Auto-Restart Lab</code></strong> and click <strong><code>Reset Lab</code></strong> at the far right of the <strong>dark Simulation Bar</strong>. <em>(Starts <code>RUNNING</code> in <code>AUTO</code> with <code>SP Track: OFF</code> &amp; <code>Reset Req: OFF</code>. Tip: Click any pin or Truth Matrix row EITHER in the dark top bar OR directly on the white diagram!)</em>
     </div>
-    <ol>
-      <li><strong>Trigger the Unattended Auto-Restart Trap (<code>SP Track = OFF</code>, <code>Reset Req = OFF</code>):</strong>
-        <ul>
-          <li>In the dark top Simulation Bar (or right on the diagram), click <strong><code>INTERLOCK_D: 1</code></strong> so it drops to <strong><code>0 (TRIP!)</code></strong>. <em>Observe:</em> <code>PMP-101</code> stops, DeltaV Live shows a <strong>purple <code>LO</code> border</strong>, <code>DC_STATE = Shutdown/Interlocked</code>—but look inside <code>DC1</code>: <strong><code>SP_D</code> stayed stuck at <code>START ⚠️</code>!</strong></li>
-          <li>Now pretend 5 minutes passed and the interlock clears: click <strong><code>INTERLOCK_D: 0 (TRIP!)</code></strong> back to <strong><code>1</code></strong>. <em>Observe:</em> The instant <code>INTERLOCK_D</code> returns to <code>1</code>, <code>PMP-101</code> fires the red <strong><code>⚡ UNATTENDED AUTO-RESTART!!</code></strong> alert and restarts with zero delay!</li>
+    <ol style="margin:0 0 6px; padding-left:18px;">
+      <li style="margin-bottom:3px;"><strong>Trigger the Unattended Auto-Restart Trap (<code>SP Track = OFF</code>, <code>Reset Req = OFF</code>):</strong>
+        <ul style="margin:2px 0;">
+          <li>In the dark top Simulation Bar (or right on the diagram), click <strong><code>INTERLOCK_D: 1</code></strong> → <strong><code>0 (TRIP!)</code></strong>. <em>Observe:</em> <code>PMP-101</code> stops, DeltaV Live shows a <strong>purple <code>LO</code> border</strong>, <code>DC_STATE = Shutdown/Interlocked</code>—but inside <code>DC1</code>, <strong><code>SP_D</code> stayed stuck at <code>START ⚠️</code>!</strong></li>
+          <li>Now pretend 5 minutes passed and the interlock clears: click <strong><code>INTERLOCK_D: 0 (TRIP!)</code></strong> → <strong><code>1</code></strong>. <em>Observe:</em> <code>PMP-101</code> immediately fires the red <strong><code>⚡ UNATTENDED AUTO-RESTART!!</code></strong> alert and restarts with zero delay!</li>
         </ul>
       </li>
-      <li><strong>Test the Subtle Half-Fix (<code>SP Track = OFF</code>, <code>Reset Req = ON</code> — <em>FBR</em> p. 421):</strong>
-        <ul>
-          <li>In the dark top Simulation Bar, click <strong><code>Reset Req: OFF</code> → <code>ON ✓</code></strong> (or click <strong>Row 2</strong> of the bottom Truth Matrix). Watch Row 2 highlight blue.</li>
-          <li>Trip <strong><code>INTERLOCK_D</code> (<code>1 → 0</code>)</strong>, then clear it <strong>(<code>0 → 1</code>)</strong>. <em>Observe:</em> Unlike Step 1, the pump stays safely OFF in <strong><code>DC_STATE = Locked (LO)</code></strong>!</li>
-          <li>Now click <strong><code>⚡ Pulse RESET_D (UNLOCK!)</code></strong> (in the top bar or the <code>RESET_D</code> box on the diagram). <em>Observe the FBR p. 421 catch:</em> Because <code>SP Track</code> was OFF, <code>SP_D</code> was still <code>START</code>—so unlocking immediately resumes the pump!</li>
+      <li style="margin-bottom:3px;"><strong>Test the Subtle Half-Fix (<code>SP Track = OFF</code>, <code>Reset Req = ON</code> — <em>FBR</em> p. 421):</strong>
+        <ul style="margin:2px 0;">
+          <li>In the top bar, click <strong><code>Reset Req: OFF</code> → <code>ON ✓</code></strong> (or click <strong>Row 2</strong> of the bottom Truth Matrix). Trip <strong><code>INTERLOCK_D</code> (<code>1 → 0</code>)</strong>, then clear it <strong>(<code>0 → 1</code>)</strong>. <em>Observe:</em> Pump stays safely OFF in <strong><code>DC_STATE = Locked (LO)</code></strong>!</li>
+          <li>Now click <strong><code>⚡ Pulse RESET_D (UNLOCK!)</code></strong> (top bar or diagram <code>RESET_D</code> box). <em>FBR p. 421 catch:</em> Because <code>SP Track</code> was OFF, <code>SP_D</code> stayed <code>START</code>—so unlocking immediately resumes the pump!</li>
         </ul>
       </li>
-      <li><strong>Test <code>SP Track</code> Alone (<code>SP Track = ON</code>, <code>Reset Req = OFF</code>):</strong>
-        <ul>
-          <li>Click <strong><code>SP Track: OFF</code> → <code>ON ✓</code></strong> and <strong><code>Reset Req: ON ✓</code> → <code>OFF</code></strong> (or click <strong>Row 3</strong> of the bottom Truth Matrix). Ensure the pump is <code>RUNNING</code> (click <strong><code>START</code></strong> next to <code>SP_D:</code> in the top bar if stopped).</li>
-          <li>Trip <strong><code>INTERLOCK_D</code> (<code>1 → 0</code>)</strong>—watch <code>SP Track</code> immediately overwrite <code>SP_D</code> from <code>START</code> to <strong><code>STOP</code></strong> in the Sequence Log! Clear <strong><code>INTERLOCK_D</code> (<code>0 → 1</code>)</strong>: <code>DC1</code> returns to <code>AUTO</code> and stays <strong>safely STOPPED</strong> (no <code>RESET_D</code> needed).</li>
+      <li style="margin-bottom:3px;"><strong>Test <code>SP Track</code> Alone (<code>SP Track = ON</code>, <code>Reset Req = OFF</code>):</strong>
+        <ul style="margin:2px 0;">
+          <li>Click <strong><code>SP Track: OFF</code> → <code>ON ✓</code></strong> and <strong><code>Reset Req: ON ✓</code> → <code>OFF</code></strong> (or click <strong>Row 3</strong> of the Truth Matrix). Ensure pump is <code>RUNNING</code> (click <strong><code>START</code></strong> in top bar if stopped).</li>
+          <li>Trip <strong><code>INTERLOCK_D</code> (<code>1 → 0</code>)</strong>—watch <code>SP Track</code> overwrite <code>SP_D</code> to <strong><code>STOP</code></strong> in the Sequence Log! Clear <strong><code>INTERLOCK_D</code> (<code>0 → 1</code>)</strong>: returns to <code>AUTO</code> and stays <strong>safely STOPPED</strong> (no <code>RESET_D</code> needed).</li>
         </ul>
       </li>
-      <li><strong>Test Gold-Standard Motor Safety (<code>SP Track = ON</code> AND <code>Reset Req = ON</code>):</strong>
-        <ul>
-          <li>Click <strong><code>Reset Req: OFF</code> → <code>ON ✓</code></strong> (or click <strong>Row 4</strong> of the bottom Truth Matrix — highlighted green!) and click <strong><code>START</code></strong> in the top bar so the pump runs.</li>
-          <li>Trip <strong><code>SHUTDOWN_D: 0</code> → <code>1 (E-STOP!)</code></strong> (Active-High = <code>1</code>, NOT optional!), then clear <strong><code>SHUTDOWN_D</code> (<code>1 → 0</code>)</strong>. <em>Observe:</em> <code>SP_D</code> is now <code>STOP</code> <strong>AND</strong> <code>DC_STATE = Locked (LO)</code>!</li>
-          <li>Click <strong><code>⚡ Pulse RESET_D (UNLOCK!)</code></strong>. <em>Observe:</em> Unlocks cleanly to <code>AUTO / Confirmed Passive</code> and <strong>STAYS STOPPED</strong> until you deliberately click <strong><code>START</code></strong>!</li>
+      <li style="margin-bottom:3px;"><strong>Test Gold-Standard Motor Safety (<code>SP Track = ON</code> AND <code>Reset Req = ON</code>):</strong>
+        <ul style="margin:2px 0;">
+          <li>Click <strong><code>Reset Req: OFF</code> → <code>ON ✓</code></strong> (or click <strong>Row 4</strong> of the Truth Matrix — green!) and click <strong><code>START</code></strong> in the top bar so the pump runs.</li>
+          <li>Trip <strong><code>SHUTDOWN_D: 0</code> → <code>1 (E-STOP!)</code></strong> (Active-High = <code>1</code>, NOT optional!), then clear <strong>(<code>1 → 0</code>)</strong>: <code>SP_D</code> is <code>STOP</code> <strong>AND</strong> <code>DC_STATE = Locked (LO)</code>! Click <strong><code>⚡ Pulse RESET_D</code></strong>: unlocks cleanly to <code>AUTO / Confirmed Passive</code> and <strong>STAYS STOPPED</strong> until you click <strong><code>START</code></strong>!</li>
         </ul>
       </li>
-      <li><strong>Prove Start-Only <code>PERMISSIVE_D</code> &amp; Local <code>TRK_IN_D</code>:</strong>
-        <ul>
-          <li>Click <strong><code>START</code></strong> in the top bar so <code>PMP-101</code> is running. Now click <strong><code>PERMISSIVE_D: 1</code> → <code>0 (NO PERMIT)</code></strong>. <em>Observe:</em> <strong>ZERO trip while already running</strong> (<em>FBR</em> p. 419)!</li>
-          <li>Click <strong><code>STOP</code></strong> in the top bar—the instant the pump enters Passive, <code>PERMISSIVE_D = 0</code> forces <strong><code>LO</code></strong> (and clicking <strong><code>START</code></strong> stays blocked!) until you click <strong><code>PERMISSIVE_D</code></strong> back to <strong><code>1</code></strong>.</li>
-          <li>Toggle <strong><code>TRK_IN_D: 0</code> → <code>1 (LOCAL)</code></strong> to watch Field Hand tracking force <code>LO</code>, then clear it back to <strong><code>0</code></strong>.</li>
+      <li style="margin-bottom:3px;"><strong>Prove Start-Only <code>PERMISSIVE_D</code> &amp; Local <code>TRK_IN_D</code>:</strong>
+        <ul style="margin:2px 0;">
+          <li>Click <strong><code>START</code></strong> so <code>PMP-101</code> runs, then click <strong><code>PERMISSIVE_D: 1</code> → <code>0 (NO PERMIT)</code></strong>: <strong>ZERO trip while already running</strong> (<em>FBR</em> p. 419)!</li>
+          <li>Click <strong><code>STOP</code></strong>—entering Passive with <code>PERMISSIVE_D = 0</code> forces <strong><code>LO</code></strong> (blocking <strong><code>START</code></strong>!) until you restore <strong><code>PERMISSIVE_D: 1</code></strong>. Toggle <strong><code>TRK_IN_D: 0 → 1 → 0</code></strong> to see Field Hand tracking force <code>LO</code>.</li>
         </ul>
       </li>
-      <li><strong>Trace the Live State Machine (Tab 2):</strong> Click Tab <strong><code>2. 4-Pin Polarity &amp; State Machine X-Ray</code></strong>. First click <strong><code>START</code></strong> in the top bar so <strong><code>Confirmed Active 1</code></strong> lights up green! Now click <strong><code>INTERLOCK_D: 1 → 0</code></strong> (moves to red <strong><code>Shutdown/Interlocked</code></strong>), click <strong><code>INTERLOCK_D: 0 → 1</code></strong> (moves to purple <strong><code>Locked (LO)</code></strong>), and click <strong><code>⚡ Pulse RESET_D</code></strong> (moves to blue <strong><code>Confirmed Passive</code></strong>!). Read the exact Control Studio click path at the bottom: <em>Diagram View → click <code>DC1</code> → Parameter View → double-click <code>DEVICE_OPTS</code></em>!</li>
+      <li style="margin-bottom:0;"><strong>Trace the Live State Machine (Tab 2):</strong> Click Tab <strong><code>2. 4-Pin Polarity &amp; State Machine X-Ray</code></strong>. Click <strong><code>START</code></strong> (lights green <strong><code>Confirmed Active 1</code></strong>) → click <strong><code>INTERLOCK_D: 1 → 0</code></strong> (red <strong><code>Shutdown/Interlocked</code></strong>) → click <strong><code>INTERLOCK_D: 0 → 1</code></strong> (purple <strong><code>Locked (LO)</code></strong>) → click <strong><code>⚡ Pulse RESET_D</code></strong> (blue <strong><code>Confirmed Passive</code></strong>!). Note the exact Control Studio path: <em>Diagram View → click <code>DC1</code> → Parameter View → double-click <code>DEVICE_OPTS</code></em>!</li>
     </ol>
-    <div class="workshop-takeaway">
-      <strong>What You Are Supposed to Learn From This Workshop:</strong> On any real plant motor <code>DC</code> block, check <strong>BOTH <code>SP Track</code> AND <code>Reset Required</code></strong> inside <code>DEVICE_OPTS</code>—leaving both unchecked causes instant unattended auto-restarts, and checking only <code>Reset Required</code> still auto-resumes on <code>RESET_D</code>! Also memorize the polarity split: <strong>Active-High (<code>1</code>)</strong> = <code>SHUTDOWN_D</code> &amp; <code>TRK_IN_D</code> vs. <strong>Fail-Safe Low (<code>0</code>)</strong> = <code>INTERLOCK_D</code> (continuous) &amp; <code>PERMISSIVE_D</code> (Passive start-only).
+    <div class="workshop-takeaway" style="margin-top:6px; padding:6px 10px;">
+      <strong>What You Are Supposed to Learn From This Workshop:</strong> On any real plant motor <code>DC</code> block, check <strong>BOTH <code>SP Track</code> AND <code>Reset Required</code></strong> inside <code>DEVICE_OPTS</code>—leaving both unchecked causes instant unattended auto-restarts, and checking only <code>Reset Required</code> still auto-resumes on <code>RESET_D</code>! Memorize the polarity split: <strong>Active-High (<code>1</code>)</strong> = <code>SHUTDOWN_D</code> &amp; <code>TRK_IN_D</code> vs. <strong>Fail-Safe Low (<code>0</code>)</strong> = <code>INTERLOCK_D</code> (continuous) &amp; <code>PERMISSIVE_D</code> (Passive start-only).
     </div>
   </div>
 </div>
