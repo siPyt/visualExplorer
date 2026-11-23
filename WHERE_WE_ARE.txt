@@ -103,6 +103,11 @@ HOW THIS WORKSPACE OPERATES (SYNCED ACROSS MACHINES)
          FIC_101 Tab 3 'Unwired Boxes X-Ray' with Raw/X-Ray toggle & Bottom
          Parameter View table + 5 native types: Internal Ref, External/Dynamic Ref,
          Module Vars/TPs, Parameter Shortcut '$', Higher-Level Output Boxes).
+       - Deepened DC Block LO vs. OOS & 4 Safety Pins (Section 3.2 + Fig. 3.1 in
+         PDF, verified FBR pp. 419–427): Active-High (SHUTDOWN_D=1 always active,
+         TRK_IN_D=1 copies FV_D) vs. Fail-Safe Low (INTERLOCK_D=0 trips running,
+         PERMISSIVE_D=0 start-only in Passive), 5th cause DC_STATE=Locked, and the
+         SP Track / Reset Required unattended auto-restart warning (FBR p. 433).
        - Expanded Expression Forge (ex.html) from 17 -> 27 self-tested drills +
          3 live 3WT-0001 tags & 2 live presets in Mode 4 On-Line Tree.
 
