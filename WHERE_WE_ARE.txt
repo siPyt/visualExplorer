@@ -1,8 +1,8 @@
 ================================================================================
 DELTAV CONTROL STUDIO MASTERY — PROGRESS & MISSION TRACKER
-Last Updated: 2026-11-23 (Edition v3.3 — 14 Additional DeltaV Manuals Audited;
-                          DeltaV Live HMI Diagnostics, Alarms, Download Safety &
-                          Modern I/O [Ch. 12] + Verified Facts Sections 8–12)
+Last Updated: 2026-11-23 (Edition v3.4 — Module 7 Split-Range pH 3WT-0001-AIC002
+                          [SPLTR1 + Live V-Curve + 50% vs 0% Track + Slope-Aware
+                          BKCAL] + Study Guide Ch. 11.6 & Workshop 13)
 Repository:   https://github.com/siPyt/visualExplorer.git
 Site Note:    Non-Batch plant focus (steer clear of Batch Unit Phases unless asked)
 ================================================================================
@@ -17,7 +17,7 @@ sharpest engineer in the room — with zero made-up syntax and zero guessing.
 HOW THIS WORKSPACE OPERATES (SYNCED ACROSS MACHINES)
 ----------------------------------------------------
 1. Visual Explorer (index.html — launch anytime by typing 'run' in terminal):
-   Interactive visual Control Studio trainer with 6 selectable modules (20 views):
+   Interactive visual Control Studio trainer with 7 selectable modules (22 views):
    - EM_TANK_CHARGE (Command-Driven EM — 5 tabs incl. Full Control Studio Combo)
    - EM_XFER_HDR (State-Driven EM — 4 tabs incl. Items x States & Combo)
    - EM_2STAGE_VLV (State-Driven 2-Stage Valve, 7016 — 3 tabs, '(not written)' cells)
@@ -26,6 +26,8 @@ HOW THIS WORKSPACE OPERATES (SYNCED ACROSS MACHINES)
    - CASCADE_201 (Master-Slave Cascade + CTLSL Low-Select Override — 2 tabs)
    - 3WT-0001-NEUT (Real Plant PCSD EM _EM_CMD32_140 — 3 tabs: P&ID & SFC,
      Zero-Wire Main FBD w/ Hide Stubs & 4-Pattern Lens, MONITOR & TMR1 Watchdogs)
+   - 3WT-0001-AIC002 (Split-Range pH CM — 2 tabs: AI02AVG->PID1->SPLTR1->2xAO +
+     Live V-Curve Deadband [49-51%] & Tab 2: 50% vs 0% Track & Slope-Aware BKCAL)
    Wire Color Convention (Locked):
    - Solid/Bold Black (tinted Green/Red On-Line study aid) = real FBD wires
    - Gray dotted/dashed (#475569) = REAL DeltaV feedback wires (next-scan delay)
@@ -42,12 +44,12 @@ HOW THIS WORKSPACE OPERATES (SYNCED ACROSS MACHINES)
      split-range 0% acid dump, A_COMMAND=Undefined vs A_PV, State-Driven Int Ref)
    - Mode 4: On-Line Tree (6 live presets + 9 live sliders/selectors incl. 3WT-0001)
 
-3. Textbook & Lab Manual (DeltaV_Study_Guide.html -> DeltaV_Study_Guide.pdf, v3.3):
+3. Textbook & Lab Manual (DeltaV_Study_Guide.html -> DeltaV_Study_Guide.pdf, v3.4):
    Full in-depth native Control Studio logic handbook: Chapters 1–12 (incl.
-   Section 2.5 Unwired Parameter Boxes, Section 3.2 DC LO vs. OOS, and tight
-   1-page Ch. 12: HMI-to-Logic Triage, Partial Downloads & Module Traps),
-   7-Block FBR Field Guide, 12 Visual Explorer Workshops, and 21-Question
-   Mastery Exam. Rebuild anytime via: .\build-pdf.ps1
+   Section 2.5 Unwired Parameter Boxes, Section 3.2 DC LO vs. OOS, Section 11.6
+   Split-Range SPLTR & 50% Tracking, and tight Ch. 12: HMI-to-Logic Triage &
+   Download Traps), 7-Block FBR Field Guide, 13 Visual Explorer Workshops, and
+   21-Question Mastery Exam. Rebuild anytime via: .\build-pdf.ps1
 
 4. Verified Truth Source (DELTAV_VERIFIED_FACTS.md + pdf reference/ + additionalPDFs/):
    Every Control Studio & DeltaV Live fact cited by exact PDF + page number
@@ -138,12 +140,27 @@ HOW THIS WORKSPACE OPERATES (SYNCED ACROSS MACHINES)
            None" trap, 2-checkbox Cold Restart NVM rule, Dynamic Ref <=3 CPU rule,
            and ALARMS[1] expression fields (CUALM/LAALM/NALM/OPSUP/F_MACK).
 
+[DONE] v3.4 — Module 7: Split-Range pH Control (3WT-0001-AIC002 — SPLTR1 + 50% Track)
+       - Verified official Emerson Splitter (SPLTR) block directly in FBR pp. 302–313
+         (exact pins CAS_IN / BKCAL_IN_1 / BKCAL_IN_2 -> OUT_1 / OUT_2 / BKCAL_OUT;
+         modes OOS/IMan/Auto/Cas ONLY — no MAN!; IN_ARRAY/OUT_ARRAY + LOCKVAL;
+         slope-aware BKCAL_OUT limit propagation & BAL_TIME >= 2x RESET).
+       - Added Module 7 (3WT-0001-AIC002, 2 tabs) to Visual Explorer (index.html):
+         * Tab 1: Live AI02AVG -> PID1 -> SPLTR1 -> AO_ACID & AO_BASE with all 3
+           real gray dotted BKCAL wires + live V-Curve crosshair & 49–51% deadband.
+         * Tab 2: Live side-by-side 50% Safe Track vs 0% Acid Dump comparison +
+           live-highlighted official Emerson FBR p. 307 SPLTR BKCAL limit matrix.
+       - Added Section 11.6 + Workshop 13 + Field Guide FB-7 SPLTR + Appendix A
+         SPLTR entry to Study Guide & rebuilt PDF; added SPLTR to DELTAV_VERIFIED_FACTS.md.
+
 ================================================================================
 2. WHERE WE ARE RIGHT NOW
 ================================================================================
-- Edition v3.3 is built, self-tested (JS syntax, DOM IDs, all 27 Expression Forge
+- Prime Directive file (pd) governs all future additions (Control Studio EM/CM/EPH
+  logic focus, native DeltaV only, Official vs. Mental Model labeling, exact clicks).
+- Edition v3.4 is built, self-tested (JS syntax, DOM IDs, all 27 Expression Forge
   drills, 0 stray backticks in HTML, PDF regenerated cleanly), and visually
-  QA-verified across all 6 Visual Explorer modules (20 interactive views).
+  QA-verified across all 7 Visual Explorer modules (22 interactive views).
 - Local workspace changes ready to commit/push (index.html, ex.html,
   DeltaV_Study_Guide.html, DeltaV_Study_Guide.pdf, DELTAV_VERIFIED_FACTS.md,
   WHERE_WE_ARE.txt, README.md).

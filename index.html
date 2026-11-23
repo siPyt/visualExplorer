@@ -637,6 +637,7 @@
         <option value="pid">FIC_101 (Analog PID + BKCAL &amp; Track — Ch. 8 &amp; 10)</option>
         <option value="cascade">CASCADE_201 (Cascade + CTLSL Override — Ch. 9)</option>
         <option value="pwneut">3WT-0001-NEUT (Real Plant PCSD EM — Ch. 11)</option>
+        <option value="splt">3WT-0001-AIC002 (Split-Range pH — SPLTR + 50% Track)</option>
       </select>
       <span id="algPill" class="alg-pill">Algorithm: Command-Driven</span>
     </div>
@@ -867,6 +868,49 @@
   </div>
 </div>
 
+<!-- Sim Bar 7: 3WT-0001-AIC002 (Split-Range pH CM — AI -> PID -> SPLTR -> 2x AO + 50% Track) -->
+<div class="sim-bar hidden" id="simBarSplt">
+  <div class="sim-group">
+    <span class="sim-label">Region</span>
+    <span id="spltStatusPill" class="state-pill state-ALIGNED">NEUTRAL DEADBAND</span>
+    <span class="sim-label" style="margin-left:4px;">PID1:</span>
+    <select id="selSpltPidMode" class="sim-select">
+      <option value="AUTO">AUTO</option>
+      <option value="MAN">MAN (50%)</option>
+    </select>
+    <span class="sim-label" style="margin-left:4px;">SPLTR1:</span>
+    <select id="selSpltMode" class="sim-select">
+      <option value="CAS">CAS</option>
+      <option value="AUTO">AUTO (Test 50%)</option>
+    </select>
+    <span class="sim-label" style="margin-left:4px;">AO_ACID:</span>
+    <select id="selSpltAcidMode" class="sim-select">
+      <option value="CAS">CAS</option>
+      <option value="MAN">MAN</option>
+      <option value="OOS">OOS (Bad)</option>
+    </select>
+    <span class="sim-label" style="margin-left:4px;">AO_BASE:</span>
+    <select id="selSpltBaseMode" class="sim-select">
+      <option value="CAS">CAS</option>
+      <option value="MAN">MAN</option>
+      <option value="OOS">OOS (Bad)</option>
+    </select>
+  </div>
+
+  <div class="sim-group">
+    <span class="sim-label">pH PV (SP=8.0)</span>
+    <input type="range" id="spltPhSlider" class="wt-slider" min="3.5" max="12.0" step="0.1" value="8.0" />
+    <span id="spltPhLbl" style="font-family:monospace;font-weight:700;">8.0 pH</span>
+  </div>
+
+  <div class="sim-group">
+    <button class="sim-btn" id="btnSpltTrk" title="Trip PID1/TRK_IN_D = 1 (forces PID1 to LO mode @ TRK_VAL — EM OFF/HOLD!)">TRK_IN_D: Clear</button>
+    <button class="sim-btn ok" id="btnSpltTrkVal" title="Compare Real Plant TRK_VAL=50% (Safe Neutral Deadband) vs Rookie Mistake 0% (100% Acid Dump!)">TRK_VAL: 50% (Safe)</button>
+    <button class="sim-btn" id="btnSpltAiSt" title="Simulate Bad status on AI02AVG redundant pH probes (sheds PID1 to MAN)">pH .ST: GOOD</button>
+    <button class="sim-btn" id="btnSpltReset">Reset Loop</button>
+  </div>
+</div>
+
 <div class="diag-banner" id="diagBanner">
   <span id="diagText">Ready. Click any block, state, SFC step, transition, or margin flag to inspect its DeltaV path and plain-English role.</span>
   <div class="diag-metrics" id="diagMetrics"></div>
@@ -1002,6 +1046,10 @@ const MODULE_TABS = {
     { id: "pw1", label: "1. P&ID & Command SFC", kind: "SFC + P&ID", defaultSel: "PW_SFC_ACTIVE" },
     { id: "pw2", label: "2. Main FBD (Zero-Wire PCSD)", kind: "FBD", defaultSel: "PW_CND_BOX" },
     { id: "pw3", label: "3. MONITOR & TMR1 Watchdogs", kind: "COMPOSITE", defaultSel: "PW_MONITOR_SM" }
+  ],
+  splt: [
+    { id: "sp1", label: "1. Split-Range FBD (SPLTR1)", kind: "FBD", defaultSel: "SP_SPLTR_BLK" },
+    { id: "sp2", label: "2. 50% Track & BKCAL X-Ray", kind: "X-RAY", defaultSel: "SP_TRK_COMPARE" }
   ]
 };
 
@@ -1105,7 +1153,17 @@ const state = {
   pwPh: 7.8,                      // 3WT-0001-AI001 / AI02AVG (pH) — TP003=8.0 SP, 6.0-10.0 window
   pwHideStubs: false,             // Toggle hiding unused PCSD stubs (DEV20-32, CMD6-10, TMR2-8)
   pwSentinelTrip: false,          // Simulates P02/XV05 device failure -> SENTINEL_MONITOR -> HOLD
-  pwTmr1Trip: false               // Simulates TMR1 90-min Excessive Treatment Timeout -> HM_01 -> HOLD
+  pwTmr1Trip: false,              // Simulates TMR1 90-min Excessive Treatment Timeout -> HM_01 -> HOLD
+
+  // Module 7: 3WT-0001-AIC002 (Split-Range pH — AI02AVG -> PID1 -> SPLTR1 -> AO_ACID / AO_BASE)
+  spPidTarget: "AUTO",            // AUTO | MAN
+  spSpltTarget: "CAS",            // CAS | AUTO (FBR p303: Man is NOT permitted on SPLTR!)
+  spAcidMode: "CAS",              // CAS | MAN | OOS
+  spBaseMode: "CAS",              // CAS | MAN | OOS
+  spPh: 8.0,                      // pH PV (SP = 8.0 pH = TP003)
+  spTrkTrip: false,               // TRK_IN_D = True -> PID1 LO mode
+  spTrkSafe: true,                // true = 50% Safe Deadband (real plant!) | false = 0% Rookie Acid Dump!
+  spAiSt: "GOOD"                  // GOOD | BAD (AI02AVG probe failure)
 };
 
 function computeChargeDerived() {
@@ -1473,6 +1531,112 @@ function computePwNeutDerived() {
     sentinelFault, holdMonFault, anyFailure, activeCmd, holdReq,
     p01Run, xv01Pos, p02Run, xv05Pos, aicMode, baseDose, acidDose,
     failMsg, pill, pillCls
+  };
+}
+
+function computeSpltDerived() {
+  // Official Emerson FBR pp. 302-313 (Splitter SPLTR) + Real Plant 3WT-0001-AIC002 (TP003=8.0 pH, TP008=2% deadband)
+  const spPh = 8.0; // TP003 Neutralization pH Setpoint (limits 6.0 - 10.0)
+  const aiBad = state.spAiSt === "BAD";
+  const acidNotCas = state.spAcidMode !== "CAS";
+  const baseNotCas = state.spBaseMode !== "CAS";
+  const bothNotCas = acidNotCas && baseNotCas;
+  const spltInAuto = state.spSpltTarget === "AUTO";
+
+  // Actual SPLTR1 mode (FBR p. 306: OOS, IMan, Auto, Cas — NO Man!)
+  let spltActual = state.spSpltTarget;
+  if (!spltInAuto && bothNotCas) spltActual = "IMan";
+
+  // Actual PID1 mode (FBR pp. 234-241)
+  let pidActual = state.spPidTarget;
+  if (state.spTrkTrip) pidActual = "LO";
+  else if (spltInAuto || bothNotCas) pidActual = "IMan";
+  else if (aiBad && pidActual === "AUTO") pidActual = "MAN";
+
+  // Reverse-acting PID1 output (0-100%): pH < 8 (acidic) -> OUT > 50% (Base); pH > 8 (alkaline) -> OUT < 50% (Acid)
+  const phErr = +(spPh - state.spPh).toFixed(2);
+  let pidOut = 50.0;
+  if (state.spTrkTrip) {
+    pidOut = state.spTrkSafe ? 50.0 : 0.0;
+  } else if (pidActual === "AUTO") {
+    pidOut = Math.max(0, Math.min(100, +(50 + phErr * 14).toFixed(1)));
+  } else {
+    // MAN or IMan holds safe neutral 50% unless tracking
+    pidOut = 50.0;
+  }
+
+  // SPLTR1 working SP (CAS_IN from PID1 when in CAS; 50% test SP when isolated in AUTO)
+  const spltSp = spltInAuto ? 50.0 : pidOut;
+
+  // FBR p. 311 Split-Range Deadband Characterization:
+  // IN_ARRAY = [0, 49, 51, 100], OUT_ARRAY = [100, 0, 0, 100], LOCKVAL = Hold (2% deadband = TP008!)
+  const calcAcid = spltSp <= 49 ? +((49 - spltSp) * 100 / 49).toFixed(1) : 0.0;
+  const calcBase = spltSp >= 51 ? +((spltSp - 51) * 100 / 49).toFixed(1) : 0.0;
+
+  // Downstream AO outputs & BKCAL_IN_1 / BKCAL_IN_2 (FBR pp. 306-307)
+  const acidOut = acidNotCas ? 0.0 : calcAcid;
+  const baseOut = baseNotCas ? 0.0 : calcBase;
+
+  const acidBkcalSt = state.spAcidMode === "OOS" ? "Bad:OOS" : (state.spAcidMode === "MAN" ? "NotInvited" : (acidOut <= 0 ? "GoodCas(LimLow)" : (acidOut >= 100 ? "GoodCas(LimHigh)" : "GoodCas")));
+  const baseBkcalSt = state.spBaseMode === "OOS" ? "Bad:OOS" : (state.spBaseMode === "MAN" ? "NotInvited" : (baseOut <= 0 ? "GoodCas(LimLow)" : (baseOut >= 100 ? "GoodCas(LimHigh)" : "GoodCas")));
+
+  // Exact FBR p. 307 SPLTR1 BKCAL_OUT limit & initialization logic!
+  let spltBkcalSt = "GoodCas";
+  if (spltInAuto || bothNotCas) {
+    spltBkcalSt = "NotInvited";
+  } else if (acidNotCas && !baseNotCas) {
+    // Acid (OUT_1, negative slope) unavailable; Base (OUT_2, positive slope) active:
+    // If Base is at 0% (low-limited) -> PID1 is LOW-LIMITED so it won't wind down into broken Acid region!
+    if (baseOut <= 0) spltBkcalSt = "GoodCas(LimLow)";
+    else if (baseOut >= 100) spltBkcalSt = "GoodCas(LimHigh)";
+  } else if (baseNotCas && !acidNotCas) {
+    // Base (OUT_2, positive slope) unavailable; Acid (OUT_1, negative slope) active:
+    // If Acid is at 0% (low-limited, NEGATIVE slope!) -> PID1 is HIGH-LIMITED so it won't wind up into broken Base region!
+    if (acidOut <= 0) spltBkcalSt = "GoodCas(LimHigh)";
+    else if (acidOut >= 100) spltBkcalSt = "GoodCas(LimLow)";
+  } else {
+    if (spltSp <= 0) spltBkcalSt = "GoodCas(LimLow)";
+    else if (spltSp >= 100) spltBkcalSt = "GoodCas(LimHigh)";
+  }
+
+  const acidDumpHazard = state.spTrkTrip && !state.spTrkSafe && !acidNotCas && !spltInAuto;
+  const inDeadband = spltSp >= 49 && spltSp <= 51;
+
+  let region = "NEUTRAL DEADBAND (49–51%)";
+  let pill = "NEUTRAL DEADBAND";
+  let pillCls = "state-ALIGNED";
+  if (acidDumpHazard) {
+    region = "DANGER: 100% ACID DUMP (TRK_VAL = 0%!)";
+    pill = "LO ACID DUMP!";
+    pillCls = "state-FAILED";
+  } else if (state.spTrkTrip && state.spTrkSafe) {
+    region = "LO SAFE TRACKING (50% → BOTH OFF!)";
+    pill = "LO SAFE (50%)";
+    pillCls = "state-HELD";
+  } else if (pidActual === "IMan") {
+    region = spltInAuto ? "SPLTR1 IN AUTO → PID1 IN IMan" : "BOTH AOs OUT OF CAS → IMan";
+    pill = "PID1 → IMan";
+    pillCls = "state-HELD";
+  } else if (aiBad) {
+    region = "BAD pH PROBES → PID1 SHED TO MAN";
+    pill = "BAD PV → MAN";
+    pillCls = "state-FAILED";
+  } else if (acidOut > 0) {
+    region = `ACID DOSING (${acidOut}% — pH High)`;
+    pill = `ACID: ${acidOut}%`;
+    pillCls = "state-HELD";
+  } else if (baseOut > 0) {
+    region = `BASE/CAUSTIC DOSING (${baseOut}% — pH Low)`;
+    pill = `BASE: ${baseOut}%`;
+    pillCls = "state-RUNNING";
+  }
+
+  return {
+    spPh, aiBad, acidNotCas, baseNotCas, bothNotCas, spltInAuto,
+    spltActual, pidActual, phErr, pidOut, spltSp,
+    calcAcid, calcBase, acidOut, baseOut,
+    acidBkcalSt, baseBkcalSt, spltBkcalSt,
+    acidDumpHazard, inDeadband, region, pill, pillCls
   };
 }
 
@@ -4117,9 +4281,254 @@ function renderPwTab3(vp, pw) {
 }
 
 // =========================================================================
+// MODULE 7: 3WT-0001-AIC002 (SPLIT-RANGE pH CM — AI -> PID -> SPLTR -> 2x AO)
+// =========================================================================
+function renderSpltTab1(vp, sp) {
+  drawSectionStrip(vp, 22, 14, 896, 330, "SPLIT-RANGE pH CM: 3WT-0001-AIC002 (AI02AVG → PID1 → SPLTR1 → AO_ACID & AO_BASE • FBR pp. 302–313)", "#1e3a8a");
+
+  // #1 AI02AVG (2 redundant pH probes)
+  drawFbdBlock(vp, {
+    id: "SP_AI_BLK", x: 34, y: 84, w: 130, h: 120, cls: "AI", name: "AI02AVG (pH)", execNum: 1,
+    inputs: [], outputs: [{ name: "OUT", dy: 78 }],
+    bodyLines: ["2-Probe pH Avg", `PV: ${state.spPh.toFixed(1)} pH`, sp.aiBad ? ".ST: BAD ✕" : ".ST: GOOD"],
+    status: sp.aiBad ? "bad" : "ok",
+    liveBadge: sp.aiBad ? "BAD✕" : `${state.spPh.toFixed(1)}pH`
+  });
+
+  // #2 PID1 (Reverse-Acting pH Controller with TRK_VAL = 50%)
+  drawFbdBlock(vp, {
+    id: "SP_PID_BLK", x: 196, y: 64, w: 184, h: 202, cls: "PID", name: "PID1 (AIC002)", execNum: 2,
+    inputs: [{ name: "IN", dy: 98 }, { name: "BKCAL_IN", dy: 148 }, { name: "TRK_IN_D", dy: 186 }],
+    outputs: [{ name: "OUT", dy: 114 }],
+    bodyLines: [
+      `TGT: ${state.spPidTarget} | ACT: ${sp.pidActual}`,
+      `SP: ${sp.spPh.toFixed(1)} | PV: ${state.spPh.toFixed(1)} pH`,
+      `OUT: ${sp.pidOut.toFixed(1)}% (Rev Act)`,
+      `TRK_VAL: ${state.spTrkSafe ? "50% Safe" : "0% BUG!"}`
+    ],
+    status: sp.acidDumpHazard ? "bad" : (sp.pidActual === "LO" || sp.pidActual === "IMan" || sp.aiBad ? "warn" : "ok"),
+    liveBadge: `${sp.pidOut.toFixed(0)}%`
+  });
+
+  // Unwired TRK_IN_D input flag feeding PID1/TRK_IN_D
+  drawFlag(vp, {
+    id: "SP_PID_BLK", x: 34, y: 236, w: 130, h: 28, side: "left",
+    label: "EM_OFF / HOLD", sub: "TRK_IN_D",
+    liveText: state.spTrkTrip ? "1 (LO)" : "0",
+    status: sp.acidDumpHazard ? "bad" : (state.spTrkTrip ? "warn" : "normal")
+  });
+  drawWire(vp, [[164, 250], [196, 250]], { active: state.spTrkTrip, fault: sp.acidDumpHazard });
+
+  // #3 SPLTR1 (Official Emerson Splitter Block — FBR p. 303 exact pins!)
+  drawFbdBlock(vp, {
+    id: "SP_SPLTR_BLK", x: 418, y: 64, w: 192, h: 202, cls: "SPLTR", name: "SPLTR1 (FBR p302)", execNum: 3,
+    inputs: [{ name: "CAS_IN", dy: 114 }, { name: "BKCAL_IN_1", dy: 146 }, { name: "BKCAL_IN_2", dy: 178 }],
+    outputs: [{ name: "OUT_1", dy: 96 }, { name: "OUT_2", dy: 138 }, { name: "BKCAL_OUT", dy: 178 }],
+    bodyLines: [
+      `MODE: ${sp.spltActual} (No MAN!)`,
+      `IN: [0, 49, 51, 100]`,
+      `Acid(OUT_1): ${sp.acidOut.toFixed(0)}%`,
+      `Base(OUT_2): ${sp.baseOut.toFixed(0)}%`
+    ],
+    status: sp.acidDumpHazard ? "bad" : (sp.spltActual === "IMan" || sp.spltInAuto ? "warn" : "ok"),
+    liveBadge: `${sp.spltSp.toFixed(0)}%`
+  });
+
+  // #4 AO_ACID (Lower Split 0..49% -> 100..0% Acid Dosing)
+  drawFbdBlock(vp, {
+    id: "SP_AO_ACID", x: 682, y: 40, w: 214, h: 118, cls: "AO", name: "AO_ACID (0–49%)", execNum: 4,
+    inputs: [{ name: "CAS_IN", dy: 76 }],
+    outputs: [{ name: "OUT", dy: 62 }, { name: "BKCAL_OUT", dy: 94 }],
+    bodyLines: [
+      `MODE: ${state.spAcidMode} | Acid: ${sp.acidOut.toFixed(1)}%`,
+      `BKCAL: ${sp.acidBkcalSt}`
+    ],
+    status: sp.acidDumpHazard ? "bad" : (state.spAcidMode === "OOS" ? "bad" : (state.spAcidMode === "MAN" ? "warn" : (sp.acidOut > 0 ? "warn" : "ok"))),
+    liveBadge: state.spAcidMode === "OOS" ? "OOS✕" : `${sp.acidOut.toFixed(0)}%`
+  });
+
+  // #5 AO_BASE (Upper Split 51..100% -> 0..100% Base/Caustic Dosing)
+  drawFbdBlock(vp, {
+    id: "SP_AO_BASE", x: 682, y: 172, w: 214, h: 118, cls: "AO", name: "AO_BASE (51–100%)", execNum: 5,
+    inputs: [{ name: "CAS_IN", dy: 76 }],
+    outputs: [{ name: "OUT", dy: 62 }, { name: "BKCAL_OUT", dy: 94 }],
+    bodyLines: [
+      `MODE: ${state.spBaseMode} | Base: ${sp.baseOut.toFixed(1)}%`,
+      `BKCAL: ${sp.baseBkcalSt}`
+    ],
+    status: state.spBaseMode === "OOS" ? "bad" : (state.spBaseMode === "MAN" ? "warn" : (sp.baseOut > 0 ? "ok" : "normal")),
+    liveBadge: state.spBaseMode === "OOS" ? "OOS✕" : `${sp.baseOut.toFixed(0)}%`
+  });
+
+  // Forward Solid Wires (#1 -> #2 -> #3 -> #4 & #5)
+  drawWire(vp, [[164, 162], [196, 162]], { active: !sp.aiBad, fault: sp.aiBad });
+  drawWire(vp, [[380, 178], [418, 178]], { active: !sp.spltInAuto && sp.spltActual !== "IMan", fault: sp.acidDumpHazard, label: `${sp.pidOut.toFixed(0)}%`, labelPos: [399, 162] });
+  drawWire(vp, [[610, 160], [646, 160], [646, 116], [682, 116]], { active: sp.acidOut > 0, fault: sp.acidDumpHazard, label: `${sp.acidOut.toFixed(0)}%`, labelPos: [646, 102] });
+  drawWire(vp, [[610, 202], [646, 202], [646, 248], [682, 248]], { active: sp.baseOut > 0, label: `${sp.baseOut.toFixed(0)}%`, labelPos: [646, 264] });
+
+  // REAL GRAY DOTTED FEEDBACK WIRES (BKCAL — next-scan delay, FBR pp. 303, 307!)
+  // #3 SPLTR1/BKCAL_OUT -> #2 PID1/BKCAL_IN
+  drawWire(vp, [[610, 242], [624, 242], [624, 282], [178, 282], [178, 212], [196, 212]], {
+    feedback: true,
+    label: `BKCAL #3→#2 (${sp.spltBkcalSt})`,
+    labelPos: [286, 282]
+  });
+  // #4 AO_ACID/BKCAL_OUT -> #3 SPLTR1/BKCAL_IN_1
+  drawWire(vp, [[896, 134], [910, 134], [910, 304], [396, 304], [396, 210], [418, 210]], {
+    feedback: true,
+    label: `BKCAL_IN_1 (#4→#3: ${sp.acidBkcalSt})`,
+    labelPos: [684, 304]
+  });
+  // #5 AO_BASE/BKCAL_OUT -> #3 SPLTR1/BKCAL_IN_2
+  drawWire(vp, [[896, 266], [904, 266], [904, 328], [404, 328], [404, 242], [418, 242]], {
+    feedback: true,
+    label: `BKCAL_IN_2 (#5→#3: ${sp.baseBkcalSt})`,
+    labelPos: [684, 328]
+  });
+
+  // =========================================================================
+  // BOTTOM HALF (y: 354..576): LIVE SPLIT-RANGE TRANSFER CURVE + LIVE READOUT
+  // =========================================================================
+  drawSectionStrip(vp, 22, 354, 896, 220, "LIVE SPLTR1 CHARACTERIZATION CURVE (IN_ARRAY [0, 49, 51, 100] • TP008 = 2% DEADBAND) — STUDY AID", "#6b21a8");
+
+  // Left: Interactive V-Curve Plot (x: 42..474, y: 382..560)
+  const gCurve = el("g", { class: "clickable" + (state.selectedId === "SP_CURVE" ? " selected" : ""), "data-id": "SP_CURVE" });
+  gCurve.appendChild(el("rect", { x: 40, y: 380, width: 438, height: 184, rx: 5, fill: "#ffffff", stroke: "#cbd5e1", "stroke-width": 1.3 }));
+
+  const gx0 = 84, gx1 = 456, gy0 = 532, gy1 = 400; // plot area: 372w x 132h
+  const xOf = u => gx0 + (u / 100) * (gx1 - gx0);
+  const yOf = pct => gy0 - (pct / 100) * (gy0 - gy1);
+
+  // Shaded 49-51% Safe Neutral Deadband (TP008 = 2%)
+  gCurve.appendChild(el("rect", { x: xOf(49) - 2, y: gy1, width: Math.max(10, xOf(51) - xOf(49) + 4), height: gy0 - gy1, fill: "#dcfce7", opacity: "0.9" }));
+  gCurve.appendChild(el("text", { x: xOf(50), y: gy1 + 13, "text-anchor": "middle", "font-size": 8.2, "font-weight": 800, fill: "#166534" }, "DEADBAND 49–51%"));
+  gCurve.appendChild(el("text", { x: xOf(50), y: gy1 + 24, "text-anchor": "middle", "font-size": 7.6, "font-weight": 700, fill: "#15803d" }, "BOTH = 0% (SAFE!)"));
+
+  // Axes & grid
+  gCurve.appendChild(el("line", { x1: gx0, y1: gy0, x2: gx1, y2: gy0, stroke: "#475569", "stroke-width": 1.4 }));
+  gCurve.appendChild(el("line", { x1: gx0, y1: gy1, x2: gx0, y2: gy0, stroke: "#475569", "stroke-width": 1.4 }));
+  [0, 50, 100].forEach(v => {
+    gCurve.appendChild(el("text", { x: gx0 - 6, y: yOf(v) + 3, "text-anchor": "end", "font-size": 8.4, fill: "#475569", "font-family": "ui-monospace, monospace" }, `${v}%`));
+  });
+  [0, 25, 49, 51, 75, 100].forEach(u => {
+    if (u === 49 || u === 51) return;
+    gCurve.appendChild(el("text", { x: xOf(u), y: gy0 + 13, "text-anchor": "middle", "font-size": 8.4, fill: "#475569", "font-family": "ui-monospace, monospace" }, `${u}%`));
+  });
+  gCurve.appendChild(el("text", { x: xOf(50), y: gy0 + 25, "text-anchor": "middle", "font-size": 8.6, "font-weight": 800, fill: "#1e293b" }, "SPLTR1 Input (PID1/OUT = 0..100%) →"));
+
+  // Acid slope (OUT_1: X11=0->100%, X12=49->0%, LOCKVAL=Hold 0% above 49%)
+  gCurve.appendChild(el("polyline", { points: `${xOf(0)},${yOf(100)} ${xOf(49)},${yOf(0)} ${xOf(100)},${yOf(0)}`, fill: "none", stroke: "#dc2626", "stroke-width": 2.4 }));
+  gCurve.appendChild(el("text", { x: xOf(18), y: yOf(72), "font-size": 8.6, "font-weight": 800, fill: "#b91c1c" }, "OUT_1: ACID"));
+
+  // Base slope (OUT_2: 0% below 51%, X21=51->0%, X22=100->100%)
+  gCurve.appendChild(el("polyline", { points: `${xOf(0)},${yOf(0)} ${xOf(51)},${yOf(0)} ${xOf(100)},${yOf(100)}`, fill: "none", stroke: "#2563eb", "stroke-width": 2.4 }));
+  gCurve.appendChild(el("text", { x: xOf(78), y: yOf(72), "text-anchor": "middle", "font-size": 8.6, "font-weight": 800, fill: "#1d4ed8" }, "OUT_2: BASE"));
+
+  // Live Vertical Operating Crosshair at sp.spltSp
+  const cx = xOf(sp.spltSp);
+  gCurve.appendChild(el("line", { x1: cx, y1: gy1, x2: cx, y2: gy0, stroke: "#9333ea", "stroke-width": 2, "stroke-dasharray": "4,3" }));
+  gCurve.appendChild(el("circle", { cx, cy: yOf(sp.acidOut), r: 5, fill: "#dc2626", stroke: "#fff", "stroke-width": 1.6 }));
+  gCurve.appendChild(el("circle", { cx, cy: yOf(sp.baseOut), r: 5, fill: "#2563eb", stroke: "#fff", "stroke-width": 1.6 }));
+  gCurve.appendChild(el("rect", { x: Math.min(gx1 - 68, Math.max(gx0, cx - 34)), y: gy1 - 16, width: 68, height: 15, rx: 3, fill: "#7e22ce" }));
+  gCurve.appendChild(el("text", { x: Math.min(gx1 - 34, Math.max(gx0 + 34, cx)), y: gy1 - 5.5, "text-anchor": "middle", "font-size": 8.2, "font-weight": 800, fill: "#ffffff", "font-family": "ui-monospace, monospace" }, `SP=${sp.spltSp.toFixed(0)}%`));
+  vp.appendChild(gCurve);
+
+  // Right: Live Engineering Diagnostics & Official vs. Plant Notes (x: 492..904, y: 380..564)
+  const gCard = el("g", { class: "clickable" + (state.selectedId === "SP_TRK_COMPARE" ? " selected" : ""), "data-id": "SP_TRK_COMPARE" });
+  gCard.appendChild(el("rect", { x: 492, y: 380, width: 412, height: 184, rx: 5, fill: sp.acidDumpHazard ? "#fef2f2" : "#ffffff", stroke: sp.acidDumpHazard ? "#dc2626" : "#64748b", "stroke-width": sp.acidDumpHazard ? 2 : 1.3 }));
+  gCard.appendChild(el("rect", { x: 493, y: 381, width: 410, height: 24, rx: 4, fill: sp.acidDumpHazard ? "#991b1b" : "#0f172a" }));
+  gCard.appendChild(el("text", { x: 504, y: 397, "font-size": 9.4, "font-weight": 800, fill: "#ffffff" }, `LIVE STATE: ${sp.region}`));
+
+  const lines = [
+    { c: "#1e293b", t: `1. Official DeltaV (FBR p303): SPLTR1 has NO MAN mode (OOS/IMan/Auto/Cas only).` },
+    { c: "#1e293b", t: `2. Deadband (FBR p311 / TP008=2%): 49–51% keeps BOTH Acid & Base at 0%.` },
+    { c: sp.acidDumpHazard ? "#b91c1c" : "#15803d", t: `3. Safe Track (3WT-0001-AIC002): TRK_VAL=50% → 0%/0% OFF (0% dumps 100% ACID!).` },
+    { c: "#4338ca", t: `4. One AO in MAN/OOS? SPLTR keeps the OTHER valve running & limits BKCAL_OUT!` },
+    { c: "#0f766e", t: `5. Try Tab 2 (50% Track & BKCAL X-Ray) or toggle TRK_IN_D + TRK_VAL above!` }
+  ];
+  lines.forEach((ln, i) => {
+    gCard.appendChild(el("text", { x: 504, y: 424 + i * 27, "font-size": 9.0, "font-weight": i === 2 ? 800 : 600, fill: ln.c }, ln.t));
+  });
+  vp.appendChild(gCard);
+}
+
+function renderSpltTab2(vp, sp) {
+  drawSectionStrip(vp, 22, 14, 896, 560, "50% TRACKING SAFETY VS. 0% ROOKIE BUG + OFFICIAL EMERSON SPLTR BKCAL LIMIT MATRIX (FBR pp. 306–307)", "#6b21a8");
+
+  // Top-Left Card: REAL PLANT SAFE DESIGN (TRK_VAL = 50%)
+  const gSafe = el("g", { class: "clickable" + (state.selectedId === "SP_TRK_COMPARE" ? " selected" : ""), "data-id": "SP_TRK_COMPARE" });
+  const safeActive = state.spTrkTrip && state.spTrkSafe;
+  gSafe.appendChild(el("rect", { x: 38, y: 44, width: 424, height: 186, rx: 6, fill: safeActive ? "#dcfce7" : "#f0fdf4", stroke: "#16a34a", "stroke-width": safeActive ? 2.6 : 1.6 }));
+  gSafe.appendChild(el("rect", { x: 39, y: 45, width: 422, height: 26, rx: 5, fill: "#166534" }));
+  gSafe.appendChild(el("text", { x: 52, y: 62, "font-size": 10.2, "font-weight": 800, fill: "#ffffff" }, "✓ REAL PLANT (3WT-0001-AIC002): TRK_VAL = 50.0%"));
+  const safeRows = [
+    "When 3WT-0001-NEUT goes OFF or HOLD → TRK_IN_D = 1",
+    "→ PID1 drops to LO (purple HMI border!) & OUT := 50.0%",
+    "→ SPLTR1 sees 50.0% (right inside 49–51% deadband!)",
+    "→ OUT_1 (Acid) = 0.0%   |   OUT_2 (Base) = 0.0%",
+    "RESULT: Both dosing pumps stay 100% SAFELY STOPPED!"
+  ];
+  safeRows.forEach((r, i) => {
+    gSafe.appendChild(el("text", { x: 52, y: 92 + i * 26, "font-size": 9.8, "font-weight": i === 4 ? 800 : 600, fill: i === 4 ? "#14532d" : "#1e293b", "font-family": i < 4 ? "ui-monospace, monospace" : "inherit" }, r));
+  });
+  vp.appendChild(gSafe);
+
+  // Top-Right Card: ROOKIE MISTAKE (TRK_VAL = 0%)
+  const gBad = el("g", { class: "clickable" + (state.selectedId === "SP_TRK_COMPARE" ? " selected" : ""), "data-id": "SP_TRK_COMPARE" });
+  const badActive = state.spTrkTrip && !state.spTrkSafe;
+  gBad.appendChild(el("rect", { x: 478, y: 44, width: 424, height: 186, rx: 6, fill: badActive ? "#fee2e2" : "#fef2f2", stroke: "#dc2626", "stroke-width": badActive ? 2.6 : 1.6 }));
+  gBad.appendChild(el("rect", { x: 479, y: 45, width: 422, height: 26, rx: 5, fill: "#991b1b" }));
+  gBad.appendChild(el("text", { x: 492, y: 62, "font-size": 10.2, "font-weight": 800, fill: "#ffffff" }, "✕ ROOKIE BUG (SINGLE-VALVE HABIT): TRK_VAL = 0.0%"));
+  const badRows = [
+    "Copy-pasting TRK_VAL := 0.0% from a single-valve PID...",
+    "→ PID1 drops to LO & drives OUT := 0.0% into SPLTR1",
+    "→ SPLTR1 sees X11 = 0.0% → maps to Y11 = 100.0%!",
+    "→ OUT_1 (Acid) = 100.0% FULL OPEN! | OUT_2 = 0.0%",
+    "RESULT: Safety trip DUMPS 100% ACID into the tank!"
+  ];
+  badRows.forEach((r, i) => {
+    gBad.appendChild(el("text", { x: 492, y: 92 + i * 26, "font-size": 9.8, "font-weight": i === 4 ? 800 : 600, fill: i === 4 ? "#991b1b" : "#1e293b", "font-family": i < 4 ? "ui-monospace, monospace" : "inherit" }, r));
+  });
+  vp.appendChild(gBad);
+
+  // Bottom Card: OFFICIAL EMERSON FBR p. 307 SPLTR BKCAL LIMIT MATRIX (Live-Highlighted!)
+  const gMat = el("g", { class: "clickable" + (state.selectedId === "SP_BKCAL_MATRIX" ? " selected" : ""), "data-id": "SP_BKCAL_MATRIX" });
+  gMat.appendChild(el("rect", { x: 38, y: 248, width: 864, height: 310, rx: 6, fill: "#ffffff", stroke: "#475569", "stroke-width": 1.5 }));
+  gMat.appendChild(el("rect", { x: 39, y: 249, width: 862, height: 28, rx: 5, fill: "#0f172a" }));
+  gMat.appendChild(el("text", { x: 54, y: 267, "font-size": 10.2, "font-weight": 800, fill: "#ffffff" }, "OFFICIAL EMERSON SPLTR BKCAL MATRIX (FBR pp. 306–307) — SWITCH AO_ACID / AO_BASE MODES ABOVE TO WATCH IT LIVE!"));
+
+  const cols = [52, 232, 398, 560];
+  const hdrs = ["Downstream AO States", "SPLTR1 Actual", "BKCAL_OUT → PID1", "What Happens to Control Loop"];
+  gMat.appendChild(el("rect", { x: 40, y: 277, width: 860, height: 24, fill: "#e2e8f0" }));
+  hdrs.forEach((h, i) => gMat.appendChild(el("text", { x: cols[i], y: 293, "font-size": 9.2, "font-weight": 800, fill: "#0f172a" }, h)));
+
+  const activeRow = sp.bothNotCas ? 3 : (sp.acidNotCas ? 1 : (sp.baseNotCas ? 2 : 0));
+  const mRows = [
+    ["AO_ACID: CAS | AO_BASE: CAS", "CAS", "GoodCas (Lim at 0/100%)", "Full 2-sided split-range pH control; 49–51% deadband."],
+    ["AO_ACID: MAN/OOS | BASE: CAS", "CAS (tracks Acid)", "LimLow when Base=0%", "Base still controls! LimLow stops PID1 winding into Acid."],
+    ["AO_ACID: CAS | BASE: MAN/OOS", "CAS (tracks Base)", "LimHigh when Acid=0%", "Acid still controls! Negative slope → LimHigh stops Base windup!"],
+    ["AO_ACID: MAN/OOS | BASE: MAN/OOS", "IMan", "NotInvited → PID1 IMan", "Both outputs unavailable → PID1 freezes bumplessly in IMan!"]
+  ];
+  mRows.forEach((r, idx) => {
+    const ry = 304 + idx * 46;
+    const isNow = idx === activeRow && !sp.spltInAuto;
+    gMat.appendChild(el("rect", { x: 44, y: ry, width: 852, height: 40, rx: 4, fill: isNow ? "#dbeafe" : (idx % 2 ? "#f8fafc" : "#ffffff"), stroke: isNow ? "#2563eb" : "#e2e8f0", "stroke-width": isNow ? 2 : 1 }));
+    r.forEach((cell, ci) => {
+      gMat.appendChild(el("text", { x: cols[ci], y: ry + 24, "font-size": 9.1, "font-weight": (isNow || ci === 0) ? 800 : 600, fill: isNow ? "#1e3a8a" : "#1e293b", "font-family": ci < 3 ? "ui-monospace, monospace" : "inherit" }, (isNow && ci === 0 ? "▶ " : "") + cell));
+    });
+  });
+
+  // Footer note on BAL_TIME bumpless re-entry (FBR p. 306)
+  gMat.appendChild(el("rect", { x: 44, y: 496, width: 852, height: 50, rx: 4, fill: "#eff6ff", stroke: "#93c5fd" }));
+  gMat.appendChild(el("text", { x: 56, y: 516, "font-size": 9.6, "font-weight": 800, fill: "#1e3a8a" }, "Bumpless Re-Entry Rule (Official DeltaV FBR p. 306):"));
+  gMat.appendChild(el("text", { x: 56, y: 535, "font-size": 9.2, fill: "#1e293b" }, "1st AO switched to CAS initializes PID1 bumplessly; 2nd AO switched to CAS ramps smoothly over BAL_TIME (set BAL_TIME >= 2× PID RESET)!"));
+  vp.appendChild(gMat);
+}
+
+// =========================================================================
 // 5. CONTEXTUAL INSPECTOR DATABASE (BOTH MODULES — VERIFIED FACTS)
 // =========================================================================
-function getInspectorInfo(id, d, h, ts, pid, cas, pw) {
+function getInspectorInfo(id, d, h, ts, pid, cas, pw, sp) {
   const map = {
     // --- MODULE 1: EM_TANK_CHARGE ---
     EPH_HANDSHAKE: {
@@ -5021,11 +5430,77 @@ function getInspectorInfo(id, d, h, ts, pid, cas, pw) {
       paths: [["TIMER (RET #1)", "IN_D ← TM_HOLD | RESET_IN ← TM_RESET → ELAPSED_TIMER"], ["TM_CALC (CALC #2)", "4 wired inputs (IN1..IN4) → TM_COMPLETE, TM_PV, TM_REMAIN, DD:HH:MM:SS"]],
       expr: `TM_DESC = "Excessive Treatment Timer"\nTM_SP = 90 | TM_EU = Minutes (2) | TM_TYPE = Continuous\nHOLD_ON_RESET = True | HH_MM_SS_DWN = 00:01:30:00`,
       live: [["TM_SP", "90 Minutes (00:01:30:00)", "v-info"], ["TM_COMPLETE", state.pwTmr1Trip ? "True (TIMED OUT!)" : "False", state.pwTmr1Trip ? "v-bad" : "v-good"]]
+    },
+
+    // --- MODULE 7: 3WT-0001-AIC002 (SPLIT-RANGE pH CM — FBR pp. 302-313) ---
+    SP_AI_BLK: {
+      type: "OFFICIAL DELTAV BLOCK (#1) + PLANT AVG (IMG_1121)",
+      title: "AI02AVG — 2-Probe Neutralization Tank pH Input",
+      role: "Plain-English Job: Measures live tank pH by averaging 2 redundant probes (DATA_INPS = 2 in your real 3WT-0001-AI02AVG) and feeds PID1/IN with both Value (.CV) and Status (.ST). If the pH probe status goes BAD (Red ✕), PID1 automatically sheds from AUTO to MAN so bad readings never overdose acid or caustic!",
+      paths: [["AI02AVG/OUT → PID1/IN", "Carries live pH (.CV) + Health (.ST) on Scan #1 → #2"], ["Control Studio Path", "Open CM → Click AI02AVG → Parameter View → Check OUT.ST & SIMULATE"]],
+      expr: `(* Official FBR p241: Bad PV sheds PID1 to MAN *)\n'//3WT-0001-AI02AVG/OUT.CV' = ${state.spPh.toFixed(1)} pH\n'//3WT-0001-AI02AVG/OUT.ST' = ${sp.aiBad ? "BAD (Red ✕)" : "GOOD"}`,
+      live: [["Live pH PV", `${state.spPh.toFixed(1)} pH`, sp.aiBad ? "v-bad" : "v-good"], ["OUT.ST", state.spAiSt, sp.aiBad ? "v-bad" : "v-good"]]
+    },
+    SP_PID_BLK: {
+      type: "OFFICIAL DELTAV PID BLOCK (#2 — FBR pp. 234–241)",
+      title: "PID1 (3WT-0001-AIC002) — Split-Range pH Controller",
+      role: "Plain-English Job: Compares tank pH against SP = 8.0 pH (TP003) and outputs 0–100% into SPLTR1/CAS_IN. Because it is Reverse Acting (+), low pH (< 8.0) pushes OUT above 50% (Base) while high pH (> 8.0) pushes OUT below 50% (Acid). On EM OFF/HOLD, TRK_IN_D = 1 forces LO mode at TRK_VAL = 50% so both pumps sit safely at 0%!",
+      paths: [["PID1/TRK_IN_D & TRK_VAL", "Real plant sets TRK_VAL = 50% (neutral deadband), NEVER 0%!"], ["PID1/FRSIPID_OPTS", "Use_Nonlinear_Gain_Modification (KNL) applies to P+I only (not D) for pH curves!"]],
+      expr: `(* Real plant 3WT-0001-AIC002 tracking safety *)\n'^/PID1/TRK_VAL.CV' := ${state.spTrkSafe ? "50.0  (* SAFE: 49-51% deadband -> 0% Acid & 0% Base! *)" : "0.0   (* BUG! Drives SPLTR1 OUT_1 to 100% ACID DUMP! *)"}\n'^/PID1/OUT.CV' = ${sp.pidOut.toFixed(1)}%  |  MODE.ACTUAL = ${sp.pidActual}`,
+      live: [["MODE.ACTUAL", sp.pidActual, sp.pidActual === "LO" || sp.pidActual === "IMan" ? "v-warn" : "v-good"], ["PID1/OUT", `${sp.pidOut.toFixed(1)}%`, sp.acidDumpHazard ? "v-bad" : "v-info"], ["TRK_VAL", state.spTrkSafe ? "50.0% (Safe)" : "0.0% (DANGER!)", state.spTrkSafe ? "v-good" : "v-bad"]]
+    },
+    SP_SPLTR_BLK: {
+      type: "OFFICIAL DELTAV SPLITTER BLOCK (#3 — FBR pp. 302–313)",
+      title: "SPLTR1 — 1-In / 2-Out Split-Range Block (No MAN Mode!)",
+      role: "Plain-English Job: Takes PID1's single 0–100% output on CAS_IN and splits it into two coordinated outputs (OUT_1 Acid & OUT_2 Base) using straight-line endpoints IN_ARRAY [0, 49, 51, 100] and OUT_ARRAY [100, 0, 0, 100], while merging both gray dotted BKCAL feedback wires back to PID1! Official modes: OOS, IMan, Auto, Cas ONLY (no MAN!).",
+      paths: [["IN_ARRAY / OUT_ARRAY", "X=[0,49,51,100], Y=[100,0,0,100], LOCKVAL=Hold (2% deadband = TP008)"], ["Plant Note (IMG_1121)", "HMI faceplate labels Base=OUT1, Acid=OUT2; in FBR SPLTR, OUT_1 always owns the lower input region (X11..X12)"]],
+      expr: `(* Official Emerson FBR p311 Split-Range Deadband Config *)\nIN_ARRAY[1..4][1]  = [0, 49, 51, 100]  (* 2% deadband around 50% *)\nOUT_ARRAY[1..4][1] = [100, 0, 0, 100]  (* LOCKVAL = Hold *)\nBAL_TIME >= 2 * PID1/RESET  (* Bumpless 2nd-AO re-entry *)`,
+      live: [["SPLTR1 Actual Mode", sp.spltActual, sp.spltActual === "CAS" ? "v-good" : "v-warn"], ["OUT_1 (Acid) / OUT_2 (Base)", `${sp.acidOut.toFixed(1)}% / ${sp.baseOut.toFixed(1)}%`, sp.acidDumpHazard ? "v-bad" : "v-info"], ["BKCAL_OUT → PID1", sp.spltBkcalSt, sp.spltBkcalSt === "NotInvited" ? "v-warn" : "v-good"]]
+    },
+    SP_AO_ACID: {
+      type: "OFFICIAL DELTAV AO BLOCK (#4 — LOWER SPLIT 0–49%)",
+      title: "AO_ACID — Acid Dosing Output (Negative Slope: 0%→100%, 49%→0%)",
+      role: "Plain-English Job: Receives Acid demand (0–100%) from SPLTR1/OUT_1 when tank pH is too high (alkaline), and sends its live output + mode/limit status backwards on the gray dotted BKCAL_OUT → SPLTR1/BKCAL_IN_1 wire. Put AO_ACID in MAN/OOS to watch Base keep running while SPLTR1 sends LimLow to protect PID1!",
+      paths: [["SPLTR1/OUT_1 → AO_ACID/CAS_IN", "Active whenever PID1/OUT < 49% (pH > ~8.1)"], ["AO_ACID/BKCAL_OUT → SPLTR1/BKCAL_IN_1", "Gray dotted feedback wire (#4 executes after #3)"]],
+      expr: `(* Acid region: X11=0 -> Y11=100%, X12=49 -> Y12=0% *)\nAO_ACID/MODE.ACTUAL = ${state.spAcidMode}\nAO_ACID/OUT.CV = ${sp.acidOut.toFixed(1)}% | BKCAL = ${sp.acidBkcalSt}`,
+      live: [["AO_ACID Mode", state.spAcidMode, state.spAcidMode === "CAS" ? "v-good" : "v-warn"], ["Acid Output", `${sp.acidOut.toFixed(1)}%`, sp.acidDumpHazard ? "v-bad" : "v-info"], ["BKCAL_OUT Status", sp.acidBkcalSt, "v-info"]]
+    },
+    SP_AO_BASE: {
+      type: "OFFICIAL DELTAV AO BLOCK (#5 — UPPER SPLIT 51–100%)",
+      title: "AO_BASE — Base/Caustic Dosing Output (Positive Slope: 51%→0%, 100%→100%)",
+      role: "Plain-English Job: Receives Base/Caustic demand (0–100%) from SPLTR1/OUT_2 when tank pH is too low (acidic), and feeds its gray dotted BKCAL_OUT → SPLTR1/BKCAL_IN_2 wire. Put AO_BASE in MAN/OOS to watch Acid keep running while SPLTR1 flips Acid's low limit (negative slope!) into LimHigh on BKCAL_OUT (FBR p. 307)!",
+      paths: [["SPLTR1/OUT_2 → AO_BASE/CAS_IN", "Active whenever PID1/OUT > 51% (pH < ~7.9)"], ["AO_BASE/BKCAL_OUT → SPLTR1/BKCAL_IN_2", "Gray dotted feedback wire (#5 executes after #3)"]],
+      expr: `(* Base region: X21=51 -> Y21=0%, X22=100 -> Y22=100% *)\nAO_BASE/MODE.ACTUAL = ${state.spBaseMode}\nAO_BASE/OUT.CV = ${sp.baseOut.toFixed(1)}% | BKCAL = ${sp.baseBkcalSt}`,
+      live: [["AO_BASE Mode", state.spBaseMode, state.spBaseMode === "CAS" ? "v-good" : "v-warn"], ["Base Output", `${sp.baseOut.toFixed(1)}%`, "v-info"], ["BKCAL_OUT Status", sp.baseBkcalSt, "v-info"]]
+    },
+    SP_CURVE: {
+      type: "STUDY AID — LIVE SPLTR1 V-CURVE (FBR p. 311)",
+      title: "Split-Range Deadband Curve (49–51% = Both Pumps 0%)",
+      role: "Plain-English Job: Visualizes SPLTR1's exact straight-line equations (IN_ARRAY [0, 49, 51, 100], OUT_ARRAY [100, 0, 0, 100]). Notice the 2% center deadband (matching your plant's TP008 = 2% Dosing Pump Deadband!): it guarantees Acid and Caustic can NEVER dose at the same time and fight each other!",
+      paths: [["Violating X12>X11, X22>X21, X21>=X11", "Locks SPLTR1 in OOS with BLOCK_ERR = Configuration Error (FBR p305)!"], ["Control Studio Check", "Click SPLTR1 → Parameter View → Inspect IN_ARRAY, OUT_ARRAY, LOCKVAL, BAL_TIME"]],
+      expr: `IF SP <= 49 THEN OUT_1 := 100 * (49 - SP) / 49; ELSE OUT_1 := 0; END_IF;\nIF SP >= 51 THEN OUT_2 := 100 * (SP - 51) / 49; ELSE OUT_2 := 0; END_IF;`,
+      live: [["Working SP", `${sp.spltSp.toFixed(1)}%`, "v-info"], ["In Deadband?", sp.inDeadband ? "YES (Both 0%)" : "No (Dosing)", sp.inDeadband ? "v-good" : "v-warn"]]
+    },
+    SP_TRK_COMPARE: {
+      type: "REAL PLANT SAFETY LESSON (IMG_1121, 1154)",
+      title: "Why Split-Range Loops Track to 50% — NEVER 0%!",
+      role: "Plain-English Job: On a normal single-valve loop like FIC_101, safe fail-closed tracking is TRK_VAL = 0%. On a split-range Acid/Base loop like 3WT-0001-AIC002, 0% sits at the bottom of the Acid slope (100% FULL ACID OPEN!). Setting TRK_VAL = 50% parks PID1 right inside the 49–51% deadband so both dosing pumps stay safely at 0% in LO!",
+      paths: [["3WT-0001-AIC002 (IMG_1121)", "_TRK_VAL = 50 | _REQ_OUTP = 50 | OUT = 50 | OUT1 = 0 | OUT2 = 0"], ["Test Live Above", "Click 'TRK_IN_D: Clear' → ACTIVE, then toggle 'TRK_VAL: 50% ↔ 0%'!"]],
+      expr: `(* SAFE:   TRK_VAL = 50.0% -> OUT_1 (Acid) = 0%,   OUT_2 (Base) = 0% *)\n(* DANGER: TRK_VAL = 0.0%  -> OUT_1 (Acid) = 100%, OUT_2 (Base) = 0% *)`,
+      live: [["TRK_IN_D", state.spTrkTrip ? "1 (LO ACTIVE)" : "0 (Clear)", state.spTrkTrip ? "v-warn" : "v-good"], ["TRK_VAL Setting", state.spTrkSafe ? "50% (Safe Deadband)" : "0% (ACID DUMP!)", state.spTrkSafe ? "v-good" : "v-bad"]]
+    },
+    SP_BKCAL_MATRIX: {
+      type: "OFFICIAL DELTAV BKCAL RULES (FBR pp. 306–307)",
+      title: "SPLTR1 Slope-Aware Back-Calculation & BAL_TIME",
+      role: "Plain-English Job: Explains how SPLTR1 lets PID1 keep controlling one reagent when the other AO is in MAN or OOS—without integral windup! Because OUT_1 (Acid) has a NEGATIVE slope, when Acid hits 0% (low limit) while Base is unavailable, SPLTR1 sends LimHigh (not LimLow!) up BKCAL_OUT so PID1 won't wind up past 50% into the dead Base valve!",
+      paths: [["1 AO in MAN/OOS", "SPLTR1 tracks it, keeps the other valve in CAS, & limits BKCAL_OUT"], ["Both AOs in MAN/OOS", "SPLTR1 drops to IMan → sends NotInvited → PID1 drops to IMan"]],
+      expr: `(* FBR p307: Slope sign flips limit direction! *)\n(* Neg slope OUT_1 low-limited + OUT_2 not CAS => BKCAL_OUT = LimHigh *)\n(* Pos slope OUT_2 low-limited + OUT_1 not CAS => BKCAL_OUT = LimLow  *)`,
+      live: [["Active BKCAL_OUT", sp.spltBkcalSt, sp.spltBkcalSt === "NotInvited" ? "v-warn" : "v-good"], ["PID1 Actual Mode", sp.pidActual, sp.pidActual === "AUTO" ? "v-good" : "v-warn"]]
     }
   };
 
   if (map[id]) return map[id];
-  const modLabel = { charge: "EM_TANK_CHARGE", header: "EM_XFER_HDR", twostage: "EM_2STAGE_VLV", pid: "FIC_101", cascade: "CASCADE_201", pwneut: "3WT-0001-NEUT" }[state.module] || state.module;
+  const modLabel = { charge: "EM_TANK_CHARGE", header: "EM_XFER_HDR", twostage: "EM_2STAGE_VLV", pid: "FIC_101", cascade: "CASCADE_201", pwneut: "3WT-0001-NEUT", splt: "3WT-0001-AIC002" }[state.module] || state.module;
   return {
     type: "CONTROL STUDIO PARAMETER REFERENCE (PDS p1)",
     title: id.replace(/^TS_FLAG_|^FLAG_/, ""),
@@ -5064,6 +5539,7 @@ function render() {
   const pid = computePidDerived();
   const cas = computeCascadeDerived();
   const pw = computePwNeutDerived();
+  const sp = computeSpltDerived();
 
   // Header module indicator & sim bars
   document.getElementById("moduleSelect").value = state.module;
@@ -5073,7 +5549,8 @@ function render() {
     twostage: "Algorithm: State-Driven EM (7016)",
     pid: "Control Module: Analog PID + Tracking",
     cascade: "Control Modules: Cascade & CTLSL Override",
-    pwneut: "Real Plant PCSD EM: _EM_CMD32_140"
+    pwneut: "Real Plant PCSD EM: _EM_CMD32_140",
+    splt: "Control Module: Split-Range pH (SPLTR1)"
   };
   document.getElementById("algPill").textContent = algMap[state.module] || "Control Studio";
   document.getElementById("simBarCharge").classList.toggle("hidden", state.module !== "charge");
@@ -5082,6 +5559,7 @@ function render() {
   document.getElementById("simBarPid").classList.toggle("hidden", state.module !== "pid");
   document.getElementById("simBarCascade").classList.toggle("hidden", state.module !== "cascade");
   document.getElementById("simBarPwNeut").classList.toggle("hidden", state.module !== "pwneut");
+  document.getElementById("simBarSplt").classList.toggle("hidden", state.module !== "splt");
 
   const vp = document.getElementById("viewport");
   vp.innerHTML = "";
@@ -5277,7 +5755,7 @@ function render() {
 
     if (state.tab === "cas1") renderCascadeTab1(vp, cas);
     else renderCascadeTab2(vp, cas);
-  } else {
+  } else if (state.module === "pwneut") {
     // Module 6: 3WT-0001-NEUT (Real Plant PCSD EM)
     const pwPill = document.getElementById("pwStatusPill");
     pwPill.textContent = pw.pill;
@@ -5314,11 +5792,46 @@ function render() {
     if (state.tab === "pw1") renderPwTab1(vp, pw);
     else if (state.tab === "pw2") renderPwTab2(vp, pw);
     else renderPwTab3(vp, pw);
+  } else {
+    // Module 7: 3WT-0001-AIC002 (Split-Range pH CM — SPLTR1 + 50% Track)
+    const spPill = document.getElementById("spltStatusPill");
+    spPill.textContent = sp.pill;
+    spPill.className = "state-pill " + sp.pillCls;
+    document.getElementById("selSpltPidMode").value = state.spPidTarget;
+    document.getElementById("selSpltMode").value = state.spSpltTarget;
+    document.getElementById("selSpltAcidMode").value = state.spAcidMode;
+    document.getElementById("selSpltBaseMode").value = state.spBaseMode;
+    document.getElementById("spltPhSlider").value = state.spPh;
+    document.getElementById("spltPhLbl").textContent = `${state.spPh.toFixed(1)} pH`;
+
+    const btnTrk = document.getElementById("btnSpltTrk");
+    btnTrk.textContent = state.spTrkTrip ? "TRK_IN_D: ACTIVE (LO)" : "TRK_IN_D: Clear";
+    btnTrk.className = state.spTrkTrip ? "sim-btn active-toggle" : "sim-btn";
+    const btnTrkVal = document.getElementById("btnSpltTrkVal");
+    btnTrkVal.textContent = state.spTrkSafe ? "TRK_VAL: 50% (Safe)" : "TRK_VAL: 0% (ACID DUMP!)";
+    btnTrkVal.className = state.spTrkSafe ? "sim-btn ok" : "sim-btn active-toggle";
+    const btnAi = document.getElementById("btnSpltAiSt");
+    btnAi.textContent = sp.aiBad ? "pH .ST: BAD ✕" : "pH .ST: GOOD";
+    btnAi.className = sp.aiBad ? "sim-btn active-toggle" : "sim-btn";
+
+    const banner = document.getElementById("diagBanner");
+    let lvl = sp.acidDumpHazard || sp.aiBad ? "alert" : (sp.pidActual === "LO" || sp.pidActual === "IMan" || sp.acidNotCas || sp.baseNotCas ? "warn" : "ok");
+    banner.className = "diag-banner" + (lvl !== "info" ? " " + lvl : "");
+    const defSpMsg = sp.acidDumpHazard
+      ? "CRITICAL SAFETY BUG: TRK_IN_D=1 with TRK_VAL=0% drove SPLTR1 OUT_1 (Acid) to 100% FULL OPEN! Click 'TRK_VAL: 0%' to switch back to 50% Safe Deadband!"
+      : state.spTrkTrip
+        ? "SAFE SPLIT-RANGE TRACKING: TRK_IN_D=1 forced PID1 to LO @ TRK_VAL=50% (49–51% deadband) → BOTH Acid & Base pumps safely at 0%!"
+        : `3WT-0001-AIC002 (${sp.region}): Drag pH slider (3.5–12.0) or switch AO_ACID / AO_BASE to MAN/OOS to watch SPLTR1 BKCAL rules live!`;
+    document.getElementById("diagText").textContent = state.notice || defSpMsg;
+    document.getElementById("diagMetrics").textContent = `PID1: ${sp.pidActual} (${sp.pidOut.toFixed(0)}%) | SPLTR1: ${sp.spltActual} | Acid: ${sp.acidOut.toFixed(0)}% | Base: ${sp.baseOut.toFixed(0)}%`;
+
+    if (state.tab === "sp1") renderSpltTab1(vp, sp);
+    else renderSpltTab2(vp, sp);
   }
 
   applyTransform();
 
-  const info = getInspectorInfo(state.selectedId, d, h, ts, pid, cas, pw);
+  const info = getInspectorInfo(state.selectedId, d, h, ts, pid, cas, pw, sp);
   document.getElementById("inspType").textContent = info.type;
   document.getElementById("inspTitle").textContent = info.title;
   document.getElementById("inspRole").textContent = info.role;
@@ -5420,9 +5933,12 @@ document.getElementById("moduleSelect").addEventListener("change", (e) => {
   } else if (state.module === "cascade") {
     state.tab = "cas1";
     state.selectedId = "CAS_FIC_BLK";
-  } else {
+  } else if (state.module === "pwneut") {
     state.tab = "pw1";
     state.selectedId = "PW_SFC_ACTIVE";
+  } else {
+    state.tab = "sp1";
+    state.selectedId = "SP_SPLTR_BLK";
   }
   rebuildTabs();
   render();
@@ -5770,6 +6286,23 @@ document.getElementById("btnPwReset").addEventListener("click", () => {
   state.pwSentinelTrip = false; state.pwTmr1Trip = false;
   state.selectedId = "PW_SFC_ACTIVE";
   state.notice = "Reset 3WT-0001-NEUT to its exact screenshot snapshot (OFF Complete, LI001=35.6%, LI002=85.3%, pH=7.8).";
+  render();
+});
+
+// --- Module 7 Controls (3WT-0001-AIC002 — Split-Range pH CM: SPLTR1 + 50% Track) ---
+document.getElementById("selSpltPidMode").addEventListener("change", (e) => { state.spPidTarget = e.target.value; state.notice = ""; render(); });
+document.getElementById("selSpltMode").addEventListener("change", (e) => { state.spSpltTarget = e.target.value; state.notice = ""; render(); });
+document.getElementById("selSpltAcidMode").addEventListener("change", (e) => { state.spAcidMode = e.target.value; state.notice = ""; render(); });
+document.getElementById("selSpltBaseMode").addEventListener("change", (e) => { state.spBaseMode = e.target.value; state.notice = ""; render(); });
+document.getElementById("spltPhSlider").addEventListener("input", (e) => { state.spPh = parseFloat(e.target.value); state.notice = ""; render(); });
+document.getElementById("btnSpltTrk").addEventListener("click", () => { state.spTrkTrip = !state.spTrkTrip; state.selectedId = "SP_TRK_COMPARE"; state.notice = ""; render(); });
+document.getElementById("btnSpltTrkVal").addEventListener("click", () => { state.spTrkSafe = !state.spTrkSafe; state.selectedId = "SP_TRK_COMPARE"; state.notice = ""; render(); });
+document.getElementById("btnSpltAiSt").addEventListener("click", () => { state.spAiSt = state.spAiSt === "GOOD" ? "BAD" : "GOOD"; state.selectedId = "SP_AI_BLK"; state.notice = ""; render(); });
+document.getElementById("btnSpltReset").addEventListener("click", () => {
+  state.spPidTarget = "AUTO"; state.spSpltTarget = "CAS"; state.spAcidMode = "CAS"; state.spBaseMode = "CAS";
+  state.spPh = 8.0; state.spTrkTrip = false; state.spTrkSafe = true; state.spAiSt = "GOOD";
+  state.selectedId = state.tab === "sp2" ? "SP_TRK_COMPARE" : "SP_SPLTR_BLK";
+  state.notice = "Reset 3WT-0001-AIC002 to neutral deadband (pH = 8.0, PID OUT = 50%, Acid = 0%, Base = 0%).";
   render();
 });
 

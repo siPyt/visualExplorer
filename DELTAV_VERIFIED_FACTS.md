@@ -47,6 +47,12 @@ Anything NOT in this file is either our own training design (labeled as such in 
 - `IN_1`, `IN_2`, `SELECTOR`, `OUT`. `SELECTOR` False → `IN_1`; True → `IN_2`; ramps over `BAL_TIME` (0 = instant).
 - There is **no "BSEL" block** in the Function Block Reference. Selector blocks that do exist: Transfer, Signal Selector, Input Selector, Control Selector, Multiplexer (FBR contents p6–13).
 
+**Splitter (SPLTR)** — FBR pp. 302–313 (printed pp. 286–297)
+- Official block short name is **`SPLTR`** (e.g. `SPLTR1`). Takes one input (`CAS_IN`) and drives two outputs (`OUT_1`, `OUT_2`) with full back-calculation (`BKCAL_IN_1`, `BKCAL_IN_2` → `BKCAL_OUT`).
+- **Modes (FBR pp. 303, 306):** `OOS`, `IMan`, `Auto`, `Cas` ONLY — **`Man` is NOT a permitted mode!** Normal mode is `Cas`; `Auto` isolates the splitter for testing (`SP_RATE_UP`/`SP_RATE_DN` apply only in `Auto`).
+- **Characterization (FBR pp. 304, 309, 311):** `IN_ARRAY[1..4][1]` (`X11, X12, X21, X22`) and `OUT_ARRAY[1..4][1]` (`Y11, Y12, Y21, Y22`), with `LOCKVAL` (`Hold` or `OUT_ARRAY[1][1]`) and `HYSTVAL` (default 5% of `X11..X12`). Constraints: `X12 > X11`, `X22 > X21`, `X21 >= X11` (violating locks block in `OOS` with `Configuration Error`). Standard split-range deadband example (FBR p. 311): `IN_ARRAY = [0, 49, 51, 100]`, `OUT_ARRAY = [100, 0, 0, 100]`, `LOCKVAL = Hold` (2% deadband around 50%).
+- **Back-Calculation & Limit Handling (FBR pp. 306–307):** If only ONE downstream block leaves `Cas` or goes `Bad`, `SPLTR` tracks that output (`OUT_x = BKCAL_IN_x`) while letting the upstream `PID` continue controlling the healthy region—combining slope sign + limit status (`LimHigh`/`LimLow` on `BKCAL_OUT`) so the `PID` cannot wind into the unavailable output! When both downstream blocks leave `Cas`, `SPLTR` drops to `IMan` and forces upstream `PID` to `IMan`. When the second output returns to `Cas`, `SPLTR` ramps out the difference over **`BAL_TIME`** (recommended `>= 2× PID RESET`).
+
 **Device Control (DC)** — FBR p417–436
 - Pins: `CAS_IN_D`, `SHUTDOWN_D`, `PERMISSIVE_D`, `INTERLOCK_D`, `TRK_IN_D`, `SIMULATE_IN_D` → `OUT_D`.
 - Key params: `SP_D` (requested state), `FV_D` (field feedback), `PV_D` (normally = FV_D), `DC_STATE`, `FAIL`, `FAIL_ACTIVE`,

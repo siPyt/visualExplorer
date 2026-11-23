@@ -389,9 +389,9 @@
   <h1>Reading &amp; Troubleshooting DeltaV Control Studio</h1>
   <p class="subtitle">Complete in-depth native DeltaV lessons, pin-by-pin Control Studio schematics, real-plant engineering nuances, and step-by-step interactive workshops paired with <strong>Visual Explorer</strong>.</p>
   <div class="meta-strip">
-    <span class="meta-pill">Edition: v3.3 (Verified vs. Official Emerson Docs + DeltaV Live + Real Plant PCSD EM)</span>
-    <span class="meta-pill">Continuous &amp; Discrete Control Studio Mastery</span>
-    <span class="meta-pill">6 Modules: EM_TANK_CHARGE • EM_XFER_HDR • EM_2STAGE_VLV • FIC_101 • CASCADE_201 • 3WT-0001-NEUT</span>
+    <span class="meta-pill">Edition: v3.4 (Verified vs. Official Emerson Docs + Real Plant PCSD EM &amp; Split-Range pH)</span>
+    <span class="meta-pill">Control Studio Logic Mastery (EM • CM • EPH)</span>
+    <span class="meta-pill">7 Modules: EM_TANK_CHARGE • EM_XFER_HDR • EM_2STAGE_VLV • FIC_101 • CASCADE_201 • 3WT-0001-NEUT • 3WT-0001-AIC002</span>
     <span class="meta-pill">Launch Lab App: type "run" in terminal</span>
   </div>
 </div>
@@ -2431,6 +2431,47 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
   </div>
 </div>
 
+<h3 class="page-break">11.6 Deep-Dive: Split-Range pH Control (<code>SPLTR</code>) &amp; Why <code>3WT-0001-AIC002</code> Tracks to <code>50%</code> (<em>FBR</em> pp. 302–313)</h3>
+<p><strong>Plain-English Job (Official DeltaV <code>SPLTR</code> Block):</strong> Emerson's <strong>Splitter (<code>SPLTR</code>)</strong> function block takes a <em>single</em> <code>0–100%</code> controller output on <code>CAS_IN</code> and splits it across <em>two</em> separate final control elements (<code>OUT_1</code> and <code>OUT_2</code>—such as Acid and Base dosing pumps on <code>3WT-0001-AIC002</code>) using two straight-line curves, while merging <em>both</em> downstream back-calculation feedback wires back to the upstream <code>PID</code> so it never winds up.</p>
+
+<ul>
+  <li><strong>Exact Pins &amp; Modes (<em>Official DeltaV, FBR</em> pp. 303, 306):</strong> Left input pins are <strong><code>CAS_IN</code></strong>, <strong><code>BKCAL_IN_1</code></strong>, and <strong><code>BKCAL_IN_2</code></strong>; right output pins are <strong><code>OUT_1</code></strong>, <strong><code>OUT_2</code></strong>, and <strong><code>BKCAL_OUT</code></strong>. Supported modes are <strong><code>OOS</code>, <code>IMan</code>, <code>Auto</code>, and <code>Cas</code> ONLY — <code>Man</code> is NOT permitted!</strong> Normal mode is <code>Cas</code>; switch to <code>Auto</code> to isolate the splitter for bench testing.</li>
+  <li><strong>Deadband Split-Range Curves (<em>Official FBR</em> p. 311 + Plant <code>TP008 = 2%</code>):</strong> In Control Studio, click <code>SPLTR1</code> in <em>Diagram View</em> and open <em>Parameter View</em> to inspect <code>IN_ARRAY[1..4][1]</code> (<code>X11, X12, X21, X22</code>), <code>OUT_ARRAY[1..4][1]</code> (<code>Y11, Y12, Y21, Y22</code>), and <code>LOCKVAL</code>. With <code>IN_ARRAY = [0, 49, 51, 100]</code>, <code>OUT_ARRAY = [100, 0, 0, 100]</code>, and <code>LOCKVAL = Hold</code>:
+    <ul>
+      <li><strong><code>0–49%</code> → Acid (<code>OUT_1</code>, negative slope):</strong> <code>0%</code> input drives <code>100%</code> Acid; <code>49%</code> drives <code>0%</code> Acid.</li>
+      <li><strong><code>49–51%</code> → Safe Neutral Deadband (<code>TP008 = 2%</code>):</strong> <strong>BOTH Acid and Base sit at <code>0%</code></strong> so the two reagents can never dose simultaneously!</li>
+      <li><strong><code>51–100%</code> → Base/Caustic (<code>OUT_2</code>, positive slope):</strong> <code>51%</code> drives <code>0%</code> Base; <code>100%</code> drives <code>100%</code> Base. <em>(Plant note: on <code>3WT-0001-AIC002</code>'s HMI faceplate, Base is labeled <code>OUT1</code> and Acid <code>OUT2</code>; in FBR <code>SPLTR</code>, <code>OUT_1</code> always owns the lower input region <code>X11..X12</code>. Violating <code>X12 &gt; X11</code>, <code>X22 &gt; X21</code>, or <code>X21 &gt;= X11</code> locks <code>SPLTR1</code> in <code>OOS</code> with <code>Configuration Error</code> — FBR p. 305!)</em></li>
+    </ul>
+  </li>
+  <li><strong>Slope-Aware <code>BKCAL_OUT</code> Protection (<em>Official DeltaV, FBR</em> pp. 306–307):</strong> If <em>only one</em> downstream <code>AO</code> leaves <code>Cas</code> (<code>Man</code> or <code>OOS</code>), <code>SPLTR1</code> tracks that output (<code>OUT_x := BKCAL_IN_x</code>) while letting <code>PID1</code> <strong>keep controlling the other healthy reagent</strong>! When the healthy output hits <code>0%</code>, <code>SPLTR1</code> uses its slope sign to protect <code>PID1</code>: if Acid (negative slope) hits <code>0%</code> while Base is out of <code>Cas</code>, <code>SPLTR1</code> sends <strong><code>LimHigh</code></strong> on <code>BKCAL_OUT</code> so <code>PID1</code> cannot wind up into the broken Base valve! Only when <em>both</em> AOs leave <code>Cas</code> does <code>SPLTR1</code> drop to <code>IMan</code> and force <code>PID1</code> into <code>IMan</code>. On recovery, the 2nd AO returned to <code>Cas</code> ramps smoothly over <strong><code>BAL_TIME</code></strong> (recommended <code>&gt;= 2× PID1/RESET</code>).</li>
+</ul>
+
+<div class="callout danger">
+  <div class="callout-title">Real-Plant Safety Rule (<code>3WT-0001-AIC002</code>): Why <code>TRK_VAL</code> MUST Be <code>50%</code> — NEVER <code>0%</code>!</div>
+  On a single-valve loop (<code>FIC_101</code>), fail-safe tracking is <code>TRK_VAL = 0%</code>. On a split-range Acid/Base loop, <strong><code>PID1/OUT = 0%</code> maps to <code>100% FULL ACID OPEN</code>!</strong> That is why <code>3WT-0001-AIC002</code> configures <strong><code>_TRK_VAL = 50%</code></strong> (landing dead-center inside the <code>49–51%</code> deadband so both dosing pumps stay <code>0%</code> OFF whenever the EM sits in <code>OFF</code> or <code>HOLD</code>!).
+</div>
+
+<!-- WORKSHOP 13 -->
+<div class="workshop">
+  <div class="workshop-head">
+    <span class="ws-title">Workshop 13: Split-Range pH Control (SPLTR1), 50% vs. 0% Tracking &amp; Slope-Aware BKCAL</span>
+    <span class="ws-badge">Hands-On Lab • 5 Min</span>
+  </div>
+  <div class="workshop-body">
+    <div class="workshop-setup">
+      <strong>Setup:</strong> Launch <strong>Visual Explorer</strong> (<code>run</code>), click the <strong>top-left module dropdown</strong>, and select <strong><code>3WT-0001-AIC002 (Split-Range pH — SPLTR + 50% Track)</code></strong>. Confirm you are on Tab <strong><code>1. Split-Range FBD (SPLTR1)</code></strong> and click <strong>Reset Loop</strong>.
+    </div>
+    <ol>
+      <li><strong>Trace the V-Curve &amp; Deadband Live (Tab 1):</strong> Slowly drag the <strong>pH PV</strong> slider from <strong><code>5.0 pH</code></strong> (acidic → <code>PID1 OUT &gt; 51%</code> → Base doses!) across <strong><code>8.0 pH</code></strong> (inside the green <code>49–51%</code> deadband → BOTH pumps <code>0%</code>!) up to <strong><code>10.5 pH</code></strong> (alkaline → <code>PID1 OUT &lt; 49%</code> → Acid doses!). Click <code>SPLTR1 (#3)</code> to inspect its official <code>IN_ARRAY</code> / <code>OUT_ARRAY</code> and 4-mode list (no <code>MAN</code>!).</li>
+      <li><strong>Prove the <code>50%</code> vs. <code>0%</code> Tracking Trap (Tabs 1 &amp; 2):</strong> Click <strong><code>TRK_IN_D: Clear</code></strong> so it flips to <strong><code>ACTIVE (LO)</code></strong>. Notice <code>PID1</code> drops to <code>LO</code> at <code>50%</code> and BOTH Acid &amp; Base stay safely <code>0%</code>. Now click <strong><code>TRK_VAL: 50% (Safe)</code></strong> → <strong><code>0% (ACID DUMP!)</code></strong> and watch <code>AO_ACID</code> slam to <strong><code>100%</code></strong>! Switch to Tab <strong><code>2. 50% Track &amp; BKCAL X-Ray</code></strong> to compare both side by side, then flip <code>TRK_VAL</code> back to <code>50%</code> and clear <code>TRK_IN_D</code>.</li>
+      <li><strong>Test Official Emerson Slope-Aware <code>BKCAL</code> (Tab 2):</strong> Set <strong>pH PV</strong> to <code>8.0</code>, then switch <strong><code>AO_BASE</code></strong> to <code>MAN</code> (leaving <code>AO_ACID</code> in <code>CAS</code>). Watch Row 3 light up: Acid stays active, and because Acid has a <em>negative slope</em> at <code>0%</code>, <code>SPLTR1/BKCAL_OUT</code> sends <strong><code>LimHigh</code></strong> to stop <code>PID1</code> winding up into the manual Base valve! Now also switch <strong><code>AO_ACID</code></strong> to <code>OOS</code> and watch <code>SPLTR1</code> &amp; <code>PID1</code> both drop bumplessly into <strong><code>IMan</code></strong>!</li>
+    </ol>
+    <div class="workshop-takeaway">
+      <strong>What You Are Supposed to Learn From This Workshop:</strong> On any split-range loop in Control Studio, always check three things: (1) <code>SPLTR</code>'s <code>IN_ARRAY</code>/<code>OUT_ARRAY</code> deadband (no <code>MAN</code> mode!), (2) <strong><code>TRK_VAL = 50%</code></strong> (never <code>0%</code>!), and (3) all three gray dotted <code>BKCAL</code> wires (<code>AO1/AO2 → SPLTR → PID</code>) so one manual valve never causes windup!
+    </div>
+  </div>
+</div>
+
 <!-- =====================================================================
      CHAPTER 12: CONTROL STUDIO LIVE SAFETY — HMI-TO-LOGIC TRIAGE & MODULE TRAPS
      ===================================================================== -->
@@ -2686,8 +2727,9 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
   </li>
 </ul>
 
-<h3>FB-7. Additional Plant Blocks Covered in Chapters 8–11 (<code>PID</code>, <code>AO</code>, <code>CTLSL</code>, <code>ISEL</code>, <code>RET</code> &amp; <code>AT</code>)</h3>
+<h3>FB-7. Additional Plant Blocks Covered in Chapters 8–11 (<code>PID</code>, <code>AO</code>, <code>SPLTR</code>, <code>CTLSL</code>, <code>ISEL</code>, <code>RET</code> &amp; <code>AT</code>)</h3>
 <ul>
+  <li><strong><code>SPLTR</code> (Splitter — e.g., <code>SPLTR1</code> inside <code>3WT-0001-AIC002</code>, Ch. 11.6 • <em>FBR pp. 302–313</em>):</strong> Takes one input (<code>CAS_IN</code>) and drives two characterized outputs (<code>OUT_1</code>, <code>OUT_2</code>) via <code>IN_ARRAY</code> / <code>OUT_ARRAY</code> + <code>LOCKVAL</code> with full back-calculation (<code>BKCAL_IN_1</code>, <code>BKCAL_IN_2</code> → <code>BKCAL_OUT</code>) and <code>BAL_TIME</code> bumpless 2nd-output re-entry. Supports <strong><code>OOS</code>, <code>IMan</code>, <code>Auto</code>, <code>Cas</code> ONLY (no <code>Man</code> mode!)</strong>.</li>
   <li><strong><code>RET</code> (Retentive Timer — e.g., <code>TIMER</code> inside <code>3WT-0001-NEUT/TMR1</code>, Ch. 11.4):</strong> Accumulates elapsed time on <code>ELAPSED_TIMER</code> while <code>IN_D = True</code> (holds its accumulated value when <code>IN_D = False</code> instead of resetting!) and clears to <code>0</code> only when <code>RESET_IN = True</code>. In PCSD Timer Composites, <code>RET (#1)</code> wires directly into <code>TM_CALC (#2)</code> to compute <code>TM_COMPLETE</code>, <code>TM_PV</code>, <code>TM_REMAIN</code>, and <code>DD:HH:MM:SS</code> strings.</li>
   <li><strong><code>AT</code> (Action/Alarm Table — e.g., <code>SM_AT1/2</code> &amp; <code>HM_AT1/2</code> inside <code>MONITOR</code>, Ch. 11.4):</strong> Evaluates up to 16 parallel Boolean conditions inside one compact block (<code>T_OUT_D1..T_OUT_D16</code> plus summary <code>OUT_D</code>), paired with per-slot enable masks (<code>SM_01..SM_32</code>, <code>HM_01..HM_32</code>) and text descriptions (<code>T_DESCx</code>). Unused condition slots show <code>???</code> and are safely masked off.</li>
   <li><strong>Analog &amp; Override Blocks:</strong> See <strong>Chapter 8</strong> for full <code>PID</code> (8 modes, <code>BKCAL_IN</code>, <code>TRK_IN_D</code>/<code>TRK_VAL</code>, <code>CONTROL_OPTS</code>) and <code>AO</code> (<code>CAS_IN</code>, <code>BKCAL_OUT</code>, <code>Increase to close</code>, <code>FSTATE_VAL</code>); <strong>Chapter 9</strong> for <code>CTLSL</code> (<code>SEL_1..3</code>, <code>BKCAL_SEL1..3</code>, Bad-input <code>MAN</code> shed); and <strong>Chapter 10</strong> for <code>ISEL</code> (4-sensor <code>MAX/MIN/MID/FIRST_GOOD/AVG</code>) and Embedded vs. Linked Composites!</li>
@@ -2719,6 +2761,7 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
     <tr><td><code>BKCAL_OUT → BKCAL_IN</code> &amp; <code>IMan</code></td><td>Back-Calculation Wire <em>(FBR pp. 106, 238)</em></td><td>Gray dotted feedback wire (<code>#3 AO → #2 PID</code> or Slave → Master) carrying downstream valve position &amp; limit/mode status backwards to freeze reset windup (<code>LimHigh</code>) and force bumpless <code>IMan</code> tracking when downstream leaves <code>CAS</code>.</td></tr>
     <tr><td><code>TRK_IN_D / TRK_VAL</code></td><td>PID Output Tracking <em>(FBR p234)</em></td><td>With <code>CONTROL_OPTS: Track Enable</code> (and <code>Track in Manual</code>), setting <code>TRK_IN_D = True</code> forces <code>PID</code> actual mode to <code>LO</code> and drives <code>OUT</code> to <code>TRK_VAL</code> (e.g., <code>0%</code> safe close).</td></tr>
     <tr><td><code>CTLSL</code> &amp; <code>ISEL</code></td><td>Control vs. Input Selector <em>(FBR pp. 185, 201)</em></td><td><code>CTLSL</code> selects High/Low/Mid of up to 3 PIDs with <code>BKCAL_SEL1..3</code> anti-windup (Bad input sheds to <code>Man</code>). <code>ISEL</code> selects <code>MAX/MIN/MID/FIRST_GOOD/AVG</code> of up to 4 redundant sensors, auto-skipping Bad/Disabled inputs.</td></tr>
+    <tr><td><code>SPLTR</code> (Splitter)</td><td>1-In / 2-Out Split-Range <em>(FBR pp. 302–313, Ch. 11.6)</em></td><td>Splits one <code>CAS_IN</code> across <code>OUT_1</code> &amp; <code>OUT_2</code> via <code>IN_ARRAY</code>/<code>OUT_ARRAY</code> + <code>LOCKVAL</code> with slope-aware <code>BKCAL_IN_1/2 → BKCAL_OUT</code> &amp; <code>BAL_TIME</code>. Modes: <code>OOS/IMan/Auto/Cas</code> only (no <code>Man</code>!). Split-range PIDs track to <code>50%</code>, never <code>0%</code>!</td></tr>
     <tr><td><code>PCSD Shell &amp; &lt;Ignored&gt; Stubs</code></td><td>32-Device EM Template <em>(Ch. 11)</em></td><td>Real-plant library shell (<code>_EM_CMD32_140</code>, e.g., <code>3WT-0001-NEUT</code>) featuring zero-wire Main FBD sheets, boilerplate <code>S0000–S0020/S9900</code> SFC framing around <code>S0100</code> process logic, and unused <code>&lt;Ignored&gt;</code> slots masked off by <code>SM_xx = False</code>.</td></tr>
     <tr><td><code>SENTINEL vs. HOLD_MONITOR</code></td><td>PCSD <code>MONITOR</code> Watchdogs <em>(Ch. 11)</em></td><td>Inside <code>MONITOR</code>: <code>SENTINEL_MONITOR</code> (<code>SM_AT1/2</code>) watches subordinate <em>device</em> failures; <code>HOLD_MONITOR</code> (<code>HM_AT1/2</code>) watches <em>process</em> failure conditions (like <code>TMR1</code> 90-min timeout) and trips <code>COMMAND_00000 (HOLD)</code>.</td></tr>
     <tr><td><code>ACQ_REL</code> &amp; <code>HOLD_REQ</code></td><td>Shared Device Arbitration <em>(Ch. 11)</em></td><td>Manages EM ownership (<code>OWNER_ID</code>) and acquiring/releasing Shared CMs. Setting <code>HOLD_REQ = True</code> (e.g., in <code>OFF</code>) releases mode locks so operators can control equipment manually.</td></tr>
@@ -2784,7 +2827,7 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
 
 <div class="footer-note">
   <span>Emerson DeltaV Control Studio — Complete Study Textbook &amp; Workshop Manual</span>
-  <span>Edition v3.3 (Verified vs. Emerson Docs + DeltaV Live + Real Plant 3WT-0001-NEUT • Ch. 1–12 + 12 Labs • 6 Modules)</span>
+  <span>Edition v3.4 (Verified vs. Emerson Docs + Real Plant 3WT-0001-NEUT &amp; Split-Range AIC002 • Ch. 1–12 + 13 Labs • 7 Modules)</span>
 </div>
 
 </body>
