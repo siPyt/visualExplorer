@@ -1,113 +1,140 @@
 ================================================================================
 DELTAV CONTROL STUDIO MASTERY — PROGRESS & MISSION TRACKER
-Last Updated: 2026-11-23 (Edition v3.1 — Includes Real Plant PCSD EM 3WT-0001-NEUT)
+Last Updated: 2026-11-23 (Edition v3.2 — Visual QA Polish, Deep 3WT-0001-NEUT
+                          Photo Audit, Unwired Parameter Boxes X-Ray & 27 Drills)
 Repository:   https://github.com/siPyt/visualExplorer.git
+Site Note:    Non-Batch plant focus (steer clear of Batch Unit Phases unless asked)
 ================================================================================
 
 ULTIMATE MISSION
 ----------------
 Walk up to ANY Emerson DeltaV Control Studio workstation at ANY plant, open ANY
-module (CM, EM, or Unit Phase — Off-Line or On-Line), and immediately read what
-every block, wire, pin, mode, status, and interlock is doing like the sharpest
-engineer in the room — with zero made-up syntax and zero guessing.
+module (CM or EM — Off-Line or On-Line), and immediately read what every block,
+wire, pin, unwired box, mode, status, composite, and interlock is doing like the
+sharpest engineer in the room — with zero made-up syntax and zero guessing.
 
-HOW THIS WORKSPACE OPERATES
----------------------------
+HOW THIS WORKSPACE OPERATES (SYNCED ACROSS MACHINES)
+----------------------------------------------------
 1. Visual Explorer (index.html — launch anytime by typing 'run' in terminal):
-   Interactive visual Control Studio trainer with 6 selectable modules:
-   EM_TANK_CHARGE, EM_XFER_HDR, EM_2STAGE_VLV, FIC_101 (PID + BKCAL + Tracking),
-   CASCADE_201 (Master-Slave Cascade + CTLSL Override), and 3WT-0001-NEUT (Real
-   Plant PCSD Process Waste Neutralization EM with 'Hide Stubs' & 4-Pattern Lens).
+   Interactive visual Control Studio trainer with 6 selectable modules (20 views):
+   - EM_TANK_CHARGE (Command-Driven EM — 5 tabs incl. Full Control Studio Combo)
+   - EM_XFER_HDR (State-Driven EM — 4 tabs incl. Items x States & Combo)
+   - EM_2STAGE_VLV (State-Driven 2-Stage Valve, 7016 — 3 tabs, '(not written)' cells)
+   - FIC_101 (Analog PID + BKCAL & Tracking — 3 tabs: Main PID, BKCAL X-Ray,
+     and Tab 3: Unwired Boxes X-Ray [Raw Studio vs. Reveal Hidden Tunnels!])
+   - CASCADE_201 (Master-Slave Cascade + CTLSL Low-Select Override — 2 tabs)
+   - 3WT-0001-NEUT (Real Plant PCSD EM _EM_CMD32_140 — 3 tabs: P&ID & SFC,
+     Zero-Wire Main FBD w/ Hide Stubs & 4-Pattern Lens, MONITOR & TMR1 Watchdogs)
+   Wire Color Convention (Locked):
+   - Solid/Bold Black (tinted Green/Red On-Line study aid) = real FBD wires
+   - Gray dotted/dashed (#475569) = REAL DeltaV feedback wires (next-scan delay)
+   - Purple dashed (#9333ea) = learning-only expression/tunnel pointers (no real wire)
+
 2. Expression Forge (ex.html — launch anytime by typing 'run ex' in terminal):
    Web & mobile-ready interactive DeltaV Structured Text expression & parameter
-   trainer (Decode Cold, Forge Builder, 2 AM Bug Hunt, and On-Line Expression
-   Tree Evaluator).
-3. Textbook & Lab Manual (DeltaV_Study_Guide.pdf — Edition v3.1):
-   Full in-depth native DeltaV lessons (Chapters 1–11), 6-block FBR Field Guide,
-   pin-by-pin schematics, real-plant traps, and 12 complete step-by-step Visual
-   Explorer workshops (launch via 'run guide' or 'run pdf').
+   trainer with 27 self-tested drills across 4 modes:
+   - Mode 1: Decode Cold (9 drills — DC modes, tare, .ST, named sets, A_PV,
+     PCSD HOLD_REQ mode-lock, CND3 pH window, split-range TRK_VAL=50%, Int Ref MODE)
+   - Mode 2: Forge Builder (11 drills — local/external paths, >= GOOD, CALC .ST,
+     OS keyword, CAS push, HOLD_REQ lock, LI001>=TP001, split-range TRK_VAL:=50.0)
+   - Mode 3: Fix the Bug (7 drills — = vs :=, TARGET vs ACTUAL, quotes, PV vs SP,
+     split-range 0% acid dump, A_COMMAND=Undefined vs A_PV, State-Driven Int Ref)
+   - Mode 4: On-Line Tree (6 live presets + 9 live sliders/selectors incl. 3WT-0001)
+
+3. Textbook & Lab Manual (DeltaV_Study_Guide.html -> DeltaV_Study_Guide.pdf, v3.2):
+   Full in-depth native DeltaV handbook: Chapters 1–11 (incl. new Section 2.5
+   Unwired Parameter Boxes Deep-Dive + Fig. 2.2), 7-Block FBR Field Guide (XFR,
+   CALC, CND, ACT, DC, AI, RET & AT), 12 step-by-step Visual Explorer Workshops,
+   and 18-Question Mastery Exam. Rebuild anytime via: .\build-pdf.ps1
+
 4. Verified Truth Source (DELTAV_VERIFIED_FACTS.md + pdf reference/):
    Every Control Studio fact cited by exact PDF + page number across 12 official
-   Emerson manuals (Function Block Reference, DeltaV Configuration, 7009, 7016,
-   7017, Control Studio Online PDS, FILL Phase, Sequence Tutorial).
+   Emerson manuals (FBR, CONFIG, 7009, 7016, 7017, Online PDS, FILL, Tutorial).
+
 5. Session Tracker (WHERE_WE_ARE.txt — this file):
-   Single source of truth for continuity across sessions.
+   Single source of truth for continuity across all machines & sessions.
 
 ================================================================================
-1. WHERE WE CAME FROM (MASTERED & VERIFIED — EDITION v2.1 + WORKSHOPS 1–7)
+1. WHERE WE HAVE BEEN (COMPLETED & VERIFIED MILESTONES)
 ================================================================================
-[DONE] Ch. 1 + Workshop 1 — Equipment Tiers (Unit Phase -> EM -> CM) & Scan Order
-       - Unit Phase / Phase Logic ("EPH" in ISA-88), A_COMMAND / A_TARGET / A_PV,
-         CAS_SP -> DC1/CAS_IN_D & PV, #1 -> #2 -> #3 solve order, and why
-         Control Studio draws reversed #N wires as DASHED FEEDBACK WIRES (CONFIG p368)!
+[DONE] v1.0–v2.1 — Core Foundation (Ch. 1–6 + Workshops 1–6 + Expression Forge)
+       - Equipment tiers, #1->#2->#3 execution order & dashed feedback wires
+         (CONFIG p368), 7 EM algorithms vs. 4 inner patterns, CND/ACT/XFR/CALC/DC/AI
+         true pin layouts, DC AUTO/CAS-only mode rule (no MAN! FBR p427), >= GOOD
+         status rule, OS keyword, Golden Tare, and 60-second Triage Playbook.
 
-[DONE] Ch. 2 + Workshop 2 — 1 Outer Algorithm vs. 4 Inner Patterns & True Stencils
-       - 7 DeltaV Explorer EM algorithms; CND (OUT_D only, TIME_DURATION), ACT
-         (IN_D only, runs while True), XFR Transfer switch (replacing non-existent
-         BSEL), CALC (IN1..16/OUT1..16), Bold non-zero wires, Red X / Blue ? status.
+[DONE] v2.2 — State-Driven Mastery & 4-Pattern Folding (Ch. 7 + Workshops 7–8)
+       - Added EM_XFER_HDR & EM_2STAGE_VLV (Course 7016 Items x States table,
+         '= Cascade/', '= Auto/', '(not written)' cells, zero SFCs, 4-Pattern Lens),
+         plus 6-Block FBR Field Guide & purple dashed learning-only wire convention.
 
-[DONE] Ch. 3 + Workshop 3 — DC Modes (AUTO/CAS/LO), >= GOOD Status & ST Syntax
-       - Critical discovery: discrete DC blocks support ONLY AUTO (operator) and
-         CAS (upstream EM) target modes (no MAN mode on DC! FBR p427) + LO override;
-         OS keyword in expressions; >= GOOD status rule & manual CALC .ST propagation;
-         single-quoted 'SetName:Value' named-set constants ('vlvnc-sp:OPEN').
+[DONE] v3.0 — Continuous Plant Expansion (Non-Batch) (Ch. 8–10 + Workshops 9–11)
+       - Added FIC_101 (AI1 -> PID1 -> AO1, all 8 PID modes, gray dotted BKCAL
+         feedback, IMan tracking, Limited High anti-windup, Bad PV shed, TRK_IN_D
+         -> LO tracking interlock) and CASCADE_201 (Master TIC -> Slave FIC -> AO
+         double BKCAL chain + CTLSL Low-Select Override with BKCAL_SEL1..2 & FBR
+         p. 187 Bad-input MAN shed), plus ISEL & Embedded vs. Linked Composites.
 
-[DONE] Ch. 4 + Workshop 4 — Pin-by-Pin EM_TANK_CHARGE (All 4 Views + Combo)
-       - COMMAND_00001 SFC with [P] vs [N] (retains written value) + Termination
-         bar -> A_PV = CHARGE, XFR1, CALC1, CND1..5, ACT1..2, and DC1 cutaway.
+[DONE] v3.1 — Real Plant PCSD EM Case Study (Ch. 11 + Workshop 12 + Module 6)
+       - Transcribed 41 live plant photos of N1EAST/BUFFER_PREP/PW_NEUT/3WT-0001-NEUT
+         (_EM_CMD32_140): 6/11 commands, 19/32 shared devices, 1/8 timers (TMR1 90m),
+         8/40 TPs (TP001–TP008), zero-wire Main FBD (Hide Stubs + 4-Pattern Lens),
+         ACQ_REL, CND1–CND3, MONITOR (SENTINEL + HOLD + OAR + CANCEL_WAIT), and
+         organically cross-wove PCSD lessons across Ch. 2.3, 6, 7.5, Field Guide
+         (FB-7: RET & AT), and Appendix A.
 
-[DONE] Ch. 5 + Workshop 5 — Phase Hold/Restart/Abort & Golden Tare Proof-by-Numbers
-       - Hold/Restart/Abort as Unit Phase composite states (HOLD_LOGIC, RESTART_LOGIC,
-         FAIL_MONITOR — 7016 p70, p202) + 600 kg vs. 800 kg overfill proof.
-
-[DONE] Ch. 6 + Workshop 6 — Systematic 60-Second Control Room Triage Playbook
-       - 4-Checkpoint triage sequence + stuck-open feed valve lab (CAS_SP vs. PV,
-         DC1 built-in CFM_PASS_TIME / FAIL_ACTIVE + CND5 TIME_DURATION = 10s).
-
-[DONE] Ch. 7 + Workshops 7–8 — State-Driven EMs (EM_XFER_HDR & EM_2STAGE_VLV)
-       - Authentic Control Studio Items x States table (zero SFCs! Write path +
-         Readback path, '= Cascade/', '= Auto/', '(not written)' skipped cells,
-         A_COMMAND vs. A_PV — 7016 p140, p166), deep-dive 4-pattern folding
-         (Command-Driven 3–4 patterns vs. State-Driven 2–3 patterns), custom FBD
-         anti-cross-mix gate, health watchdog, overpressure & tank trip overrides.
-
-[DONE] Ch. 8 + Workshop 9 — Analog Control Modules, PID & BKCAL (FIC_101)
-       - AI1 -> PID1 -> AO1, all 8 PID modes, gray dotted BKCAL_OUT -> BKCAL_IN
-         feedback wire (#3 -> #2), IMan bumpless tracking, Limited High anti-
-         reset windup, Bad PV mode shed, IO_IN precedence, and AO fail-safe.
-
-[DONE] Ch. 9 + Workshop 10 — Cascade & CTLSL Override Control (CASCADE_201)
-       - Master TIC -> Slave FIC -> AO_VLV double gray dotted BKCAL chain,
-         Dynamic Reset Limit, plus CTLSL Control Selector (LOW select,
-         BKCAL_SEL1..3 anti-windup, Bad input shedding CTLSL to MAN).
-
-[DONE] Ch. 10 + Workshop 11 — Interlocks, Tracking, ISEL & Composite Blocks
-       - PID TRK_IN_D / TRK_VAL -> LO (Track Enable & Track in Manual), AO
-         FSTATE_VAL, DC INTERLOCK_D vs PERMISSIVE_D vs SHUTDOWN_D, ISEL 4-input
-         redundant sensor selector (MAX/MIN/MID/FIRST_GOOD/AVG), Embedded vs.
-         Linked Composites, and 5-module Cold-Read Readiness Challenge.
-
-[DONE] Ch. 11 + Workshop 12 — Real Plant PCSD Case Study (3WT-0001-NEUT)
-       - Decoded 41 live screenshots of N1EAST/BUFFER_PREP/PW_NEUT/3WT-0001-NEUT
-         (_EM_CMD32_140): 6/11 commands, 19/32 shared devices, 1/8 timers (TMR1
-         90m), 8/40 TPs (TP001–TP008), zero-wire Main FBD, ACQ_REL, CND1–CND3,
-         MONITOR (SENTINEL_MONITOR SM_01..17 + HOLD_MONITOR HM_01 + OAR +
-         CANCEL_WAIT), and split-range pH control (AIC002 + AI02RMP).
+[DONE] v3.2 — Full Visual Explorer Polish, 2nd Photo Deep-Audit & Unwired Boxes X-Ray
+       - Visual Explorer formatting overhaul (1440x900 headless screenshot QA across
+         all 20 views): clean 2-row header, 72px bottom legend clearance, unclipped
+         Inspector watch table, auto-scaling block headers & flags, zero overlaps.
+       - 2nd direct audit of all 41 PW_Neutralization photos uncovered & added:
+         * Split-range pH AIC002 safe tracking TRK_VAL = 50% (NOT 0% — 0% dumps
+           100% Acid!) + purple HMI LO borders (IMG_1121, 1154) & AI02AVG (2 probes)
+         * OFF SFC step timers sum to exact A_TIME (1.005+1.996+5.999+1+13.001 =
+           23.001s) while A_COMMAND clears to Undefined on Complete (IMG_1114, 1133)
+         * Arbitration details: OPR_CMD_MASK=47 bitmask, HOLD_REQ mode-lock expr
+           ('<EM_INSTANCE>/HOLD_REQ.CV' = False), OVR/OPER_REL/RESTART_CMD_ENAB,
+           OP_PERMIT/TP_PERMIT, FAIL_ENAB/NOT_OWNED_HOLD, S0020/A010-A020, S0100R/H3000R
+         * AT block '0' vs '???' counting trick (SM_AT1 16 + SM_AT2 3 = 19 bound;
+           SM_01..17=True physical vs SM_18..19=False AVG/RMP; HM_AT1 = 2 cfg'd),
+           photo-accurate FAIL_EXPRESSION (^ACTION_TIMER), SM_BYPASS/HM_BYPASS,
+           OAR CND1 wired TIME_DURATION, TMR1 4 wired inputs, and inactive '??? X'
+       - Deepened Unwired Parameter Boxes (Section 2.5 + Fig. 2.2 in PDF + new
+         FIC_101 Tab 3 'Unwired Boxes X-Ray' with Raw/X-Ray toggle & Bottom
+         Parameter View table + 5 native types: Internal Ref, External/Dynamic Ref,
+         Module Vars/TPs, Parameter Shortcut '$', Higher-Level Output Boxes).
+       - Expanded Expression Forge (ex.html) from 17 -> 27 self-tested drills +
+         3 live 3WT-0001 tags & 2 live presets in Mode 4 On-Line Tree.
 
 ================================================================================
 2. WHERE WE ARE RIGHT NOW
 ================================================================================
-- Completed Edition v3.1 incorporating your real plant Process Waste
-  Neutralization EM (3WT-0001-NEUT) into both Visual Explorer (Module 6) and
-  the Study Guide PDF (Chapter 11 + Workshop 12 + Mastery Exam Q17–Q18).
+- Edition v3.2 is built, self-tested (JS syntax, DOM IDs, all 27 Expression Forge
+  drills, 0 stray backticks in HTML, PDF regenerated cleanly), and visually
+  QA-verified across all 6 Visual Explorer modules (20 interactive views).
+- Local workspace changes ready to commit/push (index.html, ex.html,
+  DeltaV_Study_Guide.html, DeltaV_Study_Guide.pdf, WHERE_WE_ARE.txt, README.md).
+- Note on local plant photos: PW_Neutralization/ (44 JPEGs) and 30001.png live
+  locally for reference; check before pushing if you want them kept local-only.
 
 ================================================================================
-3. WHAT WE HOPE TO ACCOMPLISH (CONTROL STUDIO MASTERY ROADMAP — NON-BATCH FOCUS)
+3. WHERE WE ARE GOING NEXT (ROADMAP — NON-BATCH PLANT MASTERY)
 ================================================================================
-[DONE] Phase 1: Command-Driven EMs, Modes, Paths & Discrete CMs (Ch. 1–6 + Labs 1–6)
-[DONE] Phase 2: State-Driven EMs — EM_XFER_HDR & EM_2STAGE_VLV (Ch. 7 + Labs 7–8)
-[DONE] Phase 3: Analog PID, BKCAL, Cascade & CTLSL Override (Ch. 8–9 + Labs 9–10)
-[DONE] Phase 4: Tracking Interlocks, ISEL & Composite Blocks (Ch. 10 + Lab 11)
-[OPT.] Phase 5: Advanced Continuous Topics (Split-Range, Feedforward, Ratio,
-                Lead-Lag, or Custom Cold-Read Scenarios from your plant!)
+[NEXT] Optional 3WT-0001-NEUT Workstation Follow-Up (4 remaining drill-downs):
+       Next time you're at the DeltaV engineering station, grab shots inside:
+       (1) Step S0100 & S0100R inside TRANSFER, TREAT, and DISCHARGE
+       (2) CND1 (#42), CND2 (#43), and CND3 (#44) expressions on Main FBD
+       (3) Inside ACQ_REL composite (#1)
+       (4) Conditions #1 & #2 inside MONITOR/HM_AT1 (exact process trip logic)
+       -> We can plug those exact expressions straight into Ch. 11, Visual
+          Explorer Module 6, and Expression Forge!
+
+[PHASE 5] Advanced Non-Batch Continuous & Plant Control Topics (Pick Next!):
+       - Split-Range Control Deep-Dive (SPLT / CHAR characterizer + pH titration
+         deadband & 50% track mechanics — building directly off 3WT-0001-AIC002!)
+       - Feedforward (FF_VAL) & Ratio Control (RATIO block) + Lead-Lag (LLAG)
+       - Redundant Sensor Voting & Averaging (ISEL 2oo3 MID vs. AI02AVG 2-probe)
+       - Alarm Configuration, Shelving, First-Out & Suppression in Control Studio
+       - Real-Plant Cold-Read Drills: bring photos of any other plant CM/EM
+         (pump skid, heat exchanger, CIP, boiler, header) to dissect & add!
 ================================================================================
