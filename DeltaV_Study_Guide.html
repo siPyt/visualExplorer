@@ -1331,43 +1331,43 @@
   </div>
   <div class="workshop-body">
     <div class="workshop-setup">
-      <strong>Setup:</strong> Launch <strong>Visual Explorer</strong> (<code>run</code>), click the <strong>top-left module dropdown</strong>, and select <strong><code>CM_PMP_101 (DC Safety: LO, SP Track &amp; Reset — Ch. 3.2)</code></strong>. Confirm you are on Tab <strong><code>1. Live DC1 Safety &amp; Auto-Restart Lab</code></strong> and click <strong>Reset Lab</strong>. <em>(Starts <code>RUNNING</code> in <code>AUTO</code> with <code>SP Track: OFF</code> &amp; <code>Reset Req: OFF</code>.)</em>
+      <strong>Setup:</strong> Launch <strong>Visual Explorer</strong> (<code>run</code>), click the <strong>top-left module dropdown</strong>, and select <strong><code>CM_PMP_101 (DC Safety: LO, SP Track &amp; Reset — Ch. 3.2)</code></strong>. Confirm you are on Tab <strong><code>1. Live DC1 Safety &amp; Auto-Restart Lab</code></strong> and click <strong><code>Reset Lab</code></strong> at the far right of the <strong>dark Simulation Bar</strong>. <em>(Starts <code>RUNNING</code> in <code>AUTO</code> with <code>SP Track: OFF</code> &amp; <code>Reset Req: OFF</code>. Tip: Every safety pin and Truth Matrix row can be clicked EITHER in the dark top Simulation Bar OR directly on the white diagram!)</em>
     </div>
     <ol>
       <li><strong>Trigger the Unattended Auto-Restart Trap (<code>SP Track = OFF</code>, <code>Reset Req = OFF</code>):</strong>
         <ul>
-          <li>Click <strong><code>INTERLOCK_D: 1</code></strong> so it drops to <strong><code>0 (TRIP!)</code></strong>. <em>Observe:</em> <code>PMP-101</code> stops, DeltaV Live shows a <strong>purple <code>LO</code> border</strong>, <code>DC_STATE = Shutdown/Interlocked</code>—but look inside <code>DC1</code>: <strong><code>SP_D</code> stayed stuck at <code>START ⚠️</code>!</strong></li>
+          <li>In the dark top Simulation Bar (or right on the diagram), click <strong><code>INTERLOCK_D: 1</code></strong> so it drops to <strong><code>0 (TRIP!)</code></strong>. <em>Observe:</em> <code>PMP-101</code> stops, DeltaV Live shows a <strong>purple <code>LO</code> border</strong>, <code>DC_STATE = Shutdown/Interlocked</code>—but look inside <code>DC1</code>: <strong><code>SP_D</code> stayed stuck at <code>START ⚠️</code>!</strong></li>
           <li>Now pretend 5 minutes passed and the interlock clears: click <strong><code>INTERLOCK_D: 0 (TRIP!)</code></strong> back to <strong><code>1</code></strong>. <em>Observe:</em> The instant <code>INTERLOCK_D</code> returns to <code>1</code>, <code>PMP-101</code> fires the red <strong><code>⚡ UNATTENDED AUTO-RESTART!!</code></strong> alert and restarts with zero delay!</li>
         </ul>
       </li>
       <li><strong>Test the Subtle Half-Fix (<code>SP Track = OFF</code>, <code>Reset Req = ON</code> — <em>FBR</em> p. 421):</strong>
         <ul>
-          <li>Click <strong><code>Reset Req: OFF</code> → <code>ON ✓</code></strong> (keep <code>SP Track: OFF</code>). Watch Row 2 highlight in the bottom Truth Matrix.</li>
+          <li>In the dark top Simulation Bar, click <strong><code>Reset Req: OFF</code> → <code>ON ✓</code></strong> (or click <strong>Row 2</strong> of the bottom Truth Matrix). Watch Row 2 highlight blue.</li>
           <li>Trip <strong><code>INTERLOCK_D</code> (<code>1 → 0</code>)</strong>, then clear it <strong>(<code>0 → 1</code>)</strong>. <em>Observe:</em> Unlike Step 1, the pump stays safely OFF in <strong><code>DC_STATE = Locked (LO)</code></strong>!</li>
-          <li>Now click <strong><code>⚡ Pulse RESET_D (UNLOCK!)</code></strong>. <em>Observe the FBR p. 421 catch:</em> Because <code>SP Track</code> was OFF, <code>SP_D</code> was still <code>START</code>—so unlocking immediately resumes the pump!</li>
+          <li>Now click <strong><code>⚡ Pulse RESET_D (UNLOCK!)</code></strong> (in the top bar or the <code>RESET_D</code> box on the diagram). <em>Observe the FBR p. 421 catch:</em> Because <code>SP Track</code> was OFF, <code>SP_D</code> was still <code>START</code>—so unlocking immediately resumes the pump!</li>
         </ul>
       </li>
       <li><strong>Test <code>SP Track</code> Alone (<code>SP Track = ON</code>, <code>Reset Req = OFF</code>):</strong>
         <ul>
-          <li>Click <strong><code>SP Track: OFF</code> → <code>ON ✓</code></strong> and <strong><code>Reset Req: ON ✓</code> → <code>OFF</code></strong>. (Ensure pump is <code>RUNNING</code>; click <strong><code>SP_D: START</code></strong> if stopped.)</li>
+          <li>Click <strong><code>SP Track: OFF</code> → <code>ON ✓</code></strong> and <strong><code>Reset Req: ON ✓</code> → <code>OFF</code></strong> (or click <strong>Row 3</strong> of the bottom Truth Matrix). Ensure the pump is <code>RUNNING</code> (click <strong><code>START</code></strong> next to <code>SP_D:</code> in the top bar if stopped).</li>
           <li>Trip <strong><code>INTERLOCK_D</code> (<code>1 → 0</code>)</strong>—watch <code>SP Track</code> immediately overwrite <code>SP_D</code> from <code>START</code> to <strong><code>STOP</code></strong> in the Sequence Log! Clear <strong><code>INTERLOCK_D</code> (<code>0 → 1</code>)</strong>: <code>DC1</code> returns to <code>AUTO</code> and stays <strong>safely STOPPED</strong> (no <code>RESET_D</code> needed).</li>
         </ul>
       </li>
       <li><strong>Test Gold-Standard Motor Safety (<code>SP Track = ON</code> AND <code>Reset Req = ON</code>):</strong>
         <ul>
-          <li>Click <strong><code>Reset Req: OFF</code> → <code>ON ✓</code></strong> (both ON — Row 4 highlighted green!) and click <strong><code>SP_D: START</code></strong> so the pump runs.</li>
-          <li>Trip <strong><code>SHUTDOWN_D: 0</code> → <code>1 (E-STOP!)</code></strong> (note: Active-High = <code>1</code>, NOT optional!), then clear <strong><code>SHUTDOWN_D</code> (<code>1 → 0</code>)</strong>. <em>Observe:</em> <code>SP_D</code> is now <code>STOP</code> <strong>AND</strong> <code>DC_STATE = Locked (LO)</code>!</li>
-          <li>Click <strong><code>⚡ Pulse RESET_D (UNLOCK!)</code></strong>. <em>Observe:</em> Unlocks cleanly to <code>AUTO / Confirmed Passive</code> and <strong>STAYS STOPPED</strong> until an operator deliberately clicks <strong><code>SP_D: START</code></strong>!</li>
+          <li>Click <strong><code>Reset Req: OFF</code> → <code>ON ✓</code></strong> (or click <strong>Row 4</strong> of the bottom Truth Matrix — highlighted green!) and click <strong><code>START</code></strong> in the top bar so the pump runs.</li>
+          <li>Trip <strong><code>SHUTDOWN_D: 0</code> → <code>1 (E-STOP!)</code></strong> (Active-High = <code>1</code>, NOT optional!), then clear <strong><code>SHUTDOWN_D</code> (<code>1 → 0</code>)</strong>. <em>Observe:</em> <code>SP_D</code> is now <code>STOP</code> <strong>AND</strong> <code>DC_STATE = Locked (LO)</code>!</li>
+          <li>Click <strong><code>⚡ Pulse RESET_D (UNLOCK!)</code></strong>. <em>Observe:</em> Unlocks cleanly to <code>AUTO / Confirmed Passive</code> and <strong>STAYS STOPPED</strong> until you deliberately click <strong><code>START</code></strong>!</li>
         </ul>
       </li>
       <li><strong>Prove Start-Only <code>PERMISSIVE_D</code> &amp; Local <code>TRK_IN_D</code>:</strong>
         <ul>
-          <li>Click <strong><code>SP_D: START</code></strong> so <code>PMP-101</code> is running. Now click <strong><code>PERMISSIVE_D: 1</code> → <code>0 (NO PERMIT)</code></strong>. <em>Observe:</em> <strong>ZERO trip while already running</strong> (<em>FBR</em> p. 419)!</li>
-          <li>Click <strong><code>SP_D: STOP</code></strong>—the instant the pump enters Passive, <code>PERMISSIVE_D = 0</code> forces <strong><code>LO</code></strong> and blocks clicking <strong><code>START</code></strong> until you restore <strong><code>PERMISSIVE_D: 1</code></strong>!</li>
-          <li>Finally toggle <strong><code>TRK_IN_D: 0</code> → <code>1 (LOCAL)</code></strong> to see Field Hand tracking force <code>LO</code>, then clear it back to <code>0</code>.</li>
+          <li>Click <strong><code>START</code></strong> in the top bar so <code>PMP-101</code> is running. Now click <strong><code>PERMISSIVE_D: 1</code> → <code>0 (NO PERMIT)</code></strong>. <em>Observe:</em> <strong>ZERO trip while already running</strong> (<em>FBR</em> p. 419)!</li>
+          <li>Click <strong><code>STOP</code></strong> in the top bar—the instant the pump enters Passive, <code>PERMISSIVE_D = 0</code> forces <strong><code>LO</code></strong> (and clicking <strong><code>START</code></strong> stays blocked!) until you click <strong><code>PERMISSIVE_D</code></strong> back to <strong><code>1</code></strong>.</li>
+          <li>Toggle <strong><code>TRK_IN_D: 0</code> → <code>1 (LOCAL)</code></strong> to watch Field Hand tracking force <code>LO</code>, then clear it back to <strong><code>0</code></strong>.</li>
         </ul>
       </li>
-      <li><strong>Trace the Live State Machine (Tab 2):</strong> Click Tab <strong><code>2. 4-Pin Polarity &amp; State Machine X-Ray</code></strong>, trip and clear <strong><code>INTERLOCK_D</code></strong> once more, and watch the active highlight move from <code>Confirmed Active 1</code> → <code>Shutdown/Interlocked</code> → <code>Locked (LO)</code> → <code>Confirmed Passive</code> (and read the exact Control Studio click path at the bottom: <em>Diagram View → click <code>DC1</code> → Parameter View → double-click <code>DEVICE_OPTS</code></em>!).</li>
+      <li><strong>Trace the Live State Machine (Tab 2):</strong> Click Tab <strong><code>2. 4-Pin Polarity &amp; State Machine X-Ray</code></strong>. First click <strong><code>START</code></strong> in the top bar so <strong><code>Confirmed Active 1</code></strong> lights up green! Now click <strong><code>INTERLOCK_D: 1 → 0</code></strong> (moves to red <strong><code>Shutdown/Interlocked</code></strong>), click <strong><code>INTERLOCK_D: 0 → 1</code></strong> (moves to purple <strong><code>Locked (LO)</code></strong>), and click <strong><code>⚡ Pulse RESET_D</code></strong> (moves to blue <strong><code>Confirmed Passive</code></strong>!). Read the exact Control Studio click path at the bottom: <em>Diagram View → click <code>DC1</code> → Parameter View → double-click <code>DEVICE_OPTS</code></em>!</li>
     </ol>
     <div class="workshop-takeaway">
       <strong>What You Are Supposed to Learn From This Workshop:</strong> On any real plant motor <code>DC</code> block, check <strong>BOTH <code>SP Track</code> AND <code>Reset Required</code></strong> inside <code>DEVICE_OPTS</code>—leaving both unchecked causes instant unattended auto-restarts, and checking only <code>Reset Required</code> still auto-resumes on <code>RESET_D</code>! Also memorize the polarity split: <strong>Active-High (<code>1</code>)</strong> = <code>SHUTDOWN_D</code> &amp; <code>TRK_IN_D</code> vs. <strong>Fail-Safe Low (<code>0</code>)</strong> = <code>INTERLOCK_D</code> (continuous) &amp; <code>PERMISSIVE_D</code> (Passive start-only).

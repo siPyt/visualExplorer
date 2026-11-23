@@ -1209,7 +1209,8 @@ const state = {
   dcLocked: false,                // DC_STATE = Locked latch (waiting for RESET_D pulse)
   dcWasTripped: false,            // Remembers trip so clearing detects Unattended Auto-Restart!
   dcAutoRestartAlert: false,      // True when clearing trip or RESET_D restarts pump with SP_D still START!
-  dcLog: ["1. Pump RUNNING: SP_D = START → Confirmed Active 1 (AUTO). Try clicking INTERLOCK_D: 1 → 0!"]
+  dcLogSeq: 1,                    // Monotonic step counter for Sequence Log
+  dcLog: ["#1 Pump RUNNING (AUTO, SP_D=START). Click INTERLOCK_D!"]
 };
 
 function computeChargeDerived() {
@@ -1687,8 +1688,8 @@ function computeSpltDerived() {
 }
 
 function pushDcLog(msg) {
-  const n = state.dcLog.length + 1;
-  state.dcLog.push(`${n}. ${msg}`);
+  state.dcLogSeq = (state.dcLogSeq || 1) + 1;
+  state.dcLog.push(`#${state.dcLogSeq} ${msg}`);
   if (state.dcLog.length > 4) state.dcLog.shift();
 }
 
@@ -1700,9 +1701,9 @@ function evalDcSafeAction(reason, isPulseReset = false) {
     state.dcAutoRestartAlert = false;
     if (state.dcSpTrack && state.dcSpD !== "STOP") {
       state.dcSpD = "STOP";
-      pushDcLog(`${reason} → LO Tracking (FV_D=STOP); SP Track copied STOP → SP_D!`);
+      pushDcLog(`${reason} → LO Track; SP_D→STOP`);
     } else {
-      pushDcLog(`${reason} → LO Tracking (OUT_D := FV_D = STOP).`);
+      pushDcLog(`${reason} → LO Tracking FV_D=STOP`);
     }
     return;
   }
@@ -1713,16 +1714,16 @@ function evalDcSafeAction(reason, isPulseReset = false) {
     if (state.dcResetReq) state.dcLocked = true;
     if (state.dcSpTrack && state.dcSpD !== "STOP") {
       state.dcSpD = "STOP";
-      pushDcLog(`${reason} → LO Trip! SP Track overwrote SP_D := STOP${state.dcResetReq ? " + armed Locked" : ""}.`);
+      pushDcLog(`${reason} → LO! SP Track→STOP${state.dcResetReq ? "+Lock" : ""}`);
     } else {
-      pushDcLog(`${reason} → LO Trip! SP_D STAYED '${state.dcSpD}'${state.dcResetReq ? " (Locked armed)" : " (NO SP Track!)"}.`);
+      pushDcLog(`${reason} → LO! SP_D='${state.dcSpD}'${state.dcResetReq ? " (Lock)" : ""}`);
     }
     return;
   }
   // Trip is NOT active:
   if (isPulseReset) {
     if (!state.dcLocked) {
-      pushDcLog(`RESET_D pulsed (no Locked state active).`);
+      pushDcLog(`RESET_D pulsed (not Locked).`);
       return;
     }
     state.dcLocked = false;
@@ -1730,20 +1731,20 @@ function evalDcSafeAction(reason, isPulseReset = false) {
       state.dcRunning = true;
       state.dcAutoRestartAlert = true;
       state.dcWasTripped = false;
-      pushDcLog(`RESET_D unlocked Locked — SP Track was OFF so SP_D stayed START → ⚡ PUMP AUTO-RESUMED (FBR p421)!`);
+      pushDcLog(`RESET_D → ⚡ AUTO-RESUMED! (SP_D=START)`);
       return;
     } else {
       state.dcRunning = false;
       state.dcAutoRestartAlert = false;
       state.dcWasTripped = false;
-      pushDcLog(`RESET_D unlocked Locked → AUTO / Confirmed Passive (SAFE: SP_D = ${state.dcSpD})!`);
+      pushDcLog(`RESET_D → Unlocked SAFE (SP_D=${state.dcSpD})`);
       return;
     }
   }
   if (state.dcLocked && state.dcResetReq) {
     state.dcRunning = false;
     state.dcAutoRestartAlert = false;
-    pushDcLog(`${reason} → DC_STATE = Locked (STAYS IN LO until operator pulses RESET_D!).`);
+    pushDcLog(`${reason} → Locked (LO)! Pulse RESET_D`);
     return;
   }
   state.dcLocked = false;
@@ -1752,7 +1753,7 @@ function evalDcSafeAction(reason, isPulseReset = false) {
     state.dcRunning = false;
     state.dcAutoRestartAlert = false;
     state.dcWasTripped = false;
-    pushDcLog(`${reason} → PERMISSIVE_D = 0 while Passive → LO (Start BLOCKED!).`);
+    pushDcLog(`${reason} → PERM=0 Passive → LO Blocked!`);
     return;
   }
   if (state.dcSpD === "START") {
@@ -1760,18 +1761,22 @@ function evalDcSafeAction(reason, isPulseReset = false) {
       state.dcRunning = true;
       state.dcAutoRestartAlert = true;
       state.dcWasTripped = false;
-      pushDcLog(`${reason} → ⚡ UNATTENDED AUTO-RESTART! SP_D stayed START → pump restarted immediately!`);
+      pushDcLog(`${reason} → ⚡ AUTO-RESTART!! (SP_D=START)`);
     } else {
-      const permNote = (!state.dcPerm && state.dcRunning) ? " (PERMISSIVE_D=0 ignored while ALREADY RUNNING — FBR p419!)" : "";
+      const permNote = (!state.dcPerm && state.dcRunning) ? " (PERM=0 ignored!)" : "";
       state.dcRunning = true;
       state.dcAutoRestartAlert = false;
-      pushDcLog(`${reason} → RUNNING (Confirmed Active 1)${permNote}`);
+      pushDcLog(`${reason} → RUNNING (AUTO)${permNote}`);
     }
   } else {
     state.dcRunning = false;
     state.dcAutoRestartAlert = false;
     state.dcWasTripped = false;
-    pushDcLog(`${reason} → STOPPED (Confirmed Passive, AUTO).`);
+    if (!state.dcPerm) {
+      pushDcLog(`${reason} → Passive + PERM=0 → LO Blocked!`);
+    } else {
+      pushDcLog(`${reason} → STOPPED (Passive, AUTO)`);
+    }
   }
 }
 
@@ -4702,12 +4707,12 @@ function renderSpltTab2(vp, sp) {
 function renderDcSafeTab1(vp, dc) {
   drawSectionStrip(vp, 22, 14, 896, 344, "OFFICIAL DELTAV DC BLOCK SAFETY LAB: CM_PMP_101/DC1 (SP TRACK, RESET REQUIRED & ALL 4 SAFETY PINS • FBR pp. 417–433)", "#1e3a8a");
 
-  // Left Column: 4 Official Safety Pins + RESET_D
-  drawFlag(vp, { id: "DC_PIN_SDN", x: 34, y: 74, w: 188, h: 32, side: "left", label: "SHUTDOWN_D (1=Trip)", sub: "Active-High • Always On", liveText: state.dcSdn ? "1 (TRIP!)" : "0 (OK)", status: state.dcSdn ? "bad" : "ok" });
-  drawFlag(vp, { id: "DC_PIN_ILOCK", x: 34, y: 126, w: 188, h: 32, side: "left", label: "INTERLOCK_D (0=Trip)", sub: "Fail-Safe Low • Trips Run", liveText: state.dcIlock ? "1 (OK)" : "0 (TRIP!)", status: state.dcIlock ? "ok" : "bad" });
-  drawFlag(vp, { id: "DC_PIN_PERM", x: 34, y: 178, w: 188, h: 32, side: "left", label: "PERMISSIVE_D (0=Block)", sub: "Start-Only in Passive!", liveText: state.dcPerm ? "1 (OK)" : (state.dcRunning ? "0 (Ignored)" : "0 (BLOCK!)"), status: state.dcPerm ? "ok" : (state.dcRunning ? "normal" : "warn") });
-  drawFlag(vp, { id: "DC_PIN_TRK", x: 34, y: 230, w: 188, h: 32, side: "left", label: "TRK_IN_D (1=Local)", sub: "Copies FV_D → OUT_D", liveText: state.dcTrk ? "1 (LOCAL)" : "0 (Off)", status: state.dcTrk ? "warn" : "normal" });
-  drawFlag(vp, { id: "DC_PIN_RESET", x: 34, y: 282, w: 188, h: 32, side: "left", label: "RESET_D (Unlock)", sub: "Clears DC_STATE=Locked", liveText: dc.lockedNow ? "PULSE ME!" : "0 (Idle)", status: dc.lockedNow ? "warn" : "normal" });
+  // Left Column: 4 Official Safety Pins + RESET_D (CLICKABLE TO TOGGLE DIRECTLY!)
+  drawFlag(vp, { id: "DC_PIN_SDN", x: 34, y: 74, w: 188, h: 32, side: "left", label: "SHUTDOWN_D (1=Trip)", sub: "Click to toggle • Always On", liveText: state.dcSdn ? "1 (TRIP!)" : "0 (OK)", status: state.dcSdn ? "bad" : "ok" });
+  drawFlag(vp, { id: "DC_PIN_ILOCK", x: 34, y: 126, w: 188, h: 32, side: "left", label: "INTERLOCK_D (0=Trip)", sub: "Click to toggle • Trips Run", liveText: state.dcIlock ? "1 (OK)" : "0 (TRIP!)", status: state.dcIlock ? "ok" : "bad" });
+  drawFlag(vp, { id: "DC_PIN_PERM", x: 34, y: 178, w: 188, h: 32, side: "left", label: "PERMISSIVE_D (0=Block)", sub: "Click to toggle • Start-Only", liveText: state.dcPerm ? "1 (OK)" : (state.dcRunning ? "0 (Ignored)" : "0 (BLOCK!)"), status: state.dcPerm ? "ok" : (state.dcRunning ? "normal" : "warn") });
+  drawFlag(vp, { id: "DC_PIN_TRK", x: 34, y: 230, w: 188, h: 32, side: "left", label: "TRK_IN_D (1=Local)", sub: "Click to toggle • Track FV_D", liveText: state.dcTrk ? "1 (LOCAL)" : "0 (Off)", status: state.dcTrk ? "warn" : "normal" });
+  drawFlag(vp, { id: "DC_PIN_RESET", x: 34, y: 282, w: 188, h: 32, side: "left", label: "RESET_D (Unlock)", sub: "Click to pulse • Clears Lock", liveText: dc.lockedNow ? "PULSE ME!" : "0 (Idle)", status: dc.lockedNow ? "warn" : "normal" });
 
   // Center: Authentic Official DC1 Block (FBR p. 417 exact pins!)
   drawFbdBlock(vp, {
@@ -4772,13 +4777,12 @@ function renderDcSafeTab1(vp, dc) {
   });
   vp.appendChild(gLog);
 
-  // Bottom Strip: LIVE 4-COMBINATION TRUTH MATRIX (SP Track x Reset Required — FBR pp. 419, 421, 427!)
-  const gMat = el("g", { class: "clickable" + (state.selectedId === "DC_OPT_MATRIX" ? " selected" : ""), "data-id": "DC_OPT_MATRIX" });
-  drawSectionStrip(vp, 22, 368, 896, 206, "LIVE 4-COMBINATION MATRIX: SP TRACK × RESET REQUIRED (OFFICIAL FBR pp. 419, 421, 427) — ACTIVE ROW HIGHLIGHTED!", "#6b21a8");
+  // Bottom Strip: LIVE 4-COMBINATION TRUTH MATRIX (SP Track x Reset Required — CLICK ANY ROW TO SELECT!)
+  drawSectionStrip(vp, 22, 368, 896, 206, "LIVE 4-COMBINATION MATRIX: SP TRACK × RESET REQUIRED (FBR pp. 419, 421) — CLICK ANY ROW TO APPLY!", "#6b21a8");
   const cols = [42, 148, 256, 594];
   const hdrs = ["SP Track", "Reset Req", "When INTERLOCK_D Clears (0 → 1)", "When Operator Pulses RESET_D"];
-  gMat.appendChild(el("rect", { x: 34, y: 394, width: 872, height: 22, fill: "#e2e8f0" }));
-  hdrs.forEach((h, i) => gMat.appendChild(el("text", { x: cols[i], y: 409, "font-size": 8.8, "font-weight": 800, fill: "#0f172a" }, h)));
+  vp.appendChild(el("rect", { x: 34, y: 394, width: 872, height: 22, fill: "#e2e8f0" }));
+  hdrs.forEach((h, i) => vp.appendChild(el("text", { x: cols[i], y: 409, "font-size": 8.8, "font-weight": 800, fill: "#0f172a" }, h)));
 
   const rows = [
     ["OFF (0)", "OFF (0)", "⚡ AUTO-RESTARTS IMMEDIATELY! (SP_D stayed START!)", "Not used (no Locked latch)"],
@@ -4791,13 +4795,14 @@ function renderDcSafeTab1(vp, dc) {
     const isNow = idx === dc.comboIdx;
     const bg = isNow ? (idx === 0 ? "#fee2e2" : (idx === 3 ? "#dcfce7" : "#dbeafe")) : (idx % 2 ? "#f8fafc" : "#ffffff");
     const bd = isNow ? (idx === 0 ? "#dc2626" : (idx === 3 ? "#16a34a" : "#2563eb")) : "#e2e8f0";
-    gMat.appendChild(el("rect", { x: 34, y: ry, width: 872, height: 32, rx: 4, fill: bg, stroke: bd, "stroke-width": isNow ? 2 : 1 }));
+    const gRow = el("g", { class: "clickable", "data-id": "DC_OPT_MATRIX", "data-dccombo": String(idx) });
+    gRow.appendChild(el("rect", { x: 34, y: ry, width: 872, height: 32, rx: 4, fill: bg, stroke: bd, "stroke-width": isNow ? 2 : 1 }));
     r.forEach((cell, ci) => {
       const col = (ci >= 2 && cell.includes("⚡")) ? "#b91c1c" : ((ci >= 2 && cell.includes("✓")) ? "#15803d" : (isNow ? "#0f172a" : "#334155"));
-      gMat.appendChild(el("text", { x: cols[ci], y: ry + 20, "font-size": 8.8, "font-weight": isNow || ci < 2 ? 800 : 600, fill: col, "font-family": ci < 2 ? "ui-monospace, monospace" : "inherit" }, (isNow && ci === 0 ? "▶ " : "") + cell));
+      gRow.appendChild(el("text", { x: cols[ci], y: ry + 20, "font-size": 8.8, "font-weight": isNow || ci < 2 ? 800 : 600, fill: col, "font-family": ci < 2 ? "ui-monospace, monospace" : "inherit" }, (isNow && ci === 0 ? "▶ " : "") + cell));
     });
+    vp.appendChild(gRow);
   });
-  vp.appendChild(gMat);
 }
 
 function renderDcSafeTab2(vp, dc) {
@@ -6456,6 +6461,27 @@ document.getElementById("schematic").addEventListener("click", (e) => {
       state.pwCmd = pwCmd;
       state.notice = "";
     }
+    // Module 8 (CM_PMP_101): Allow clicking diagram pin boxes & Truth Matrix rows directly!
+    if (state.module === "dcsafe") {
+      const dcPinMap = { DC_PIN_SDN: "btnDcSdn", DC_PIN_ILOCK: "btnDcIlock", DC_PIN_PERM: "btnDcPerm", DC_PIN_TRK: "btnDcTrk", DC_PIN_RESET: "btnDcPulseReset" };
+      if (dcPinMap[clickedId]) {
+        document.getElementById(dcPinMap[clickedId]).click();
+        return;
+      }
+      const comboAttr = target.getAttribute("data-dccombo");
+      if (comboAttr !== null) {
+        const ci = parseInt(comboAttr, 10);
+        state.dcSpTrack = ci >= 2;
+        state.dcResetReq = (ci % 2) === 1;
+        state.dcAutoRestartAlert = false;
+        state.notice = "";
+        if (state.dcSpTrack && (state.dcTrk || state.dcSdn || !state.dcIlock)) state.dcSpD = "STOP";
+        if (!state.dcResetReq && state.dcLocked) { state.dcLocked = false; evalDcSafeAction("Disabled Reset Req"); }
+        else pushDcLog(`Set SP Track=${state.dcSpTrack?"ON":"OFF"}, Reset=${state.dcResetReq?"ON":"OFF"}`);
+        render();
+        return;
+      }
+    }
     render();
   }
 });
@@ -6790,51 +6816,52 @@ document.getElementById("btnDcStop").addEventListener("click", () => {
   evalDcSafeAction("Operator set SP_D := STOP"); render();
 });
 document.getElementById("btnDcSpTrack").addEventListener("click", () => {
-  state.dcSpTrack = !state.dcSpTrack; state.notice = ""; state.selectedId = "DC_OPT_MATRIX";
+  state.dcSpTrack = !state.dcSpTrack; state.dcAutoRestartAlert = false; state.notice = ""; state.selectedId = "DC_OPT_MATRIX";
   if (state.dcSpTrack && (state.dcTrk || state.dcSdn || !state.dcIlock)) {
     state.dcSpD = "STOP";
-    pushDcLog("Enabled SP Track while in LO → copied OUT_D (STOP) into SP_D!");
+    pushDcLog("SP Track ON in LO → SP_D := STOP");
   } else {
-    pushDcLog(`Toggled DEVICE_OPTS: SP Track = ${state.dcSpTrack ? "ON" : "OFF"}.`);
+    pushDcLog(`DEVICE_OPTS: SP Track = ${state.dcSpTrack ? "ON" : "OFF"}`);
   }
   render();
 });
 document.getElementById("btnDcResetReq").addEventListener("click", () => {
-  state.dcResetReq = !state.dcResetReq; state.notice = ""; state.selectedId = "DC_OPT_MATRIX";
+  state.dcResetReq = !state.dcResetReq; state.dcAutoRestartAlert = false; state.notice = ""; state.selectedId = "DC_OPT_MATRIX";
   if (state.dcResetReq && (state.dcSdn || !state.dcIlock)) state.dcLocked = true;
   if (!state.dcResetReq && state.dcLocked) {
     state.dcLocked = false;
-    evalDcSafeAction("Disabled Reset Required (cleared Locked)");
+    evalDcSafeAction("Reset Req OFF (unlocked)");
   } else {
-    pushDcLog(`Toggled DEVICE_OPTS: Reset Required = ${state.dcResetReq ? "ON" : "OFF"}.`);
+    pushDcLog(`DEVICE_OPTS: Reset Req = ${state.dcResetReq ? "ON" : "OFF"}`);
   }
   render();
 });
 document.getElementById("btnDcIlock").addEventListener("click", () => {
   state.dcIlock = !state.dcIlock; state.notice = ""; state.selectedId = "DC_PIN_ILOCK";
-  evalDcSafeAction(state.dcIlock ? "INTERLOCK_D cleared (0 → 1)" : "INTERLOCK_D dropped (1 → 0)"); render();
+  evalDcSafeAction(state.dcIlock ? "INTERLOCK 0→1" : "INTERLOCK 1→0"); render();
 });
 document.getElementById("btnDcSdn").addEventListener("click", () => {
   state.dcSdn = !state.dcSdn; state.notice = ""; state.selectedId = "DC_PIN_SDN";
-  evalDcSafeAction(state.dcSdn ? "SHUTDOWN_D tripped (0 → 1)" : "SHUTDOWN_D cleared (1 → 0)"); render();
+  evalDcSafeAction(state.dcSdn ? "SHUTDOWN 0→1" : "SHUTDOWN 1→0"); render();
 });
 document.getElementById("btnDcPerm").addEventListener("click", () => {
   state.dcPerm = !state.dcPerm; state.notice = ""; state.selectedId = "DC_PIN_PERM";
-  evalDcSafeAction(state.dcPerm ? "PERMISSIVE_D restored (0 → 1)" : "PERMISSIVE_D dropped (1 → 0)"); render();
+  evalDcSafeAction(state.dcPerm ? "PERMISSIVE 0→1" : "PERMISSIVE 1→0"); render();
 });
 document.getElementById("btnDcTrk").addEventListener("click", () => {
   state.dcTrk = !state.dcTrk; state.notice = ""; state.selectedId = "DC_PIN_TRK";
-  evalDcSafeAction(state.dcTrk ? "TRK_IN_D = 1 (Field Hand)" : "TRK_IN_D = 0 (Cleared)"); render();
+  evalDcSafeAction(state.dcTrk ? "TRK_IN_D = 1" : "TRK_IN_D = 0"); render();
 });
 document.getElementById("btnDcPulseReset").addEventListener("click", () => {
   state.notice = ""; state.selectedId = "DC_PIN_RESET";
-  evalDcSafeAction("Operator pulsed RESET_D = 1", true); render();
+  evalDcSafeAction("RESET_D pulsed", true); render();
 });
 document.getElementById("btnDcReset").addEventListener("click", () => {
   state.dcSpD = "START"; state.dcRunning = true; state.dcSpTrack = false; state.dcResetReq = false;
   state.dcIlock = true; state.dcSdn = false; state.dcPerm = true; state.dcTrk = false;
   state.dcLocked = false; state.dcWasTripped = false; state.dcAutoRestartAlert = false;
-  state.dcLog = ["1. Reset: Pump RUNNING (SP_D=START, AUTO). Try INTERLOCK_D (1→0), then (0→1)!"];
+  state.dcLogSeq = 1;
+  state.dcLog = ["#1 Pump RUNNING (AUTO, SP_D=START). Click INTERLOCK_D!"];
   state.selectedId = state.tab === "dc2" ? "DC_PIN_TABLE" : "DC_SAFE_BLK";
   state.notice = "Reset CM_PMP_101 to RUNNING with SP Track=OFF & Reset Required=OFF (ready to test the 2:00 AM Trap!).";
   render();
