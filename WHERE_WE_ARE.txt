@@ -1,88 +1,83 @@
 ================================================================================
 DELTAV CONTROL STUDIO MASTERY — PROGRESS & MISSION TRACKER
-Last Updated: 2026-11-22 (Edition v2.0 Textbook + 7 Labs Complete)
+Last Updated: 2026-11-22 (Edition v2.1 — Verified Against 12 Official Emerson PDFs)
 Repository:   https://github.com/siPyt/visualExplorer.git
 ================================================================================
 
 ULTIMATE MISSION
 ----------------
 Walk up to ANY Emerson DeltaV Control Studio workstation at ANY plant, open ANY
-module (CM, EM, or EPH — Off-Line or On-Line), and immediately read what every
-block, wire, pin, mode, status, and interlock is doing like the sharpest
-engineer in the room.
+module (CM, EM, or Unit Phase — Off-Line or On-Line), and immediately read what
+every block, wire, pin, mode, status, and interlock is doing like the sharpest
+engineer in the room — with zero made-up syntax and zero guessing.
 
 HOW THIS WORKSPACE OPERATES
 ---------------------------
 1. Visual Explorer (index.html — launch anytime by typing 'run' in terminal):
-   Interactive visual Control Studio trainer. Switch modules in the top-left
-   picker (EM_TANK_CHARGE + EM_XFER_HDR) to inspect authentic DeltaV Control
-   Studio stencils, wires, pins, On-Line live values, and fault simulations.
+   Interactive visual Control Studio trainer (EM_TANK_CHARGE + EM_XFER_HDR).
+   Uses authentic Control Studio geometry, pins, modes, and State-Driven tables
+   while keeping clearly labeled study-aid colors and dotted expression-ref lines.
 2. Expression Forge (ex.html — launch anytime by typing 'run ex' in terminal):
    Web & mobile-ready interactive DeltaV Structured Text expression & parameter
    trainer (Decode Cold, Forge Builder, 2 AM Bug Hunt, and On-Line Expression
-   Tree Evaluator). Enable GitHub Pages on this repo to drill on any phone!
-3. Textbook & Lab Manual (DeltaV_Study_Guide.pdf — Edition v2.0, 18 pages):
+   Tree Evaluator).
+3. Textbook & Lab Manual (DeltaV_Study_Guide.pdf — Edition v2.1):
    Full in-depth native DeltaV lessons, pin-by-pin schematics, real-plant traps,
    and 7 complete step-by-step Visual Explorer workshops (launch via 'run guide'
    or 'run pdf').
-4. Reference Library (pdf reference/):
-   Official Emerson DeltaV Sequence Tutorials & Control Studio Online PDS docs.
+4. Verified Truth Source (DELTAV_VERIFIED_FACTS.md + pdf reference/):
+   Every Control Studio fact cited by exact PDF + page number across 12 official
+   Emerson manuals (Function Block Reference, DeltaV Configuration, 7009, 7016,
+   7017, Control Studio Online PDS, FILL Phase, Sequence Tutorial).
 5. Session Tracker (WHERE_WE_ARE.txt — this file):
-   Single source of truth so even a brand-new chat instantly knows where we came
-   from, where we are right now, and where we are going next.
+   Single source of truth for continuity across sessions.
 
 ================================================================================
-1. WHERE WE CAME FROM (MASTERED SO FAR — TEXTBOOK v2.0 + WORKSHOPS 1–7)
+1. WHERE WE CAME FROM (MASTERED & VERIFIED — EDITION v2.1 + WORKSHOPS 1–7)
 ================================================================================
-[DONE] Ch. 1 + Workshop 1 — Equipment Tiers (EPH -> EM -> CM) & Scan Latency
-       - Why EMs never wire straight to I/O cards; 500 ms / 1 s scan classes;
-         why #1 -> #2 -> #3 execution order (not screen position) prevents
-         1-scan dead-time overshoot; PRECLOSE_LEAD math.
+[DONE] Ch. 1 + Workshop 1 — Equipment Tiers (Unit Phase -> EM -> CM) & Scan Order
+       - Unit Phase / Phase Logic ("EPH" in ISA-88), A_COMMAND / A_TARGET / A_PV,
+         CAS_SP -> DC1/CAS_IN_D & PV, #1 -> #2 -> #3 solve order, and why
+         Control Studio draws reversed #N wires as DASHED FEEDBACK WIRES (CONFIG p368)!
 
-[DONE] Ch. 2 + Workshop 2 — 1 Outer Algorithm vs. 4 Inner Patterns
-       - Clearing the SFC confusion: ONLY Pattern 1 steps through time; Patterns
-         2, 3, and 4 scan continuously 24/7 (even in Idle).
-       - Core 4 Algorithms (Command-Driven, State-Driven + single-step visual
-         trick, FBD, SFC) + the 7-item DeltaV Explorer menu heads-up.
-       - 5 Control Studio visual shapes + SFC action qualifiers ([P],[N],[S],[R],[D]).
+[DONE] Ch. 2 + Workshop 2 — 1 Outer Algorithm vs. 4 Inner Patterns & True Stencils
+       - 7 DeltaV Explorer EM algorithms; CND (OUT_D only, TIME_DURATION), ACT
+         (IN_D only, runs while True), XFR Transfer switch (replacing non-existent
+         BSEL), CALC (IN1..16/OUT1..16), Bold non-zero wires, Red X / Blue ? status.
 
-[DONE] Ch. 3 + Workshop 3 — Modes, Dual-Data Wires (.CV + .ST), ACT Stamps & Paths
-       - OOS, MAN, AUTO, CAS; Reality 1 (write MODE.TARGET, check MODE.ACTUAL);
-         Reality 2 (.ST health rides alongside .CV); Reality 3 (ACT latches writes).
-       - Structured Text quoting rules & 5-second path decoding.
+[DONE] Ch. 3 + Workshop 3 — DC Modes (AUTO/CAS/LO), >= GOOD Status & ST Syntax
+       - Critical discovery: discrete DC blocks support ONLY AUTO (operator) and
+         CAS (upstream EM) target modes (no MAN mode on DC! FBR p427) + LO override;
+         OS keyword in expressions; >= GOOD status rule & manual CALC .ST propagation;
+         single-quoted 'SetName:Value' named-set constants ('vlvnc-sp:OPEN').
 
-[DONE] Ch. 4 + Workshop 4 — Pin-by-Pin EM_TANK_CHARGE (All 4 Sheets)
-       - Complete schematics for Sheets 1–4 + 2-State Valve vs. 3-State Bulk/Dribble
-         DC1 assembly fork in S20_TRIM_CLOSE.
+[DONE] Ch. 4 + Workshop 4 — Pin-by-Pin EM_TANK_CHARGE (All 4 Views + Combo)
+       - COMMAND_00001 SFC with [P] vs [N] (retains written value) + Termination
+         bar -> A_PV = CHARGE, XFR1, CALC1, CND1..5, ACT1..2, and DC1 cutaway.
 
-[DONE] Ch. 5 + Workshop 5 — Hold, Restart, Abort & Golden Tare Proof-by-Numbers
-       - Why re-taring START_WT.CV on Restart causes a 200 kg overfill (800 kg vs.
-         600 kg gross) + mid-charge bad-scale (.ST=BAD) trip & recovery lab.
+[DONE] Ch. 5 + Workshop 5 — Phase Hold/Restart/Abort & Golden Tare Proof-by-Numbers
+       - Hold/Restart/Abort as Unit Phase composite states (HOLD_LOGIC, RESTART_LOGIC,
+         FAIL_MONITOR — 7016 p70, p202) + 600 kg vs. 800 kg overfill proof.
 
 [DONE] Ch. 6 + Workshop 6 — Systematic 60-Second Control Room Triage Playbook
-       - 4-Checkpoint triage sequence + stuck-open feed valve lab (CAS_IN_D vs.
-         PV_D, DURATION=10s, VALVE_MISMATCH_ALM).
+       - 4-Checkpoint triage sequence + stuck-open feed valve lab (CAS_SP vs. PV,
+         DC1 built-in CFM_PASS_TIME / FAIL_ACTIVE + CND5 TIME_DURATION = 10s).
 
 [DONE] Ch. 7 + Workshop 7 — State-Driven Equipment Modules (EM_XFER_HDR)
-       - Multi-valve manifold Device Alignment Mask, EM_S_COMMAND vs. PV_D,
-         anti-cross-mix pump gate (CND_PATH_OK), overpressure FAIL_STATE, and
-         FAIL_ACTIVE timeout labs.
+       - Authentic Control Studio Items x States table (Write path + Readback path,
+         '= Cascade/', '= OPEN', '= CLOSE' — 7016 p140), A_COMMAND vs. A_PV, plus
+         custom FBD anti-cross-mix pump gate, overpressure override, and 8s alarm.
 
 ================================================================================
 2. WHERE WE ARE RIGHT NOW
 ================================================================================
-- Completed Edition v2.0 of DeltaV_Study_Guide.pdf (18 full textbook pages +
-  Workshops 1–7) and Visual Explorer v2 (EM_TANK_CHARGE + EM_XFER_HDR).
-- Audited Visual Explorer against official Emerson PDFs in 'pdf reference/'
-  (Control Studio Online PDS + DeltaV Sequence Tutorial): kept helpful study
-  colors while fixing parameter boxes (rectangular + square pins), removing
-  abbreviated 'MODE.ACT', separating MODE.TARGET vs. MODE.ACTUAL, adding '//'
-  cross-module expression syntax, adding Red 'X' on Bad .ST / OOS callouts, and
-  embedding the authentic Control Studio On-Line Expression [✓ / ✗] Tree dialog.
+- Completed full 12-PDF Emerson Control Studio fact audit (DELTAV_VERIFIED_FACTS.md)
+  and synchronized Visual Explorer (index.html), Study Guide (DeltaV_Study_Guide.html
+  & DeltaV_Study_Guide.pdf v2.1), Expression Forge (ex.html), and SESSION_VOCAB.md.
 - NEXT IMMEDIATE STEP:
   -> Phase 3 / Chapter 8 + Workshop 8: Analog Control Modules & PID Loops
-     (AI -> PID -> AO, solid CAS_IN vs. dashed CAS_IN_D, SP/PV/OUT, and the
-     pro secret: BKCAL_IN / BKCAL_OUT back-calculation wires!).
+     (AI -> PID -> AO, MAN/AUTO/CAS/ROUT, SP/PV/OUT, and BKCAL_IN / BKCAL_OUT
+     anti-reset-windup back-calculation wires — verified straight from FBR!).
 
 ================================================================================
 3. WHAT WE HOPE TO ACCOMPLISH (FULL CONTROL STUDIO MASTERY ROADMAP)
@@ -91,5 +86,5 @@ HOW THIS WORKSPACE OPERATES
 [DONE] Phase 2: State-Driven Equipment Modules — EM_XFER_HDR (Ch. 7 + Lab 7)
 [NEXT] Phase 3: Analog Control, PID, Cascade & Back-Calculation (Ch. 8–9 + Labs)
 [PLAN] Phase 4: Advanced Interlocks, Tracking & Composite Blocks (Ch. 10 + Labs)
-[PLAN] Phase 5: Batch Equipment Phases (EPH) & Cold-Read Mastery (Ch. 11–12 + Labs)
+[PLAN] Phase 5: Batch Unit Phases (RUN/HOLD/RESTART/FAIL_MONITOR) & Cold-Read Mastery
 ================================================================================

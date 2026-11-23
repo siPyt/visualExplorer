@@ -557,24 +557,24 @@
 
   <!-- Quick Collapsible DeltaV Expression Cheat Sheet -->
   <details class="syntax-drawer">
-    <summary>⚡ 10-Second DeltaV Expression Assistant Cheat Sheet (Tap to Expand)</summary>
+    <summary>⚡ 10-Second DeltaV Expression Assistant Cheat Sheet (Tap to Expand — Verified CONFIG pp. 61–83)</summary>
     <div class="syntax-cols">
       <div class="syntax-card">
-        <strong>1. Path Quotes &amp; Shortcuts</strong><br/>
-        • Local module: <code>'^/TARGET_WT.CV'</code><br/>
-        • External CM: <code>'CM_FEED_XV/DC1/PV_D'</code> or <code>'//LAB4/FC4-1/SP.CV'</code><br/>
-        • Always wrap paths with <code>/</code> in <strong>single quotes</strong>!
+        <strong>1. Path Quotes &amp; Prefixes</strong><br/>
+        • External module: <code>'//CM_FEED_XV/DC1/MODE.ACTUAL'</code><br/>
+        • Up 1 level: <code>'^/TARGET_WT.CV'</code> • Module-rel: <code>'/PARAM'</code><br/>
+        • Named-set constant: <code>'vlvnc-sp:OPEN'</code> (quoted <code>Set:Value</code>!)
       </div>
       <div class="syntax-card">
-        <strong>2. Read (<code>=</code>) vs. Stamp (<code>:=</code>)</strong><br/>
-        • <strong>CND / Transition (Question):</strong> use <code>=</code>, <code>!=</code> (or <code>&lt;&gt;</code>), <code>&lt;=</code>, <code>&gt;=</code><br/>
-        • <strong>ACT / Step Action (Write):</strong> MUST use <code>:=</code> (e.g. <code>'^/OUT.CV' := 1.0</code>)
+        <strong>2. Read (<code>=</code>) vs. Assignment (<code>:=</code>)</strong><br/>
+        • <strong>CND / Transition:</strong> <code>:=</code> is illegal! Use <code>=</code>, <code>!=</code> (or <code>&lt;&gt;</code>), <code>&lt;=</code>, <code>&gt;=</code><br/>
+        • <strong>ACT / SFC Action:</strong> MUST use <code>:=</code> (retains value after step/ACT ends)
       </div>
       <div class="syntax-card">
-        <strong>3. Suffixes &amp; Keywords</strong><br/>
-        • <code>.CV</code> = Current Value • <code>.ST</code> = Health Status<br/>
-        • <code>MODE.ACTUAL</code> (check) vs <code>MODE.TARGET</code> (write)<br/>
-        • Unquoted keywords: <code>CAS</code>, <code>MAN</code>, <code>AUTO</code>, <code>OOS</code>, <code>GOOD</code>, <code>BAD</code>, <code>True</code>, <code>False</code>
+        <strong>3. Modes &amp; Status Constants</strong><br/>
+        • Always test <code>.ST &gt;= GOOD</code> (<code>= GOOD</code> misses <code>GoodCascade</code>!)<br/>
+        • Out of Service keyword is <strong><code>OS</code></strong> (not <code>OOS</code>!)<br/>
+        • <code>DC</code> blocks support only <code>AUTO</code> &amp; <code>CAS</code> target modes (<code>LO</code> on interlock)
       </div>
     </div>
   </details>
@@ -593,36 +593,36 @@
 const DECODE_DRILLS = [
   {
     id: "d1",
-    level: "Decode 1 • Mode Permissive",
+    level: "Decode 1 • DC1 Mode Permissive",
     title: "Feed Valve Cascade Readiness Check",
-    context: "Found inside EM_TANK_CHARGE → Pattern 2 → CND1 (Pre-Start Permissive)",
+    context: "Found inside EM_TANK_CHARGE → Pattern 2 → CND1 (FBR p427: DC blocks have AUTO & CAS target modes only!)",
     tokens: [
-      { t: "'CM_FEED_XV/DC1/MODE.ACTUAL'", cls: "tok-path", tip: "External reference into Control Module CM_FEED_XV, block DC1, checking its TRUE live operating mode (MODE.ACTUAL — never trust MODE.TARGET in permissives!)." },
-      { t: "=", cls: "tok-op", tip: "Equality comparison (=). Asks a Yes/No question without changing anything." },
-      { t: "CAS", cls: "tok-kw", tip: "Unquoted DeltaV mode constant for Cascade ('Following the Boss Upstairs')." }
+      { t: "'//CM_FEED_XV/DC1/MODE.ACTUAL'", cls: "tok-path", tip: "External '//' reference into Control Module CM_FEED_XV, block DC1, checking its TRUE live operating mode (MODE.ACTUAL — never trust MODE.TARGET in permissives!)." },
+      { t: "=", cls: "tok-op", tip: "Equality comparison (=). Assignment ':=' is illegal inside a CND block!" },
+      { t: "CAS", cls: "tok-kw", tip: "Unquoted DeltaV mode constant for Cascade. Note: discrete DC blocks use AUTO (not MAN!) for operator faceplate control, and Out of Service is spelled OS in expressions!" }
     ],
-    question: "If an operator flips CM_FEED_XV to Manual (MAN) while ACT2 still requests MODE.TARGET := CAS, what does this expression return?",
+    question: "If an operator puts CM_FEED_XV/DC1 into AUTO (operator faceplate control) while ACT2 still writes MODE.TARGET := CAS, what does this expression return?",
     options: [
-      { text: "FALSE (0) — because MODE.ACTUAL is MAN, holding the charge safely in Idle.", ok: true },
+      { text: "FALSE (0) — because MODE.ACTUAL is AUTO, holding the charge safely in S0_IDLE.", ok: true },
       { text: "TRUE (1) — because MODE.TARGET is still requesting CAS.", ok: false },
-      { text: "It forces CM_FEED_XV back into CAS automatically.", ok: false },
+      { text: "It forces CM_FEED_XV/DC1 back into CAS automatically.", ok: false },
       { text: "Syntax Error — CAS must be inside single quotes.", ok: false }
     ],
-    takeaway: "Always check MODE.ACTUAL in CND/Transition expressions; always write MODE.TARGET in ACT assignments."
+    takeaway: "Discrete DC blocks support only AUTO and CAS target modes (plus LO on interlocks) — always test MODE.ACTUAL = CAS!"
   },
   {
     id: "d2",
     level: "Decode 2 • Local Tare Snapshot",
     title: "Step Entry Pulse Assignment ([P] Action)",
-    context: "Found inside EM_TANK_CHARGE → Step S10_CHARGE_OPEN Action A1 (Qualifier: P Pulse)",
+    context: "Found inside EM_TANK_CHARGE → COMMAND_00001 → Step S10_CHARGE_OPEN (Qualifier: [P] Pulse)",
     tokens: [
-      { t: "'^/START_WT.CV'", cls: "tok-path", tip: "'^/' means THIS module (EM_TANK_CHARGE). Writes into local parameter START_WT's Current Value (.CV)." },
-      { t: ":=", cls: "tok-op", tip: "DeltaV Assignment Stamp (:=). Copies the right-hand value into the left-hand parameter ONCE on Pulse." },
-      { t: "'CM_TANK_WT/AI1/OUT.CV'", cls: "tok-path", tip: "Reads live gross vessel weight (kg) from Tank Scale CM's Analog Input block AI1." }
+      { t: "'^/START_WT.CV'", cls: "tok-path", tip: "'^/' goes up one level to EM_TANK_CHARGE, writing local parameter START_WT's Current Value (.CV)." },
+      { t: ":=", cls: "tok-op", tip: "DeltaV Assignment operator (:=). With qualifier [P], evaluates on the FIRST scan of S10_CHARGE_OPEN only!" },
+      { t: "'//CM_TANK_WT/AI1/OUT.CV'", cls: "tok-path", tip: "Reads live gross vessel weight (kg) from Tank Scale CM's Analog Input block AI1." }
     ],
-    question: "Why MUST this action use the [P] Pulse qualifier exclusively on the S0_IDLE → S10_CHARGE_OPEN start edge?",
+    question: "Why MUST this action use the [P] Pulse qualifier on S10_CHARGE_OPEN — and NEVER run inside Phase RESTART_LOGIC?",
     options: [
-      { text: "So START_WT.CV locks once at start and is NOT overwritten with current tank weight if the batch Holds and Restarts.", ok: true },
+      { text: "So START_WT.CV locks once at charge start and is NOT overwritten with current tank weight if the Phase Holds and Restarts.", ok: true },
       { text: "Because := only works inside [P] Pulse actions and fails in [N] actions.", ok: false },
       { text: "Because AI1/OUT.CV only updates once per batch.", ok: false },
       { text: "To reset CM_TANK_WT hardware calibration to 0.0 kg.", ok: false }
@@ -631,68 +631,68 @@ const DECODE_DRILLS = [
   },
   {
     id: "d3",
-    level: "Decode 3 • Dual-Wire Status Trip",
+    level: "Decode 3 • Status & Interlock Trip",
     title: "Mid-Charge Signal Health & Overfill Interlock",
-    context: "Found inside EM_TANK_CHARGE → Pattern 2 → CND2 (Active Interlock Watch)",
+    context: "Found inside EM_TANK_CHARGE → Pattern 2 → CND2 (CONFIG p81: BAD <= 63, >= GOOD for 128..255)",
     tokens: [
       { t: "(", cls: "tok-op", tip: "Groups the first fault check cleanly." },
-      { t: "'CM_TANK_WT/AI1/OUT.ST'", cls: "tok-path", tip: "Inspects the SIGNAL STATUS (.ST) riding beside the weight—NOT the kg number (.CV)!" },
-      { t: "=", cls: "tok-op", tip: "Checks whether status equals BAD." },
-      { t: "BAD", cls: "tok-kw", tip: "Unquoted DeltaV status keyword indicating broken wire, sensor fault, or OOS block." },
+      { t: "'//CM_TANK_WT/AI1/OUT.ST'", cls: "tok-path", tip: "Inspects the SIGNAL STATUS (.ST) riding beside the weight—NOT the kg number (.CV)!" },
+      { t: "<=", cls: "tok-op", tip: "Checks whether status integer is in the Bad range (0..63)." },
+      { t: "BAD", cls: "tok-kw", tip: "Unquoted DeltaV status constant (<= 63 = Bad; 64..127 = UNC; >= GOOD covers both GoodNonCascade 128..191 and GoodCascade 192..255)." },
       { t: ")", cls: "tok-op", tip: "Closes first condition." },
-      { t: "OR", cls: "tok-kw", tip: "Boolean OR — if EITHER fault occurs on any Scan, CND2 fires immediately." },
+      { t: "OR", cls: "tok-kw", tip: "Boolean OR — if EITHER fault occurs on any Scan, CND2 sets OUT_D = True immediately." },
       { t: "(", cls: "tok-op", tip: "Opens second fault check." },
-      { t: "'^/HI_HI_LVL.CV'", cls: "tok-path", tip: "Local High-High overfill switch parameter inside this EM." },
+      { t: "'^/HI_HI_LVL.CV'", cls: "tok-path", tip: "Module-level High-High overfill switch parameter inside this EM." },
       { t: "=", cls: "tok-op", tip: "Checks equality." },
       { t: "1", cls: "tok-num", tip: "True / Tripped discrete state (1)." },
       { t: ")", cls: "tok-op", tip: "Closes second condition." }
     ],
-    question: "Suppose the scale load-cell cable snaps mid-charge and 'CM_TANK_WT/AI1/OUT.CV' freezes at a normal-looking 280.0 kg. What happens on the very next Scan?",
+    question: "Suppose the scale load-cell cable snaps mid-charge and '//CM_TANK_WT/AI1/OUT.CV' freezes at a normal-looking 280.0 kg. What happens on the very next Scan?",
     options: [
-      { text: "OUT.ST turns BAD, making the left side TRUE so CND2 trips ACT1 to close the valve immediately.", ok: true },
+      { text: "OUT.ST drops <= BAD (Red ✕), making CND2/OUT_D True so ACT1 writes 'vlvnc-sp:CLOSE' to CAS_SP immediately.", ok: true },
       { text: "Nothing happens until tank weight exceeds 500.0 kg.", ok: false },
       { text: "Both conditions must be TRUE because of OR.", ok: false },
       { text: "It waits until Pattern 1 reaches Transition T20_PRECLOSE.", ok: false }
     ],
-    takeaway: "Every DeltaV wire carries .ST alongside .CV — watching .ST = BAD prevents charging blind on a frozen sensor!"
+    takeaway: "Every DeltaV wire carries .ST alongside .CV — watching .ST <= BAD (and testing >= GOOD in permissives) prevents charging blind!"
   },
   {
     id: "d4",
-    level: "Decode 4 • External Flow Loop Setpoint",
-    title: "Cross-Module Analog Setpoint Write (// Prefix)",
-    context: "Found inside Sequence Step FILL → Action A2 (Emerson Sequence Tutorial Pattern)",
+    level: "Decode 4 • Named-Set CM Command",
+    title: "Cross-Module Named-Set Valve Write ('SetName:Value')",
+    context: "Found inside Step S10_CHARGE_OPEN [N] Action (7016 pp. 37–40 Standard CM Wiring)",
     tokens: [
-      { t: "'//LAB4/FC4-1/SP.CV'", cls: "tok-path", tip: "'//' explicitly marks a top-level external Control Module (LAB4), block FC4-1, writing its analog Setpoint (.CV)." },
-      { t: ":=", cls: "tok-op", tip: "Assignment operator writing 1.0 GPM into the flow controller setpoint." },
-      { t: "1.0", cls: "tok-num", tip: "Floating-point target flow rate (1.0 GPM)." }
+      { t: "'//CM_FEED_XV/CAS_SP.CV'", cls: "tok-path", tip: "Writes module-level input parameter CAS_SP on CM_FEED_XV (wired inside CM_FEED_XV straight to DC1/CAS_IN_D!)." },
+      { t: ":=", cls: "tok-op", tip: "Assignment operator. In an SFC [N] action, evaluates every active scan AND retains its written value when the step ends!" },
+      { t: "'vlvnc-sp:OPEN'", cls: "tok-kw", tip: "Single-quoted Named-Set constant ('SetName:StateName' — 7016 p37, 7017 p245)." }
     ],
-    question: "What happens after Step FILL pulses this action and the sequence moves on to monitor tank level?",
+    question: "What happens to CM_FEED_XV/CAS_SP.CV when Step S10_CHARGE_OPEN ends, if nobody writes 'vlvnc-sp:CLOSE' in S20_TRIM_CLOSE?",
     options: [
-      { text: "FC4-1/SP.CV stays latched at 1.0 GPM until a later step (like DRAIN) explicitly writes '0.0' via ':='.", ok: true },
-      { text: "FC4-1/SP.CV automatically drops back to 0.0 as soon as the Pulse finishes.", ok: false },
-      { text: "It reads FC4-1/SP.CV without changing it.", ok: false },
-      { text: "It puts FC4-1 into Out of Service (OOS).", ok: false }
+      { text: "CAS_SP.CV retains 'vlvnc-sp:OPEN' — in DeltaV, [N] ':=' assignments keep their written value after the step ends!", ok: true },
+      { text: "CAS_SP.CV automatically resets to CLOSE as soon as S10_CHARGE_OPEN deactivates.", ok: false },
+      { text: "It puts DC1 into Out of Service.", ok: false },
+      { text: "It only reads CAS_SP.CV without writing.", ok: false }
     ],
-    takeaway: "In DeltaV, Pulse [P] and ACT assignments latch their written value until another action overwrites it!"
+    takeaway: "Both ACT blocks and SFC [N] ':=' assignments leave their target at the last written value until another action overwrites it!"
   },
   {
     id: "d5",
-    level: "Decode 5 • State-Driven Mismatch",
-    title: "Manifold State Transition Timeout Check",
-    context: "Found inside EM_XFER_HDR → Tab 3 → CND_FAIL_ALM (Configured with DURATION = 8s)",
+    level: "Decode 5 • State-Driven Timeout",
+    title: "State-Driven EM A_COMMAND vs. A_PV Check",
+    context: "Found inside EM_XFER_HDR → Tab 3 → CND_ALIGN_ALM (Configured with TIME_DURATION = 8s, FBR p413 & 7009 p462)",
     tokens: [
-      { t: "'^/SP_D'", cls: "tok-path", tip: "Target Named-Set route on State-Driven header EM_XFER_HDR (set via CAS_IN_D from the EPH or directly in AUTO, e.g., ROUTE_TANK_A)." },
-      { t: "!=", cls: "tok-op", tip: "Not-Equal operator (!= or <> in DeltaV). True whenever target state SP_D and confirmed state PV_D disagree." },
-      { t: "'^/PV_D'", cls: "tok-path", tip: "Confirmed actual header state decoded from all 4 child CM physical limit switches." }
+      { t: "'^/A_PV.CV'", cls: "tok-path", tip: "Standard EM confirmed state parameter (7009 p462). Stays at 'Idle' (255) until every row's Readback path in the Items × States table matches!" },
+      { t: "!=", cls: "tok-op", tip: "Not-Equal operator (!=, <>, or ~= are all valid in DeltaV, CONFIG p76)." },
+      { t: "'^/A_COMMAND.CV'", cls: "tok-path", tip: "Standard EM requested state parameter (used by BOTH Command-Driven and State-Driven EMs!)." }
     ],
-    question: "Why do engineers pair this '!=' expression with DURATION = 8s on CND_FAIL_ALM instead of DURATION = 0s?",
+    question: "Why do engineers configure TIME_DURATION = 8s on this CND block instead of TIME_DURATION = 0s?",
     options: [
-      { text: "Real pneumatic valves need several seconds to stroke—DURATION = 8s lets valves travel normally before raising FAIL_ACTIVE.", ok: true },
-      { text: "DeltaV blocks crash if DURATION is 0s.", ok: false },
-      { text: "Because PV_D only scans once every 8 seconds.", ok: false },
-      { text: "So the transfer pump starts 8 seconds before the valves open.", ok: false }
+      { text: "Real pneumatic manifold valves take several seconds to stroke—TIME_DURATION = 8s gives readbacks time to align before OUT_D alarms.", ok: true },
+      { text: "CND blocks fail to compile if TIME_DURATION is 0s.", ok: false },
+      { text: "Because A_PV only updates once every 8 seconds.", ok: false },
+      { text: "So CM_XFER_PMP starts 8 seconds before the valves move.", ok: false }
     ],
-    takeaway: "Pairing Command != Feedback with a DURATION confirm timer gives actuators travel time while catching jammed valves!"
+    takeaway: "On any CND block, TIME_DURATION delays OUT_D until the expression stays continuously True for that many seconds (FBR p413)!"
   }
 ];
 
@@ -711,32 +711,32 @@ const BUILD_DRILLS = [
   },
   {
     id: "b2",
-    level: "Forge 2 • Step Action Stamp",
+    level: "Forge 2 • Named-Set CM Command",
     kind: "assign",
-    title: "Stamp Feed Valve Command Open",
-    prompt: "Write an Action assignment that stamps Open onto CM_FEED_XV's DC1 block cascade discrete input ('CM_FEED_XV/DC1/CAS_IN_D').",
-    hint: "Action writes MUST use := (colon-equals), with single quotes around the path and unquoted Open: 'CM_FEED_XV/DC1/CAS_IN_D' := Open",
-    chips: ["'CM_FEED_XV/DC1/CAS_IN_D'", "'CM_FEED_XV/DC1/PV_D'", ":=", "=", "Open", "Close"],
-    canon: "'CM_FEED_XV/DC1/CAS_IN_D' := Open",
-    validate: (norm) => norm === "'cm_feed_xv/dc1/cas_in_d':=open"
+    title: "Write Named-Set OPEN to Feed Valve CAS_SP",
+    prompt: "Write an Action assignment setting external '//CM_FEED_XV/CAS_SP.CV' to the named-set constant 'vlvnc-sp:OPEN'.",
+    hint: "Use ':=' and single-quoted 'SetName:Value': '//CM_FEED_XV/CAS_SP.CV' := 'vlvnc-sp:OPEN'",
+    chips: ["'//CM_FEED_XV/CAS_SP.CV'", "'//CM_FEED_XV/PV.CV'", ":=", "=", "'vlvnc-sp:OPEN'", "'vlvnc-sp:CLOSE'"],
+    canon: "'//CM_FEED_XV/CAS_SP.CV' := 'vlvnc-sp:OPEN'",
+    validate: (norm) => norm === "'//cm_feed_xv/cas_sp.cv':='vlvnc-sp:open'" || norm === "'cm_feed_xv/cas_sp.cv':='vlvnc-sp:open'"
   },
   {
     id: "b3",
-    level: "Forge 3 • Mode Verification",
+    level: "Forge 3 • DC1 Mode Verification",
     kind: "cond",
-    title: "Verify Feed Valve Is Truly in Cascade",
-    prompt: "Write a CND condition verifying that CM_FEED_XV's DC1 block TRUE live mode (MODE.ACTUAL) equals Cascade (CAS).",
-    hint: "Check MODE.ACTUAL (not MODE.TARGET!) using = and unquoted CAS: 'CM_FEED_XV/DC1/MODE.ACTUAL' = CAS",
-    chips: ["'CM_FEED_XV/DC1/MODE.ACTUAL'", "'CM_FEED_XV/DC1/MODE.TARGET'", "=", ":=", "CAS", "MAN"],
-    canon: "'CM_FEED_XV/DC1/MODE.ACTUAL' = CAS",
-    validate: (norm) => norm === "'cm_feed_xv/dc1/mode.actual'=cas"
+    title: "Verify Feed Valve DC1 Is Truly in Cascade",
+    prompt: "Write a CND condition verifying that '//CM_FEED_XV/DC1/MODE.ACTUAL' equals Cascade (CAS).",
+    hint: "Check MODE.ACTUAL (not MODE.TARGET!) using = and unquoted CAS: '//CM_FEED_XV/DC1/MODE.ACTUAL' = CAS",
+    chips: ["'//CM_FEED_XV/DC1/MODE.ACTUAL'", "'//CM_FEED_XV/DC1/MODE.TARGET'", "=", ":=", "CAS", "AUTO", "LO"],
+    canon: "'//CM_FEED_XV/DC1/MODE.ACTUAL' = CAS",
+    validate: (norm) => norm === "'//cm_feed_xv/dc1/mode.actual'=cas" || norm === "'cm_feed_xv/dc1/mode.actual'=cas"
   },
   {
     id: "b4",
     level: "Forge 4 • Preclose Cutoff Gate",
     kind: "cond",
-    title: "Fire Transition T20_PRECLOSE Early",
-    prompt: "Write the Transition condition that turns TRUE when local remaining weight ('^/REMAINING_WT.CV') is less than or equal to local preclose lead ('^/PRECLOSE_LEAD.CV').",
+    title: "Fire Preclose Comparator CND3",
+    prompt: "Write the CND3 expression that turns TRUE when local remaining weight ('^/REMAINING_WT.CV') is less than or equal to local preclose lead ('^/PRECLOSE_LEAD.CV').",
     hint: "Use <= between the two quoted local '^/...' paths.",
     chips: ["'^/REMAINING_WT.CV'", "'^/PRECLOSE_LEAD.CV'", "<=", ">=", "<", ":="],
     canon: "'^/REMAINING_WT.CV' <= '^/PRECLOSE_LEAD.CV'",
@@ -744,50 +744,47 @@ const BUILD_DRILLS = [
   },
   {
     id: "b5",
-    level: "Forge 5 • Signal Health Trip",
+    level: "Forge 5 • The >= GOOD Status Rule",
     kind: "cond",
-    title: "Catch a Broken or OOS Tank Scale Wire",
-    prompt: "Write a CND condition that detects when CM_TANK_WT's AI1 block output signal STATUS (.ST) is BAD.",
-    hint: "Check .ST (not .CV!) against unquoted keyword BAD: 'CM_TANK_WT/AI1/OUT.ST' = BAD",
-    chips: ["'CM_TANK_WT/AI1/OUT.ST'", "'CM_TANK_WT/AI1/OUT.CV'", "=", "!=", "BAD", "GOOD"],
-    canon: "'CM_TANK_WT/AI1/OUT.ST' = BAD",
-    validate: (norm) => norm === "'cm_tank_wt/ai1/out.st'=bad"
+    title: "Verify Scale Health (Including GoodCascade!)",
+    prompt: "Per CONFIG p. 81, '= GOOD' misses GoodCascade (192..255)! Write the CND check proving '//CM_TANK_WT/AI1/OUT.ST' is healthy (>= GOOD).",
+    hint: "Use >= GOOD (not = GOOD!): '//CM_TANK_WT/AI1/OUT.ST' >= GOOD",
+    chips: ["'//CM_TANK_WT/AI1/OUT.ST'", "'//CM_TANK_WT/AI1/OUT.CV'", ">=", "=", "GOOD", "BAD"],
+    canon: "'//CM_TANK_WT/AI1/OUT.ST' >= GOOD",
+    validate: (norm) => norm === "'//cm_tank_wt/ai1/out.st'>=good" || norm === "'cm_tank_wt/ai1/out.st'>=good"
   },
   {
     id: "b6",
-    level: "Forge 6 • Net Delivered Mass Math",
+    level: "Forge 6 • CALC Manual .ST Propagation",
     kind: "assign",
-    title: "Compute Net Solvent Added (CALC Block)",
-    prompt: "Write the assignment calculating '^/DELIVERED_WT.CV' as live gross scale weight ('CM_TANK_WT/AI1/OUT.CV') minus locked tare ('^/START_WT.CV').",
-    hint: "Assign with := and subtract tare from gross: '^/DELIVERED_WT.CV' := 'CM_TANK_WT/AI1/OUT.CV' - '^/START_WT.CV'",
-    chips: ["'^/DELIVERED_WT.CV'", ":=", "'CM_TANK_WT/AI1/OUT.CV'", "-", "+", "'^/START_WT.CV'"],
-    canon: "'^/DELIVERED_WT.CV' := 'CM_TANK_WT/AI1/OUT.CV' - '^/START_WT.CV'",
-    validate: (norm) => norm === "'^/delivered_wt.cv':='cm_tank_wt/ai1/out.cv'-'^/start_wt.cv'"
+    title: "Propagate Input Status Inside CALC1",
+    prompt: "CALC outputs default to GOOD unless propagated (CONFIG p. 81)! Write the CALC1 line copying 'IN2.ST' into 'OUT1.ST'.",
+    hint: "Assign status with ':=': 'OUT1.ST' := 'IN2.ST'",
+    chips: ["'OUT1.ST'", "'OUT1.CV'", ":=", "=", "'IN2.ST'", "'IN2.CV'"],
+    canon: "'OUT1.ST' := 'IN2.ST'",
+    validate: (norm) => norm === "'out1.st':='in2.st'"
   },
   {
     id: "b7",
-    level: "Forge 7 • Confirmed Valve Shut",
+    level: "Forge 7 • Out-of-Service Mode Check",
     kind: "cond",
-    title: "Prove Feed Valve Physically Closed + Settled",
-    prompt: "Combine two checks with AND: local flag '^/VALVE_SHUT_OK' equals 1 AND local '^/STEP_TIME.CV' is at least (>=) 5.",
-    hint: "('^/VALVE_SHUT_OK' = 1) AND ('^/STEP_TIME.CV' >= 5)",
-    chips: ["(", "'^/VALVE_SHUT_OK'", "=", "1", ")", "AND", "OR", "'^/STEP_TIME.CV'", ">=", "5"],
-    canon: "('^/VALVE_SHUT_OK' = 1) AND ('^/STEP_TIME.CV' >= 5)",
-    validate: (norm) => {
-      const clean = norm.replace(/[()]/g, "");
-      return clean === "'^/valve_shut_ok'=1and'^/step_time.cv'>=5" || clean === "'^/valve_shut_ok'=1and'^/step_time.cv'>=5.0";
-    }
+    title: "Test Whether AI1 Is Out of Service ('OS' Keyword!)",
+    prompt: "In DeltaV expressions (CONFIG p. 82), the Out of Service mode constant is spelled OS (not OOS!). Write a CND check testing if '//CM_TANK_WT/AI1/MODE.ACTUAL' equals OS.",
+    hint: "'//CM_TANK_WT/AI1/MODE.ACTUAL' = OS",
+    chips: ["'//CM_TANK_WT/AI1/MODE.ACTUAL'", "=", "!=", "OS", "CAS", "MAN"],
+    canon: "'//CM_TANK_WT/AI1/MODE.ACTUAL' = OS",
+    validate: (norm) => norm === "'//cm_tank_wt/ai1/mode.actual'=os" || norm === "'cm_tank_wt/ai1/mode.actual'=os"
   },
   {
     id: "b8",
     level: "Forge 8 • Push Cascade Mode Request",
     kind: "assign",
-    title: "Request Cascade Mode on Downstream Valve",
-    prompt: "Write the ACT assignment that requests Cascade (CAS) on CM_FEED_XV's DC1 block target mode (MODE.TARGET).",
-    hint: "Write to MODE.TARGET using := and unquoted CAS: 'CM_FEED_XV/DC1/MODE.TARGET' := CAS",
-    chips: ["'CM_FEED_XV/DC1/MODE.TARGET'", "'CM_FEED_XV/DC1/MODE.ACTUAL'", ":=", "=", "CAS", "AUTO"],
-    canon: "'CM_FEED_XV/DC1/MODE.TARGET' := CAS",
-    validate: (norm) => norm === "'cm_feed_xv/dc1/mode.target':=cas"
+    title: "Request Cascade Mode on Downstream DC1",
+    prompt: "Write the ACT2 assignment that requests Cascade (CAS) on '//CM_FEED_XV/DC1/MODE.TARGET'.",
+    hint: "Write to MODE.TARGET using := and unquoted CAS: '//CM_FEED_XV/DC1/MODE.TARGET' := CAS",
+    chips: ["'//CM_FEED_XV/DC1/MODE.TARGET'", "'//CM_FEED_XV/DC1/MODE.ACTUAL'", ":=", "=", "CAS", "AUTO"],
+    canon: "'//CM_FEED_XV/DC1/MODE.TARGET' := CAS",
+    validate: (norm) => norm === "'//cm_feed_xv/dc1/mode.target':=cas" || norm === "'cm_feed_xv/dc1/mode.target':=cas"
   }
 ];
 
@@ -798,24 +795,24 @@ const DEBUG_DRILLS = [
     level: "Bug Hunt 1 • Action Won't Write",
     kind: "assign",
     title: "Drain Valve Never Closes in Step FILL!",
-    symptom: "A junior engineer put this line inside Step FILL's Action A1 to close the drain valve, but OUTLET-VALVE never changes state!",
+    symptom: "A junior engineer put this line inside Step FILL's Action A1 to close the drain valve, but Parser rejects it / OUTLET-VALVE never changes!",
     buggy: "'^/OUTLET-VALVE.CV' = False",
-    whyBug: "Used '=' (equality check) instead of ':=' (assignment stamp) inside an Action! '=' only compares values and throws away the result.",
+    whyBug: "Used '=' (equality test) instead of ':=' (assignment) inside an Action! Actions require ':=' (CONFIG p62).",
     chips: ["'^/OUTLET-VALVE.CV'", ":=", "=", "False", "True"],
     canon: "'^/OUTLET-VALVE.CV' := False",
     validate: (norm) => norm === "'^/outlet-valve.cv':=false"
   },
   {
     id: "x2",
-    level: "Bug Hunt 2 • Blind Mode Check",
+    level: "Bug Hunt 2 • Blind DC1 Mode Check",
     kind: "cond",
-    title: "Charge Started While Feed Valve Was Locked in Manual!",
-    symptom: "The operator switched CM_FEED_XV to MAN on its faceplate, yet CND1 Permissive stayed TRUE and started the batch dry!",
-    buggy: "'CM_FEED_XV/DC1/MODE.TARGET' = CAS",
-    whyBug: "Checked MODE.TARGET instead of MODE.ACTUAL! Because ACT2 writes MODE.TARGET := CAS, TARGET stayed CAS even while ACTUAL was MAN.",
-    chips: ["'CM_FEED_XV/DC1/MODE.ACTUAL'", "'CM_FEED_XV/DC1/MODE.TARGET'", "=", "CAS"],
-    canon: "'CM_FEED_XV/DC1/MODE.ACTUAL' = CAS",
-    validate: (norm) => norm === "'cm_feed_xv/dc1/mode.actual'=cas"
+    title: "Charge Started While Operator Had Feed Valve DC1 in AUTO!",
+    symptom: "The operator switched CM_FEED_XV/DC1 to AUTO (operator control on DC blocks, FBR p427), yet CND1 Permissive stayed TRUE and started the batch dry!",
+    buggy: "'//CM_FEED_XV/DC1/MODE.TARGET' = CAS",
+    whyBug: "Checked MODE.TARGET instead of MODE.ACTUAL! ACT2 wrote MODE.TARGET := CAS, so TARGET read CAS while MODE.ACTUAL was AUTO.",
+    chips: ["'//CM_FEED_XV/DC1/MODE.ACTUAL'", "'//CM_FEED_XV/DC1/MODE.TARGET'", "=", "CAS"],
+    canon: "'//CM_FEED_XV/DC1/MODE.ACTUAL' = CAS",
+    validate: (norm) => norm === "'//cm_feed_xv/dc1/mode.actual'=cas" || norm === "'cm_feed_xv/dc1/mode.actual'=cas"
   },
   {
     id: "x3",
@@ -825,21 +822,21 @@ const DEBUG_DRILLS = [
     symptom: "Clicking 'Parse' in Expression Assistant throws a syntax error complaining that CM_TANK_WT, AI1, and OUT.CV are unknown variables being divided by '/'!",
     buggy: "CM_TANK_WT/AI1/OUT.CV >= 500.0",
     whyBug: "Forgot single quotes around a path containing '/'! Without quotes, DeltaV treats '/' as mathematical division.",
-    chips: ["'CM_TANK_WT/AI1/OUT.CV'", ">=", "<=", "500.0"],
-    canon: "'CM_TANK_WT/AI1/OUT.CV' >= 500.0",
-    validate: (norm) => norm === "'cm_tank_wt/ai1/out.cv'>=500.0" || norm === "'cm_tank_wt/ai1/out.cv'>=500"
+    chips: ["'//CM_TANK_WT/AI1/OUT.CV'", ">=", "<=", "500.0"],
+    canon: "'//CM_TANK_WT/AI1/OUT.CV' >= 500.0",
+    validate: (norm) => norm === "'//cm_tank_wt/ai1/out.cv'>=500.0" || norm === "'//cm_tank_wt/ai1/out.cv'>=500" || norm === "'cm_tank_wt/ai1/out.cv'>=500.0" || norm === "'cm_tank_wt/ai1/out.cv'>=500"
   },
   {
     id: "x4",
-    level: "Bug Hunt 4 • Trusting Command Instead of Switch",
+    level: "Bug Hunt 4 • Trusting Setpoint Instead of Readback",
     kind: "cond",
     title: "Agitator Started While Feed Valve Was Mechanically Jammed Open!",
-    symptom: "S20_TRIM_CLOSE stamped Close on CM_FEED_XV, and T30_SHUT_OK immediately jumped to S30_AGITATE even though a bolt jammed the valve wide open!",
-    buggy: "'CM_FEED_XV/DC1/CAS_IN_D' = Closed",
-    whyBug: "Checked CAS_IN_D (the command we sent) instead of PV_D (confirmed physical limit-switch feedback)!",
-    chips: ["'CM_FEED_XV/DC1/PV_D'", "'CM_FEED_XV/DC1/CAS_IN_D'", "=", "Closed", "Open"],
-    canon: "'CM_FEED_XV/DC1/PV_D' = Closed",
-    validate: (norm) => norm === "'cm_feed_xv/dc1/pv_d'=closed"
+    symptom: "S20_TRIM_CLOSE wrote 'vlvnc-sp:CLOSE' to CAS_SP, and CND4 immediately reported shut even though a bolt jammed the valve wide open!",
+    buggy: "'//CM_FEED_XV/CAS_SP.CV' = 'vlvnc-sp:CLOSE'",
+    whyBug: "Checked CAS_SP.CV (the setpoint we wrote) instead of PV.CV = 'vlvnc-pv:CLOSED' (confirmed physical limit-switch readback)!",
+    chips: ["'//CM_FEED_XV/PV.CV'", "'//CM_FEED_XV/CAS_SP.CV'", "=", "'vlvnc-pv:CLOSED'", "'vlvnc-sp:CLOSE'"],
+    canon: "'//CM_FEED_XV/PV.CV' = 'vlvnc-pv:CLOSED'",
+    validate: (norm) => norm === "'//cm_feed_xv/pv.cv'='vlvnc-pv:closed'" || norm === "'cm_feed_xv/pv.cv'='vlvnc-pv:closed'"
   }
 ];
 
@@ -883,9 +880,14 @@ function diagnoseDeltaVSyntax(raw, expectedKind) {
     return { ok: false, msg: "Parser Error: Parameter path with '/' or '^/' is missing single quotes! Without '...', DeltaV reads '/' as division." };
   }
 
-  // Check quoted keywords like 'CAS', 'BAD', 'GOOD'
-  if (/'(CAS|MAN|AUTO|OOS|GOOD|BAD|UNCERTAIN|TRUE|FALSE|OPEN|CLOSE|CLOSED)'/i.test(s)) {
-    return { ok: false, msg: "DeltaV Quirk: Keywords & Named States (CAS, MAN, GOOD, BAD, Open, Close, True, False) are UNQUOTED in DeltaV expressions — remove quotes around the keyword." };
+  // Check quoted bare keywords like 'CAS', 'BAD', 'GOOD' (note: 'SetName:Value' with ':' IS valid!)
+  if (/'(CAS|MAN|AUTO|OS|OOS|LO|RCAS|IMAN|GOOD|BAD|UNC|TRUE|FALSE)'/i.test(s)) {
+    return { ok: false, msg: "DeltaV Quirk: Mode, Status & Boolean keywords (CAS, AUTO, MAN, OS, GOOD, BAD, UNC, True, False) are UNQUOTED in expressions — only Named Sets ('SetName:Value') and parameter paths use single quotes!" };
+  }
+
+  // Catch OOS typo in expressions (CONFIG p82: Out of Service constant is OS, not OOS!)
+  if (/\bOOS\b/i.test(strippedQuoted)) {
+    return { ok: false, msg: "Verified DeltaV Gotcha (CONFIG p. 82): Inside Structured Text expressions, the Out of Service mode constant is spelled 'OS', NOT 'OOS'!" };
   }
 
   // Assignment vs Condition check
@@ -928,16 +930,16 @@ const app = {
   // Mode 4 Live Sandbox Plant Tags
   tags: {
     "^/LI4-1/PV.CV": 0.4,
-    "CM_TANK_WT/AI1/OUT.CV": 340.0,
-    "CM_TANK_WT/AI1/OUT.ST": "GOOD",
+    "//CM_TANK_WT/AI1/OUT.CV": 340.0,
+    "//CM_TANK_WT/AI1/OUT.ST": "GOOD",
     "^/START_WT.CV": 100.0,
     "^/TARGET_WT.CV": 500.0,
     "^/PRECLOSE_LEAD.CV": 15.0,
-    "CM_FEED_XV/DC1/MODE.ACTUAL": "CAS",
-    "CM_FEED_XV/DC1/PV_D": "Closed",
+    "//CM_FEED_XV/DC1/MODE.ACTUAL": "CAS",
+    "//CM_FEED_XV/PV.CV": "vlvnc-pv:CLOSED",
     "^/HI_HI_LVL.CV": 0
   },
-  sandboxExpr: "('CM_FEED_XV/DC1/MODE.ACTUAL' = CAS) AND ('CM_TANK_WT/AI1/OUT.ST' = GOOD) AND ('CM_TANK_WT/AI1/OUT.CV' - '^/START_WT.CV' < '^/TARGET_WT.CV')"
+  sandboxExpr: "('//CM_FEED_XV/DC1/MODE.ACTUAL' = CAS) AND ('//CM_TANK_WT/AI1/OUT.ST' >= GOOD) AND ('//CM_TANK_WT/AI1/OUT.CV' - '^/START_WT.CV' < '^/TARGET_WT.CV')"
 };
 
 function totalDrillCount() {
@@ -1146,12 +1148,23 @@ function evalSandboxExpression(rawExpr) {
   if (!diag.ok) return { ok: false, error: diag.msg, tree: [], usedTags: [] };
 
   const usedSet = new Set();
+  const statusRank = (v) => {
+    const u = String(v).toUpperCase();
+    if (u === "GOODCASCADE") return 192;
+    if (u === "GOOD" || u === "GOODNONCASCADE") return 128;
+    if (u === "UNC" || u === "UNCERTAIN") return 64;
+    if (u === "BAD") return 0;
+    return null;
+  };
   const resolveToken = (tok) => {
     const t = tok.trim();
     if (t.startsWith("'") && t.endsWith("'")) {
-      const key = t.slice(1, -1);
-      usedSet.add(key);
-      if (key in app.tags) return app.tags[key];
+      const inner = t.slice(1, -1);
+      if (inner.includes(":")) return inner.toUpperCase(); // 'SetName:State'
+      usedSet.add(inner);
+      if (inner in app.tags) return app.tags[inner];
+      const alt = inner.startsWith("//") ? inner.slice(2) : "//" + inner;
+      if (alt in app.tags) return app.tags[alt];
       return 0;
     }
     if (/^-?\d+(\.\d+)?$/.test(t)) return parseFloat(t);
@@ -1188,11 +1201,12 @@ function evalSandboxExpression(rawExpr) {
       return { label: `${lhsRaw.trim()} := ${rhsRaw.trim()}`, ok: true, detail: `Stamped ${rhsVal}` };
     }
 
-    const L = typeof lhsVal === "string" ? lhsVal.toUpperCase() : lhsVal;
-    const R = typeof rhsVal === "string" ? rhsVal.toUpperCase() : rhsVal;
+    const sL = statusRank(lhsVal), sR = statusRank(rhsVal);
+    const L = (sL !== null && sR !== null) ? sL : (typeof lhsVal === "string" ? lhsVal.toUpperCase() : lhsVal);
+    const R = (sL !== null && sR !== null) ? sR : (typeof rhsVal === "string" ? rhsVal.toUpperCase() : rhsVal);
     let pass = false;
     if (op === "=") pass = L == R;
-    else if (op === "!=" || op === "<>") pass = L != R;
+    else if (op === "!=" || op === "<>" || op === "~=") pass = L != R;
     else if (op === "<") pass = Number(L) < Number(R);
     else if (op === ">") pass = Number(L) > Number(R);
     else if (op === "<=") pass = Number(L) <= Number(R);
@@ -1218,10 +1232,10 @@ function evalSandboxExpression(rawExpr) {
 
 function renderSandboxMode(stage) {
   const presets = [
-    { name: "EM Start Permissive", expr: "('CM_FEED_XV/DC1/MODE.ACTUAL' = CAS) AND ('CM_TANK_WT/AI1/OUT.ST' = GOOD) AND ('^/HI_HI_LVL.CV' = 0)" },
-    { name: "Preclose Cutoff Math", expr: "('^/TARGET_WT.CV' - '^/START_WT.CV') >= 'CM_TANK_WT/AI1/OUT.CV'" },
+    { name: "EM Start Permissive", expr: "('//CM_FEED_XV/DC1/MODE.ACTUAL' = CAS) AND ('//CM_TANK_WT/AI1/OUT.ST' >= GOOD) AND ('^/HI_HI_LVL.CV' = 0)" },
+    { name: "Confirmed Valve Shut", expr: "'//CM_FEED_XV/PV.CV' = 'vlvnc-pv:CLOSED'" },
     { name: "Tutorial Low-Level Gate", expr: "'^/LI4-1/PV.CV' < 1.0" },
-    { name: "Bad Scale OR Hi-Hi Trip", expr: "('CM_TANK_WT/AI1/OUT.ST' = BAD) OR ('^/HI_HI_LVL.CV' = 1)" }
+    { name: "Bad Scale OR Hi-Hi Trip", expr: "('//CM_TANK_WT/AI1/OUT.ST' <= BAD) OR ('^/HI_HI_LVL.CV' = 1)" }
   ];
 
   const ev = evalSandboxExpression(app.sandboxExpr);
@@ -1266,33 +1280,33 @@ function renderSandboxMode(stage) {
             </div>
           </div>
           <div class="tag-row">
-            <span class="tag-name" data-tag="'CM_TANK_WT/AI1/OUT.CV'">'CM_TANK_WT/AI1/OUT.CV'</span>
+            <span class="tag-name" data-tag="'//CM_TANK_WT/AI1/OUT.CV'">'//CM_TANK_WT/AI1/OUT.CV'</span>
             <div class="tag-controls">
-              <input type="range" min="100" max="650" step="10" value="${app.tags["CM_TANK_WT/AI1/OUT.CV"]}" data-numtag="CM_TANK_WT/AI1/OUT.CV" />
-              <span>${app.tags["CM_TANK_WT/AI1/OUT.CV"]} kg</span>
+              <input type="range" min="100" max="650" step="10" value="${app.tags["//CM_TANK_WT/AI1/OUT.CV"]}" data-numtag="//CM_TANK_WT/AI1/OUT.CV" />
+              <span>${app.tags["//CM_TANK_WT/AI1/OUT.CV"]} kg</span>
             </div>
           </div>
           <div class="tag-row">
-            <span class="tag-name" data-tag="'CM_TANK_WT/AI1/OUT.ST'">'CM_TANK_WT/AI1/OUT.ST'</span>
+            <span class="tag-name" data-tag="'//CM_TANK_WT/AI1/OUT.ST'">'//CM_TANK_WT/AI1/OUT.ST'</span>
             <div class="tag-controls">
-              <select data-strtag="CM_TANK_WT/AI1/OUT.ST">
-                ${["GOOD", "UNCERTAIN", "BAD"].map(s => `<option value="${s}" ${app.tags["CM_TANK_WT/AI1/OUT.ST"] === s ? "selected" : ""}>${s}${s === "BAD" ? " ✗" : s === "UNCERTAIN" ? " ?" : ""}</option>`).join("")}
+              <select data-strtag="//CM_TANK_WT/AI1/OUT.ST">
+                ${["GOOD", "GoodCascade", "UNC", "BAD"].map(s => `<option value="${s}" ${app.tags["//CM_TANK_WT/AI1/OUT.ST"] === s ? "selected" : ""}>${s}${s === "BAD" ? " ✗" : s === "UNC" ? " ?" : ""}</option>`).join("")}
               </select>
             </div>
           </div>
           <div class="tag-row">
-            <span class="tag-name" data-tag="'CM_FEED_XV/DC1/MODE.ACTUAL'">'CM_FEED_XV/DC1/MODE.ACTUAL'</span>
+            <span class="tag-name" data-tag="'//CM_FEED_XV/DC1/MODE.ACTUAL'">'//CM_FEED_XV/DC1/MODE.ACTUAL'</span>
             <div class="tag-controls">
-              <select data-strtag="CM_FEED_XV/DC1/MODE.ACTUAL">
-                ${["CAS", "AUTO", "MAN", "OOS"].map(s => `<option value="${s}" ${app.tags["CM_FEED_XV/DC1/MODE.ACTUAL"] === s ? "selected" : ""}>${s}</option>`).join("")}
+              <select data-strtag="//CM_FEED_XV/DC1/MODE.ACTUAL">
+                ${["CAS", "AUTO", "LO", "OS"].map(s => `<option value="${s}" ${app.tags["//CM_FEED_XV/DC1/MODE.ACTUAL"] === s ? "selected" : ""}>${s}</option>`).join("")}
               </select>
             </div>
           </div>
           <div class="tag-row">
-            <span class="tag-name" data-tag="'CM_FEED_XV/DC1/PV_D'">'CM_FEED_XV/DC1/PV_D'</span>
+            <span class="tag-name" data-tag="'//CM_FEED_XV/PV.CV'">'//CM_FEED_XV/PV.CV'</span>
             <div class="tag-controls">
-              <select data-strtag="CM_FEED_XV/DC1/PV_D">
-                ${["Closed", "Open"].map(s => `<option value="${s}" ${app.tags["CM_FEED_XV/DC1/PV_D"] === s ? "selected" : ""}>${s}</option>`).join("")}
+              <select data-strtag="//CM_FEED_XV/PV.CV">
+                ${["vlvnc-pv:CLOSED", "vlvnc-pv:OPEN"].map(s => `<option value="${s}" ${app.tags["//CM_FEED_XV/PV.CV"] === s ? "selected" : ""}>${s}</option>`).join("")}
               </select>
             </div>
           </div>

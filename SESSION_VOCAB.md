@@ -1,128 +1,44 @@
-# DeltaV Equipment Module Study Guide — `EM_TANK_CHARGE`
+# DeltaV Control Studio Vocabulary & Verified Rules — `EM_TANK_CHARGE` & `EM_XFER_HDR`
 
-Strictly native DeltaV Control Studio vocabulary, architecture rules, and study notes for `EM_TANK_CHARGE`.
+Strictly native Emerson DeltaV Control Studio vocabulary, architecture rules, and verified behaviors (cross-checked against `DELTAV_VERIFIED_FACTS.md` and `pdf reference/`).
 
 ---
 
 ## 1. The Three Equipment Levels (Who Talks to Whom)
 
-| Term | Full Name | Plain-English Job in `EM_TANK_CHARGE` |
+| Term | Full Name & Source | Plain-English Job |
 | :--- | :--- | :--- |
-| **EPH** | Equipment Phase | **The Recipe Boss.** Sits above the EM, acquires it, says "Charge 500 kg of solvent now," and watches until the EM reports Done (or Held/Aborted). |
-| **EM** | Equipment Module | **The Team Coordinator** (`EM_TANK_CHARGE`). Coordinates the feed valve, tank scale, and agitator together as one task. Never wires directly to physical field terminals. |
-| **CM** | Control Module | **The Single-Device Controller.** Owns one physical device: `CM_FEED_XV` (supply valve), `CM_TANK_WT` (scale), or `CM_AGIT_MTR` (agitator motor). |
-| **Scan** | Module Scan Cycle | **One Heartbeat.** How often (e.g., 500 ms or 1 s) a module wakes up, reads inputs, solves FBD blocks in `#1 → #2 → #3` execution order, and updates outputs. |
+| **Unit Phase ("EPH")** | Phase Class / Unit Phase (*7016* p. 70) | **The Recipe Boss.** ISA-88 calls this an `EPH`; DeltaV Explorer calls it a Phase Class / Unit Phase containing `RUN_LOGIC`, `HOLD_LOGIC`, `RESTART_LOGIC`, `STOP_LOGIC`, `ABORT_LOGIC`, and `FAIL_MONITOR`. |
+| **EM** | Equipment Module (*7009* p. 436) | **The Team Coordinator** (`EM_TANK_CHARGE`, `EM_XFER_HDR`). Coordinates multiple CMs via `A_COMMAND` (`255 = Idle`), `A_TARGET`, and `A_PV`. DeltaV offers 7 EM algorithm types. |
+| **CM** | Control Module (*7016* pp. 37–40) | **Single-Device Controller** (`CM_FEED_XV`, `CM_TANK_WT`, `CM_AGIT_MTR`). Standard discrete CM wiring connects module `CAS_SP` → `DC1/CAS_IN_D` and `DC1/PV_D` → `PV`. |
+| **Scan & `#1..#N`** | Module Scan Cycle (*PDS* p. 3) | **One Heartbeat** (e.g., 500 ms or 1 s). Reads inputs, solves FBD blocks strictly in bottom-right `#1 → #2 → #3` order, and updates outputs. |
 
 ---
 
-## 2. Core Function Blocks (Boxes on the Control Studio Sheet)
+## 2. Core Function Blocks & Pin Reality
 
-| Block | Full Name | Plain-English Job |
+| Block | Full Name & Source | Verified Pins & Controller Behavior |
 | :--- | :--- | :--- |
-| **SFC** | Sequential Function Chart | **Step-by-Step Checklist.** Runs one active Step at a time (`S0_IDLE` → `S10_CHARGE_OPEN` → `S20_TRIM_CLOSE` → `S30_AGITATE`) and waits on a Transition (`┼`) before moving on. |
-| **CND** | Condition Block | **Yes/No Question Box.** Checks an expression (e.g., "Is weight at cutoff?" or "Did the scale go Bad?") and turns `OUT_D` ON when true. |
-| **ACT** | Action Block | **"Write It Once" Stamp.** When triggered by an SFC step or CND block, writes a command or value and leaves it there until another ACT writes something new. |
-| **CALC** | Calculation Block | **Scratchpad Calculator.** Runs every Scan to do math (like `DELIVERED_WT := CURRENT_WT - START_WT`) or combine logic. |
-| **BSEL** | Selector Block | **Value Switch.** Picks one winning value from multiple inputs (such as Recipe Weight vs. Operator Local Weight). |
-| **DC** | Device Control Block | **On/Off Equipment Driver.** Lives inside a valve or motor CM (`CM_FEED_XV`, `CM_AGIT_MTR`) to drive Open/Close or Start/Stop and check limit switches. |
-| **AI** | Analog Input Block | **Sensor Reader.** Lives inside `CM_TANK_WT` to turn a raw sensor reading into engineering units (kg) plus a signal health tag (`.ST`). |
+| **SFC** | Sequential Function Chart (*7009-8*) | Double-bordered Initial Step (`S0_IDLE`), Steps (green border + elapsed seconds under **every** step On-Line), Transitions (`┼`), and Termination (`═╧═`). `[P]` = first scan only; `[N]` = every active scan and **retains written `:=` value after step ends**. |
+| **CND** | Condition Block (*FBR* pp. 413–416) | **`OUT_D` output pin ONLY (zero input pins — `:=` is illegal!).** Reads operands inside its expression; sets `OUT_D = True` after staying True for `TIME_DURATION` seconds. |
+| **ACT** | Action Block (*FBR* pp. 400–402) | **`IN_D` input pin ONLY (zero output pins!).** Evaluates its `:=` assignment expression **every scan while `IN_D = True`**; target retains last value when `IN_D` goes False. |
+| **CALC** | Calculation/Logic Block (*FBR* p. 179, *CONFIG* p. 81) | Pins `IN1..IN16` and `OUT1..OUT16` (no underscore). **Status gotcha:** `OUT` status defaults to `GOOD (128)` unless you write `'OUT1.ST' := 'IN2.ST'`! |
+| **XFR** | Transfer Block (*FBR* pp. 453–455) | Real DeltaV 2-input switch (there is **no `"BSEL"` block** in DeltaV!): `SELECTOR = False` selects `IN_1`; `SELECTOR = True` selects `IN_2` (ramps over `BAL_TIME`). |
+| **DC** | Device Control Block (*FBR* pp. 417–436) | Discrete valve/motor block. **Supports ONLY `AUTO` and `CAS` target modes (no `MAN` mode!).** `CAS` copies `CAS_IN_D`; `AUTO` gives operator faceplate control; interlocks force `LO`. Built-in `CFM_ACT1_TIME` / `CFM_PASS_TIME` set `FAIL_ACTIVE`. |
+| **AI** | Analog Input Block | Sensor reader inside `CM_TANK_WT` / `CM_HDR_PT` outputting engineering units (`OUT.CV`) plus signal quality (`OUT.ST`). |
 
 ---
 
-## 3. Operating Modes (Who Has the Steering Wheel?)
+## 3. Operating Modes, Status & Expression Rules
 
-| Mode / Term | Full Name | Plain-English Meaning |
-| :--- | :--- | :--- |
-| **OOS** | Out of Service | **Locked Out in Software.** Stops normal control and marks wire `.ST` as Bad so upstream modules know not to trust it. |
-| **MAN** | Manual | **Operator Has the Wheel.** A human sets the output directly; automated commands are ignored. |
-| **AUTO** | Automatic | **Self-Driven.** Follows its own local target entered on its faceplate. |
-| **CAS** | Cascade | **Following the Boss Upstairs.** When `CM_FEED_XV` is in `CAS`, it obeys Open/Close commands sent from `EM_TANK_CHARGE`. |
-| **MODE.TARGET** | Target Mode | The mode you *request* a block to enter. |
-| **MODE.ACTUAL** | Actual Mode | The mode the block is *truly* in right now (a local interlock can hold `MODE.ACTUAL` out of `CAS` even if `MODE.TARGET` asks for `CAS`). |
+- **Mode Constants in Expressions (*CONFIG* p. 82):** `OS` (**not** `OOS`!), `MAN` (on `PID`/`AO`/`DO`), `AUTO`, `CAS`, `RCAS`, `LO`, `IMAN`. Always write to `MODE.TARGET` and test `MODE.ACTUAL`.
+- **Status Constants (*CONFIG* p. 81):** `BAD (<= 63)` shows Red `✕`, `UNC (64..127)` shows Blue `?`, `GOOD (128..191)` = `GoodNonCascade` only, `192..255` = `GoodCascade`. Always test **`>= GOOD`** so `GoodCascade` is included!
+- **Named-Set Constants (*7016* pp. 37–39):** Single-quoted `'SetName:Value'`, e.g., `'//CM_FEED_XV/CAS_SP.CV' := 'vlvnc-sp:OPEN'` and `'//CM_FEED_XV/PV.CV' = 'vlvnc-pv:CLOSED'`.
+- **On-Line Wire Rules (*CONFIG* p. 368):** **Bold wire** = non-zero value; **Dashed wire** = **feedback wire** (source `#N` > destination `#N`, arrives next scan). Solid vs. dashed does **not** mean analog vs. discrete!
 
 ---
 
-## 4. Wire Endings, Pins & Safety Words
+## 4. Command-Driven vs. State-Driven Equipment Modules
 
-| Term | Full Name | Plain-English Meaning |
-| :--- | :--- | :--- |
-| **Named Set** | Named Set Enumeration | **Word Labels for Numbers.** Lets logic read `Close / Open` or `Idle / Charge / Hold` instead of raw integers. |
-| **Permissive** | Start Permissive | **Pre-Start Gate.** Must be true before leaving `S0_IDLE`. If false, the EM waits peacefully without tripping an emergency stop. |
-| **Interlock (Trip)** | Active Interlock | **Mid-Run Safety Brake.** Watched every Scan while running. If violated (High-High level or scale `.ST = BAD`), immediately closes the valve and forces Hold/Abort. |
-| **.CV** | Current Value | The live number or state on a pin right now (e.g., `340.5 kg` or `Open`). |
-| **.ST** | Status | The health grade riding beside `.CV` (`GOOD`, `UNCERTAIN`, `BAD`). |
-| **CAS_IN_D** | Cascade Input (Discrete) | The command inbox on a CM's `DC` block where the EM writes Open/Close or Start/Stop. |
-| **PV_D** | Process Variable (Discrete) | Confirmed physical state on a `DC` block showing what field limit switches prove the device is actually doing. |
-
----
-
-## 5. How to Decode Any DeltaV Path in 5 Seconds
-
-Read slashes and dots left-to-right like a mailing address: **`Module / Block / Parameter.Detail`**
-
-- `'CM_FEED_XV/DC1/MODE.ACTUAL' = CAS`
-  - `CM_FEED_XV` → Feed Valve Control Module
-  - `/DC1` → Its Device Control block
-  - `/MODE.ACTUAL` → True current operating mode
-  - `= CAS` → Listening to the EM
-- `'^/TARGET_WT.CV'`
-  - `^/` → Shortcut meaning "right here inside this module (`EM_TANK_CHARGE`)"
-  - `TARGET_WT.CV` → Live value of Target Weight
-
----
-
-## 6. 1 Outer Algorithm vs. 4 Inner Patterns
-
-- **1 Outer Algorithm (DeltaV Menu Choice):** Pick **one** container when creating an EM:
-  1. **Command-Driven** *(used by `EM_TANK_CHARGE`)* — Runs a multi-step SFC for each command in `A_COMMAND` (`255` = Idle).
-  2. **State-Driven** — Single-step snap per state (common for valve headers).
-  3. **Function Block Diagram (FBD)** — Continuous wire sheet every Scan, zero steps.
-  4. **Sequential Function Chart (SFC)** — One standalone sequence chart.
-- **4 Inner Patterns (Reading Checklist Inside the EM):**
-  1. **Command, State & Step Progression (SFC — Top-to-Bottom):** *The only pattern that steps through time.*
-  2. **Permissives & Interlocks (FBD — Always On):** Runs every Scan. Separates start gates (`CND1`) from active mid-run trips (`CND2` → `ACT1`).
-  3. **Mode & Setpoint Routing (FBD — Always On):** Runs every Scan. Picks active weight (`BSEL1`), calculates net/remaining mass (`CALC1`), checks cutoff (`CND3`), pushes `MODE.TARGET := CAS` (`ACT2`).
-  4. **CM Command & Feedback (FBD — Always On):** Runs every Scan. Pairs outbound `CAS_IN_D` commands with inbound `PV_D` limit-switch proof (`CND4`, `CND5`).
-
----
-
-## 7. Control Studio Visual Rules
-
-- **Execution Order (`#1`, `#2`, `#3`):** Bottom-right corner of each FBD block sets exact solve order during each Scan (math `CALC` must run before cutoff `CND`, which must run before close `ACT`).
-- **Solid Orthogonal Wires:** Analog numeric `.CV` values (kg).
-- **Dashed Orthogonal Wires:** Discrete True/False signals, mode checks, and status paths.
-- **Pointed Margin Flags:** Left edge brings signals *into* the sheet; right edge writes commands/modes *out* to CMs.
-- **SFC Shapes:** Double-bordered box = Initial Step (`S0_IDLE`); single-bordered box = Step (`S10`, `S20`, `S30`); horizontal crossbar (`┼`) = Transition (`T10`, `T20`, `T30`).
-
----
-
-## 8. Next-Level `EM_TANK_CHARGE` Behavior
-
-### Hold, Restart & Abort (and the Golden Tare Rule)
-- **Tare Snapshot (`START_WT.CV`):** Captured **once** when transitioning `S0_IDLE → S10_CHARGE_OPEN`.
-  - `DELIVERED_WT := 'CM_TANK_WT/AI1/OUT.CV' - '^/START_WT.CV'`
-  - `REMAINING_WT := '^/TARGET_WT.CV' - '^/DELIVERED_WT.CV'`
-- **HOLD (Safe Pause):** Triggered by operator or Pattern 2 interlock (`OUT.ST = BAD` or `HI_HI_LVL`). Immediately stamps `Close` onto `'CM_FEED_XV/DC1/CAS_IN_D'`, pauses step progression, and **preserves `START_WT.CV`**.
-- **RESTART (Resume from Hold):** Once the fault clears and permissives are healthy again, resumes charging **without overwriting `START_WT.CV`**. (If you re-tared on Restart, the EM would forget the solvent already delivered and overfill the tank!)
-- **ABORT (Full Emergency Stop):** Immediately closes `CM_FEED_XV`, stops `CM_AGIT_MTR`, exits the active charge command, and requires a Reset back to `S0_IDLE` before starting fresh.
-
-### The Top Boundary (`EPH` → `EM` Handshake)
-The Equipment Phase (`EPH`, Recipe Boss) coordinates with `EM_TANK_CHARGE` through three clean signals:
-1. **Acquisition (Ownership):** The `EPH` acquires `EM_TANK_CHARGE` so no other phase or operator fights over the same tank header.
-2. **Command & Recipe Parameters (Downward):** The `EPH` writes the command Named Set (`A_COMMAND := Charge`) into Pattern 1 and passes `RECIPE_WT` into Pattern 3 (`BSEL1`).
-3. **State & Completion Feedback (Upward):** `EM_TANK_CHARGE` reports its live state (`IDLE`, `RUNNING`, `HELD`, `COMPLETE`, `ABORTED`) back up to the `EPH` so the recipe knows when to advance—or when to hold the whole batch.
-
----
-
-## 9. State-Driven Equipment Modules — `EM_XFER_HDR` (Chapter 7)
-
-- **Command-Driven vs. State-Driven:**
-  - **Command-Driven (`EM_TANK_CHARGE`):** Multi-step sequence over time (`Open -> Cutoff -> Close -> Agitate`).
-  - **State-Driven (`EM_XFER_HDR`):** Multi-valve transfer header or manifold where each Named Set state (`HEADER_CLOSED`, `ROUTE_TANK_A`, `ROUTE_TANK_B`, `CIP_FLUSH`) snaps directly to a fixed **Device Alignment Mask**—no multi-step SFC needed.
-- **`EM_S_COMMAND` (Desired State) vs. `PV_D` (Confirmed State):**
-  - `EM_S_COMMAND` is the target route requested by the `EPH` or operator.
-  - `PV_D` only confirms that state once **every** child CM's physical limit switch (`DC1/PV_D`) matches the active state's mask.
-- **Anti-Cross-Mix Pump Gate (`CND_PATH_OK`):** Transfer pump (`CM_XFER_PMP`) is held at `Stop` until all isolation valves prove aligned (prevents pumping Tank A solvent into Tank B if `CM_HDR_XV102` is stuck open!).
-- **`FAIL_STATE`:** Pre-configured safe fallback state (`HEADER_CLOSED`) forced immediately if a line interlock trips (e.g., `'CM_HDR_PT/AI1/OUT.CV' > 6.0` bar).
-- **`DURATION` & `FAIL_ACTIVE`:** `DURATION` gives valves stroke time (e.g., 8–10 s) before `CND` fires `FAIL_ACTIVE` (State Transition / Mismatch Alarm).
-
+- **Command-Driven (`EM_TANK_CHARGE` — *7009* p. 440):** Hierarchy contains `COMMAND_00001`, `COMMAND_00002`, … (each an SFC). Driven by `A_COMMAND` (`255 = Idle`); SFC Termination sets `A_PV` to the command name.
+- **State-Driven (`EM_XFER_HDR` — *7016* p. 140):** Configured in Control Studio as an **`Items × States` table** (no SFCs!). Each item maps a module-level **Write parameter path** and **Readback parameter path**; also driven by `A_COMMAND` (`255 = Idle`), and `A_PV` stays `Idle` until every row's Readback matches its target cell.
