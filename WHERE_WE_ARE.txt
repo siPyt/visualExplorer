@@ -73,6 +73,12 @@ HOW THIS WORKSPACE OPERATES
 ================================================================================
 - Completed Edition v2.0 of DeltaV_Study_Guide.pdf (18 full textbook pages +
   Workshops 1–7) and Visual Explorer v2 (EM_TANK_CHARGE + EM_XFER_HDR).
+- Audited Visual Explorer against official Emerson PDFs in 'pdf reference/'
+  (Control Studio Online PDS + DeltaV Sequence Tutorial): kept helpful study
+  colors while fixing parameter boxes (rectangular + square pins), removing
+  abbreviated 'MODE.ACT', separating MODE.TARGET vs. MODE.ACTUAL, adding '//'
+  cross-module expression syntax, adding Red 'X' on Bad .ST / OOS callouts, and
+  embedding the authentic Control Studio On-Line Expression [✓ / ✗] Tree dialog.
 - NEXT IMMEDIATE STEP:
   -> Phase 3 / Chapter 8 + Workshop 8: Analog Control Modules & PID Loops
      (AI -> PID -> AO, solid CAS_IN vs. dashed CAS_IN_D, SP/PV/OUT, and the

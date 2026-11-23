@@ -18,8 +18,8 @@
     --warn: #f59e0b;
     --danger: #ef4444;
     --trip: #db2777;
-    --canvas-bg: #f8fafc;
-    --grid-line: #e2e8f0;
+    --canvas-bg: #fbfbfa;
+    --grid-line: #e6eaef;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -325,23 +325,35 @@
     position: absolute;
     bottom: 14px;
     right: 14px;
-    background: rgba(255, 255, 255, 0.94);
-    border: 1px solid #cbd5e1;
-    border-radius: 7px;
-    padding: 8px 12px;
-    color: #1e293b;
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid #94a3b8;
+    border-radius: 4px;
+    padding: 7px 11px;
+    color: #0f172a;
     font-size: 11px;
     display: flex;
     gap: 12px;
     align-items: center;
-    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.1);
     pointer-events: none;
+    flex-wrap: wrap;
   }
   .legend-item { display: flex; align-items: center; gap: 5px; font-weight: 600; }
   .swatch-solid { width: 20px; height: 2px; background: #1e293b; }
   .swatch-dashed { width: 20px; height: 0; border-top: 2px dashed #2563eb; }
   .swatch-active { width: 12px; height: 12px; background: #dcfce7; border: 2px solid #16a34a; border-radius: 2px; }
   .swatch-trip { width: 12px; height: 12px; background: #fee2e2; border: 2px solid #dc2626; border-radius: 2px; }
+  .swatch-val {
+    font-family: Tahoma, Arial, sans-serif;
+    font-size: 9.5px;
+    font-weight: 700;
+    background: #ffffff;
+    border: 1px solid #57554e;
+    padding: 0 4px;
+    line-height: 13px;
+    color: #000000;
+  }
+  .swatch-badx { color: #dc2626; font-weight: 900; margin-left: 2px; }
 
   /* Right Inspector Drawer */
   aside.inspector {
@@ -436,6 +448,87 @@
   .v-bad { color: #f87171; }
   .v-warn { color: #fbbf24; }
   .v-info { color: #38bdf8; }
+
+  /* Authentic Control Studio On-Line Expression [...] Dialog inside Inspector */
+  .cs-expr-win {
+    background: #dfddd6;
+    border: 1px solid #6b6860;
+    border-radius: 3px;
+    color: #111827;
+    overflow: hidden;
+    font-family: Tahoma, "Segoe UI", Arial, sans-serif;
+  }
+  .cs-expr-titlebar {
+    background: linear-gradient(90deg, #1e3a8a, #3b6ea5);
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .cs-expr-tree {
+    background: #ffffff;
+    margin: 5px;
+    border: 1px solid #8c8980;
+    padding: 6px 7px;
+    font-size: 11px;
+  }
+  .cs-tree-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 5px;
+    line-height: 1.4;
+    padding: 1.5px 0;
+    font-family: Consolas, ui-monospace, monospace;
+    font-size: 10.8px;
+  }
+  .cs-tree-row.indent {
+    padding-left: 15px;
+  }
+  .cs-chk-ok {
+    color: #15803d;
+    font-weight: 900;
+    flex-shrink: 0;
+  }
+  .cs-chk-bad {
+    color: #dc2626;
+    font-weight: 900;
+    flex-shrink: 0;
+  }
+  .cs-watch-wrap {
+    margin: 0 5px 5px 5px;
+    background: #ffffff;
+    border: 1px solid #8c8980;
+  }
+  .cs-watch-tbl {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 10.5px;
+    font-family: Tahoma, "Segoe UI", Arial, sans-serif;
+  }
+  .cs-watch-tbl th {
+    background: #efeee9;
+    color: #111827;
+    border-bottom: 1px solid #9c988e;
+    border-right: 1px solid #d1cfc7;
+    padding: 3px 6px;
+    text-align: left;
+    font-weight: 700;
+  }
+  .cs-watch-tbl td {
+    padding: 3px 6px;
+    border-bottom: 1px solid #e5e7eb;
+    border-right: 1px solid #e5e7eb;
+    color: #111827;
+    font-family: Consolas, ui-monospace, monospace;
+    font-size: 10.2px;
+  }
+  .cs-watch-tbl td.st-bad {
+    color: #b91c1c;
+    font-weight: 700;
+  }
 
   /* SVG Clickable Elements */
   .clickable { cursor: pointer; transition: filter 0.12s; }
@@ -622,7 +715,7 @@
     <svg id="schematic" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
-          <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#e2e8f0" stroke-width="1" />
+          <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#e6eaef" stroke-width="0.9" />
         </pattern>
         <marker id="arrow-solid" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
           <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#1e293b" />
@@ -651,8 +744,9 @@
     <div class="legend-box">
       <div class="legend-item"><span class="swatch-solid"></span>Analog (.CV)</div>
       <div class="legend-item"><span class="swatch-dashed"></span>Discrete / Mode / .ST</div>
-      <div class="legend-item"><span class="swatch-active"></span>Active / Aligned</div>
-      <div class="legend-item"><span class="swatch-trip"></span>Mismatch / Interlock</div>
+      <div class="legend-item"><span class="swatch-active"></span>OK / Active (Study Aid)</div>
+      <div class="legend-item"><span class="swatch-trip"></span>Blocked / Trip (Study Aid)</div>
+      <div class="legend-item"><span class="swatch-val">100<span class="swatch-badx">✕</span></span>DeltaV Bad .ST / OOS</div>
     </div>
   </div>
 
@@ -660,6 +754,22 @@
     <div class="insp-header">
       <div class="insp-type" id="inspType">DELTAV INSPECTOR</div>
       <div class="insp-title" id="inspTitle">Select Any Element</div>
+    </div>
+    <div class="insp-card" id="inspCsExprCard" style="display:none;">
+      <h3>Control Studio On-Line Expression Dialog</h3>
+      <div class="cs-expr-win">
+        <div class="cs-expr-titlebar">
+          <span id="csExprWinTitle">Expression [CND1]</span>
+          <span style="font-size:9.5px; opacity:0.88;">On-Line Tree</span>
+        </div>
+        <div class="cs-expr-tree" id="csExprTree"></div>
+        <div class="cs-watch-wrap">
+          <table class="cs-watch-tbl">
+            <thead><tr><th>Item</th><th>Value</th><th>Status</th></tr></thead>
+            <tbody id="csExprWatch"></tbody>
+          </table>
+        </div>
+      </div>
     </div>
     <div class="insp-card">
       <h3>Plain-English Role</h3>
@@ -914,96 +1024,130 @@ function el(tag, attrs = {}, text = null) {
   return node;
 }
 
-function drawFlag(parent, { id, x, y, w = 210, h = 34, side = "left", label, sub = "", liveText = "", status = "normal" }) {
+function drawOnlineValueBox(parent, { x, y, text, status = "normal", badSt = false, anchor = "end" }) {
+  const hasX = Boolean(badSt);
+  const textW = Math.max(22, text.length * 6.3);
+  const boxW = Math.round(textW + 10 + (hasX ? 14 : 0));
+  const bx = anchor === "end" ? x - boxW : anchor === "middle" ? x - boxW / 2 : x;
+  const borderCol = status === "bad" ? "#dc2626" : status === "ok" ? "#15803d" : status === "warn" ? "#d97706" : "#57554e";
+
+  // Authentic Control Studio white rectangular live value box (PDS p.1 & p.3) with study-aid border tint
+  parent.appendChild(el("rect", {
+    x: bx, y, width: boxW, height: 16, rx: 1,
+    fill: "#ffffff", stroke: borderCol, "stroke-width": status === "normal" ? 1 : 1.5
+  }));
+  parent.appendChild(el("text", {
+    x: bx + 5, y: y + 11.5,
+    "font-size": 10, "font-weight": 700, fill: "#0f172a",
+    "font-family": "Tahoma, 'Segoe UI', ui-monospace, sans-serif"
+  }, text));
+
+  // Authentic DeltaV Red 'X' inside value box ONLY when .ST = BAD or MODE = OOS (PDS p.3 FI_134)
+  if (hasX) {
+    const ix = bx + boxW - 11;
+    const iy = y + 4;
+    parent.appendChild(el("line", { x1: ix, y1: iy, x2: ix + 7, y2: iy + 8, stroke: "#dc2626", "stroke-width": 2.2 }));
+    parent.appendChild(el("line", { x1: ix + 7, y1: iy, x2: ix, y2: iy + 8, stroke: "#dc2626", "stroke-width": 2.2 }));
+  }
+}
+
+function drawFlag(parent, { id, x, y, w = 210, h = 34, side = "left", label, sub = "", liveText = "", status = "normal", badSt = false }) {
   const g = el("g", { class: "clickable", "data-id": id });
-  const tip = 12;
-  const pts = `${x},${y} ${x + w - tip},${y} ${x + w},${y + h / 2} ${x + w - tip},${y + h} ${x},${y + h}`;
-  let fill = "#f1f5f9", stroke = "#64748b";
+  let fill = "#dfddd6", stroke = "#57554e";
   if (state.online) {
     if (status === "bad") { fill = "#fee2e2"; stroke = "#dc2626"; }
     else if (status === "ok") { fill = "#dcfce7"; stroke = "#16a34a"; }
     else if (status === "warn") { fill = "#fef3c7"; stroke = "#d97706"; }
   }
-  g.appendChild(el("polygon", {
-    points: pts, fill, stroke,
+  // Control Studio rectangular Parameter Reference box (PDS p.1 STMFLW, Tutorial p.8 LEVEL/VALVE)
+  g.appendChild(el("rect", {
+    x, y, width: w, height: h, rx: 1, fill, stroke,
     "stroke-width": state.selectedId === id ? 3 : 1.5,
     class: state.selectedId === id ? "selected-outline" : ""
   }));
+  // Hollow square connection pin flush inside the active edge
+  const pinX = side === "left" ? x + w - 8 : x + 2;
+  g.appendChild(el("rect", {
+    x: pinX, y: y + h / 2 - 3.5, width: 6.5, height: 6.5,
+    fill: "#ffffff", stroke: "#1e293b", "stroke-width": 1.1
+  }));
+
+  const textX = side === "right" ? x + 12 : x + 7;
   g.appendChild(el("text", {
-    x: x + 9, y: y + (sub ? 14 : 21),
-    "font-size": 11, "font-weight": 700, fill: "#0f172a",
+    x: textX, y: y + (sub ? 13.5 : h / 2 + 4),
+    "font-size": 10.5, "font-weight": 700, fill: "#0f172a",
     "font-family": "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
   }, label));
   if (sub) {
-    g.appendChild(el("text", { x: x + 9, y: y + 27, "font-size": 9.5, fill: "#475569" }, sub));
+    g.appendChild(el("text", { x: textX, y: y + 26.5, "font-size": 9.2, fill: "#334155" }, sub));
   }
   if (state.online && liveText) {
-    const pillW = Math.max(58, liveText.length * 6.8 + 12);
-    const px = x + w - pillW - 14;
-    const py = y - 13;
-    const pillFill = status === "bad" ? "#dc2626" : status === "ok" ? "#15803d" : status === "warn" ? "#d97706" : "#0284c7";
-    g.appendChild(el("rect", { x: px, y: py, width: pillW, height: 17, rx: 4, fill: pillFill }));
-    g.appendChild(el("text", {
-      x: px + pillW / 2, y: py + 12,
-      "text-anchor": "middle", "font-size": 10, "font-weight": 700, fill: "#ffffff",
-      "font-family": "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
-    }, liveText));
+    drawOnlineValueBox(g, {
+      x: side === "left" ? x + w - 2 : x + 2,
+      y: y - 16,
+      text: liveText,
+      status,
+      badSt,
+      anchor: side === "left" ? "end" : "start"
+    });
   }
   parent.appendChild(g);
 }
 
-function drawFbdBlock(parent, { id, x, y, w = 185, h = 110, cls, name, execNum, inputs = [], outputs = [], bodyLines = [], status = "normal", liveBadge = "" }) {
+function drawFbdBlock(parent, { id, x, y, w = 185, h = 110, cls, name, execNum, inputs = [], outputs = [], bodyLines = [], status = "normal", liveBadge = "", badSt = false }) {
   const g = el("g", { class: "clickable", "data-id": id });
   g.appendChild(el("text", {
     x: x + w / 2, y: y - 6,
     "text-anchor": "middle", "font-size": 11, "font-weight": 800, fill: "#334155", "letter-spacing": "0.6px"
   }, cls));
 
-  let stroke = "#475569", headerFill = "#dbeafe", bodyFill = "#ffffff";
+  let stroke = "#57554e", headerFill = "#cfccc2", bodyFill = "#dfddd6";
   if (state.online) {
     if (status === "bad") { stroke = "#dc2626"; headerFill = "#fecaca"; bodyFill = "#fff5f5"; }
     else if (status === "ok") { stroke = "#16a34a"; headerFill = "#bbf7d0"; bodyFill = "#f0fdf4"; }
     else if (status === "warn") { stroke = "#d97706"; headerFill = "#fde68a"; bodyFill = "#fffbeb"; }
+    else { stroke = "#57554e"; headerFill = "#d5d2c8"; bodyFill = "#eceae4"; }
   }
 
   g.appendChild(el("rect", {
-    x, y, width: w, height: h, rx: 3, fill: bodyFill, stroke,
+    x, y, width: w, height: h, rx: 2, fill: bodyFill, stroke,
     "stroke-width": state.selectedId === id ? 3 : 1.75,
     class: state.selectedId === id ? "selected-outline" : ""
   }));
-  g.appendChild(el("rect", { x: x + 1, y: y + 1, width: w - 2, height: 24, rx: 2, fill: headerFill }));
+  g.appendChild(el("rect", { x: x + 1, y: y + 1, width: w - 2, height: 24, rx: 1, fill: headerFill }));
   g.appendChild(el("line", { x1: x, y1: y + 25, x2: x + w, y2: y + 25, stroke, "stroke-width": 1 }));
   g.appendChild(el("text", {
-    x: x + 10, y: y + 17, "font-size": 11.5, "font-weight": 800, fill: "#1e3a8a",
+    x: x + 9, y: y + 17, "font-size": 11.5, "font-weight": 800, fill: "#0f172a",
     "font-family": "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
   }, name));
 
   bodyLines.forEach((line, idx) => {
     g.appendChild(el("text", {
       x: x + w / 2, y: y + 48 + idx * 15,
-      "text-anchor": "middle", "font-size": 10.5, fill: "#334155", "font-weight": 600
+      "text-anchor": "middle", "font-size": 10.2, fill: "#1e293b", "font-weight": 600
     }, line));
   });
 
+  // Control Studio hollow square input/output pins flush inside block walls (PDS p.1-4)
   inputs.forEach(pin => {
-    g.appendChild(el("circle", { cx: x, cy: y + pin.dy, r: 3.5, fill: "#1e293b" }));
+    g.appendChild(el("rect", { x: x + 1, y: y + pin.dy - 3.2, width: 6.4, height: 6.4, fill: "#ffffff", stroke: "#1e293b", "stroke-width": 1.1 }));
     g.appendChild(el("text", {
-      x: x + 7, y: y + pin.dy + 3.5, "font-size": 9.5, "font-weight": 700, fill: "#334155",
+      x: x + 10, y: y + pin.dy + 3.5, "font-size": 9.5, "font-weight": 700, fill: "#1e293b",
       "font-family": "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
     }, pin.name));
   });
 
   outputs.forEach(pin => {
-    g.appendChild(el("circle", { cx: x + w, cy: y + pin.dy, r: 3.5, fill: "#1e293b" }));
+    g.appendChild(el("rect", { x: x + w - 7.4, y: y + pin.dy - 3.2, width: 6.4, height: 6.4, fill: "#ffffff", stroke: "#1e293b", "stroke-width": 1.1 }));
     g.appendChild(el("text", {
-      x: x + w - 7, y: y + pin.dy + 3.5, "text-anchor": "end", "font-size": 9.5, "font-weight": 700, fill: "#334155",
+      x: x + w - 10, y: y + pin.dy + 3.5, "text-anchor": "end", "font-size": 9.5, "font-weight": 700, fill: "#1e293b",
       "font-family": "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
     }, pin.name));
   });
 
   g.appendChild(el("rect", {
-    x: x + w - 30, y: y + h - 20, width: 26, height: 16, rx: 3,
-    fill: "#e2e8f0", stroke: "#94a3b8", "stroke-width": 1
+    x: x + w - 30, y: y + h - 20, width: 26, height: 16, rx: 2,
+    fill: "#efeee9", stroke: "#8c8980", "stroke-width": 1
   }));
   g.appendChild(el("text", {
     x: x + w - 17, y: y + h - 8.5, "text-anchor": "middle", "font-size": 10, "font-weight": 800, fill: "#0f172a",
@@ -1011,16 +1155,28 @@ function drawFbdBlock(parent, { id, x, y, w = 185, h = 110, cls, name, execNum, 
   }, `#${execNum}`));
 
   if (state.online && liveBadge) {
-    const bw = Math.max(54, liveBadge.length * 6.5 + 12);
-    const bFill = status === "bad" ? "#dc2626" : status === "ok" ? "#15803d" : status === "warn" ? "#d97706" : "#0284c7";
-    g.appendChild(el("rect", { x: x + w - bw - 4, y: y + 4, width: bw, height: 17, rx: 4, fill: bFill }));
-    g.appendChild(el("text", {
-      x: x + w - bw / 2 - 4, y: y + 16, "text-anchor": "middle", "font-size": 9.5, "font-weight": 700, fill: "#ffffff",
-      "font-family": "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
-    }, liveBadge));
+    drawOnlineValueBox(g, {
+      x: x + w - 4,
+      y: y + 4,
+      text: liveBadge,
+      status,
+      badSt,
+      anchor: "end"
+    });
   }
 
   parent.appendChild(g);
+}
+
+function drawCalcIcon(parent, x, y) {
+  // Mini Control Studio expression calculator icon next to SFC Transitions (PDS p.5, Tutorial p.26)
+  parent.appendChild(el("rect", { x, y, width: 11, height: 13, rx: 1.5, fill: "#cbd5e1", stroke: "#334155", "stroke-width": 1 }));
+  parent.appendChild(el("rect", { x: x + 2, y: y + 2, width: 7, height: 3, fill: "#0284c7" }));
+  for (let r = 0; r < 2; r++) {
+    for (let c = 0; c < 3; c++) {
+      parent.appendChild(el("rect", { x: x + 2 + c * 2.5, y: y + 6.5 + r * 2.5, width: 1.5, height: 1.5, fill: "#1e293b" }));
+    }
+  }
 }
 
 function drawWire(parent, points, { kind = "solid", active = false, fault = false, label = "", labelPos = null } = {}) {
@@ -1123,6 +1279,9 @@ function renderPattern1(vp, d) {
       const tagColor = isAbortedHere ? "#dc2626" : isHeldHere ? "#d97706" : (s.idx === 0 ? "#475569" : "#15803d");
       g.appendChild(el("rect", { x: 256, y: s.y - 11, width: 68, height: 18, rx: 4, fill: tagColor }));
       g.appendChild(el("text", { x: 290, y: s.y + 1, "text-anchor": "middle", "font-size": 10, "font-weight": 800, fill: "#fff" }, tagText));
+      // Authentic Control Studio active step elapsed seconds below step box (PDS p.5, Tutorial p.26)
+      const stepSecs = [18, 42, 4, 120][s.idx];
+      g.appendChild(el("text", { x: 236, y: s.y + 69, "font-size": 10.5, "font-weight": 700, fill: "#0f172a", "font-family": "Tahoma, sans-serif" }, String(stepSecs)));
     }
     vp.appendChild(g);
   });
@@ -1130,11 +1289,12 @@ function renderPattern1(vp, d) {
   transSpecs.forEach(t => {
     const g = el("g", { class: "clickable", "data-id": t.id });
     const barColor = !state.online ? "#1e293b" : (t.ok ? "#16a34a" : "#dc2626");
-    g.appendChild(el("rect", { x: 180, y: t.y - 14, width: 250, height: 28, fill: "transparent" }));
-    g.appendChild(el("line", { x1: 196, y1: t.y, x2: 244, y2: t.y, stroke: barColor, "stroke-width": 4.5 }));
-    g.appendChild(el("text", { x: 254, y: t.y - 2, "font-size": 11.5, "font-weight": 800, fill: barColor, "font-family": "ui-monospace, monospace" },
-      t.label + (state.online ? (t.ok ? " [TRUE]" : " [FALSE]") : "")));
-    g.appendChild(el("text", { x: 254, y: t.y + 12, "font-size": 10, fill: "#475569", "font-family": "ui-monospace, monospace" }, t.expr));
+    g.appendChild(el("rect", { x: 175, y: t.y - 14, width: 265, height: 30, fill: "transparent" }));
+    drawCalcIcon(g, 180, t.y - 6.5);
+    g.appendChild(el("rect", { x: 198, y: t.y - 2.5, width: 44, height: 5, fill: "#dfddd6", stroke: barColor, "stroke-width": 1.8 }));
+    g.appendChild(el("text", { x: 252, y: t.y - 2, "font-size": 11.5, "font-weight": 800, fill: barColor, "font-family": "ui-monospace, monospace" }, t.label));
+    g.appendChild(el("text", { x: 252, y: t.y + 12, "font-size": 10.5, "font-weight": state.online ? 700 : 500, fill: state.online ? barColor : "#475569", "font-family": "Tahoma, ui-monospace, sans-serif" },
+      state.online ? `${t.ok ? "True" : "False"}  (${t.expr})` : t.expr));
     vp.appendChild(g);
   });
 
@@ -1187,143 +1347,146 @@ function renderPattern1(vp, d) {
 
 function renderPattern2(vp, d) {
   drawSectionStrip(vp, 30, 28, 860, 215, "STRIP A: PRE-START PERMISSIVES (RUNS EVERY SCAN — GATES T10_START_OK WITHOUT TRIPPING)", "#1e3a8a");
-  drawFlag(vp, { id: "FLAG_VALVE_MODE", x: 50, y: 68, w: 225, side: "left", label: "'CM_FEED_XV/DC1/MODE.ACTUAL'", sub: "Must equal CAS", liveText: state.valveMode, status: d.permValveCas ? "ok" : "bad" });
-  drawFlag(vp, { id: "FLAG_TARGET_WT", x: 50, y: 122, w: 225, side: "left", label: "'^/TARGET_WT.CV'", sub: "Must be > 0.0 kg", liveText: `${d.targetWt.toFixed(1)} kg`, status: d.permTargetOk ? "ok" : "bad" });
-  drawFlag(vp, { id: "FLAG_SCALE_ST_P2A", x: 50, y: 176, w: 225, side: "left", label: "'CM_TANK_WT/AI1/OUT.ST'", sub: "Health must be >= GOOD", liveText: state.scaleSt, status: d.permScaleGood ? "ok" : "bad" });
+  drawFlag(vp, { id: "FLAG_VALVE_MODE", x: 50, y: 68, w: 235, side: "left", label: "CM_FEED_XV/DC1/MODE.ACTUAL", sub: "Linked Input (Must = CAS)", liveText: state.valveMode, status: d.permValveCas ? "ok" : "bad" });
+  drawFlag(vp, { id: "FLAG_TARGET_WT", x: 50, y: 122, w: 235, side: "left", label: "^/TARGET_WT.CV", sub: "Internal Param (Must > 0.0 kg)", liveText: `${d.targetWt.toFixed(1)}`, status: d.permTargetOk ? "ok" : "bad" });
+  drawFlag(vp, { id: "FLAG_SCALE_ST_P2A", x: 50, y: 176, w: 235, side: "left", label: "CM_TANK_WT/AI1/OUT.ST", sub: "Linked Health (>= GOOD)", liveText: state.scaleSt, status: d.permScaleGood ? "ok" : "bad", badSt: state.scaleSt === "BAD" });
 
   drawFbdBlock(vp, {
     id: "CND1", x: 375, y: 80, w: 210, h: 126, cls: "CND", name: "CND1", execNum: 1,
-    inputs: [{ name: "IN1", dy: 44 }, { name: "IN2", dy: 74 }, { name: "IN3", dy: 104 }],
+    inputs: [{ name: "IN_D", dy: 74 }],
     outputs: [{ name: "OUT_D", dy: 74 }],
-    bodyLines: ["Pre-Start Gate", "CAS & WT>0 & GOOD"],
-    status: d.permReady ? "ok" : "warn", liveBadge: d.permReady ? "TRUE (1)" : "FALSE (0)"
+    bodyLines: ["Expression Permissive", "Click for Tree (✓ / ✗)"],
+    status: d.permReady ? "ok" : "warn", liveBadge: d.permReady ? "True" : "False"
   });
 
-  drawFlag(vp, { id: "FLAG_PERM_READY", x: 660, y: 136, w: 210, side: "right", label: "'^/PERM_READY'", sub: "Feeds SFC Transition T10", liveText: d.permReady ? "READY (1)" : "BLOCKED (0)", status: d.permReady ? "ok" : "warn" });
+  drawFlag(vp, { id: "FLAG_PERM_READY", x: 660, y: 136, w: 210, side: "right", label: "^/PERM_READY.CV", sub: "Internal Write → SFC T10", liveText: d.permReady ? "True" : "False", status: d.permReady ? "ok" : "warn" });
 
-  drawWire(vp, [[275, 85], [325, 85], [325, 124], [375, 124]], { kind: "dashed", active: d.permValveCas, fault: !d.permValveCas });
-  drawWire(vp, [[275, 139], [325, 139], [325, 154], [375, 154]], { kind: "solid", active: d.permTargetOk });
-  drawWire(vp, [[275, 193], [325, 193], [325, 184], [375, 184]], { kind: "dashed", active: d.permScaleGood, fault: !d.permScaleGood });
+  drawWire(vp, [[285, 85], [330, 85], [330, 154], [375, 154]], { kind: "dashed", active: d.permValveCas, fault: !d.permValveCas });
+  drawWire(vp, [[285, 139], [330, 139], [330, 154], [375, 154]], { kind: "solid", active: d.permTargetOk });
+  drawWire(vp, [[285, 193], [330, 193], [330, 154], [375, 154]], { kind: "dashed", active: d.permScaleGood, fault: !d.permScaleGood });
   drawWire(vp, [[585, 154], [660, 154]], { kind: "dashed", active: d.permReady, fault: !d.permReady });
 
   drawSectionStrip(vp, 30, 275, 860, 235, "STRIP B: ACTIVE INTERLOCK TRIP (RUNS EVERY SCAN — FORCES VALVE CLOSED & EM HOLD)", "#991b1b");
-  drawFlag(vp, { id: "FLAG_SCALE_ST_P2B", x: 50, y: 328, w: 225, side: "left", label: "'CM_TANK_WT/AI1/OUT.ST'", sub: "Trips if status = BAD", liveText: state.scaleSt, status: state.scaleSt === "BAD" ? "bad" : "ok" });
-  drawFlag(vp, { id: "FLAG_HI_HI", x: 50, y: 398, w: 225, side: "left", label: "'^/HI_HI_LVL.CV'", sub: "Trips if High-High = 1", liveText: state.hiHi ? "TRIP (1)" : "NORMAL (0)", status: state.hiHi ? "bad" : "ok" });
+  drawFlag(vp, { id: "FLAG_SCALE_ST_P2B", x: 50, y: 328, w: 235, side: "left", label: "CM_TANK_WT/AI1/OUT.ST", sub: "Trips if status = BAD", liveText: state.scaleSt, status: state.scaleSt === "BAD" ? "bad" : "ok", badSt: state.scaleSt === "BAD" });
+  drawFlag(vp, { id: "FLAG_HI_HI", x: 50, y: 398, w: 235, side: "left", label: "^/HI_HI_LVL.CV", sub: "Trips if High-High = 1", liveText: state.hiHi ? "1" : "0", status: state.hiHi ? "bad" : "ok" });
 
   drawFbdBlock(vp, {
     id: "CND2", x: 335, y: 330, w: 190, h: 118, cls: "CND", name: "CND2", execNum: 2,
-    inputs: [{ name: "IN1", dy: 45 }, { name: "IN2", dy: 88 }],
+    inputs: [{ name: "IN_D", dy: 66 }],
     outputs: [{ name: "OUT_D", dy: 66 }],
-    bodyLines: ["Mid-Charge Trip", "ST=BAD OR HI_HI"],
-    status: d.tripCondition ? "bad" : "normal", liveBadge: d.tripCondition ? "TRIPPED (1)" : "CLEAR (0)"
+    bodyLines: ["Mid-Charge Trip", "ST=BAD OR HI_HI=1"],
+    status: d.tripCondition ? "bad" : "normal", liveBadge: d.tripCondition ? "True" : "False"
   });
 
   drawFbdBlock(vp, {
     id: "ACT1", x: 575, y: 330, w: 165, h: 118, cls: "ACT", name: "ACT1", execNum: 3,
     inputs: [{ name: "IN_D", dy: 66 }],
-    outputs: [{ name: "CMD", dy: 48 }, { name: "STATE", dy: 88 }],
-    bodyLines: ["Stamp Close &", "Force EM Hold"],
-    status: (d.tripCondition && state.emState === "HELD") ? "bad" : "normal", liveBadge: d.tripCondition ? "FIRED" : "IDLE"
+    outputs: [{ name: "OUT_D", dy: 66 }],
+    bodyLines: ["CAS_IN_D := Close;", "EM_STATE := HELD;"],
+    status: (d.tripCondition && state.emState === "HELD") ? "bad" : "normal", liveBadge: d.tripCondition ? "True" : "False"
   });
 
-  drawFlag(vp, { id: "FLAG_TRIP_VALVE", x: 770, y: 356, w: 110, side: "right", label: "CAS_IN_D", sub: ":= Close", liveText: d.feedCmdText, status: d.tripCondition ? "bad" : "normal" });
-  drawFlag(vp, { id: "FLAG_TRIP_HOLD", x: 770, y: 406, w: 110, side: "right", label: "EM_STATE", sub: ":= HELD", liveText: state.emState, status: state.emState === "HELD" ? "warn" : "normal" });
+  drawFlag(vp, { id: "FLAG_TRIP_VALVE", x: 768, y: 350, w: 114, side: "right", label: "CAS_IN_D", sub: "CM_FEED_XV/DC1", liveText: d.feedCmdText, status: d.tripCondition ? "bad" : "normal" });
+  drawFlag(vp, { id: "FLAG_TRIP_HOLD", x: 768, y: 404, w: 114, side: "right", label: "^/EM_STATE", sub: "Module State", liveText: state.emState, status: state.emState === "HELD" ? "warn" : "normal" });
 
-  drawWire(vp, [[275, 345], [305, 345], [305, 375], [335, 375]], { kind: "dashed", fault: state.scaleSt === "BAD" });
-  drawWire(vp, [[275, 415], [305, 415], [305, 418], [335, 418]], { kind: "dashed", fault: state.hiHi });
+  drawWire(vp, [[285, 345], [310, 345], [310, 396], [335, 396]], { kind: "dashed", fault: state.scaleSt === "BAD" });
+  drawWire(vp, [[285, 415], [310, 415], [310, 396], [335, 396]], { kind: "dashed", fault: state.hiHi });
   drawWire(vp, [[525, 396], [575, 396]], { kind: "dashed", fault: d.tripCondition });
-  drawWire(vp, [[740, 378], [770, 378]], { kind: "dashed", fault: d.tripCondition });
-  drawWire(vp, [[740, 418], [770, 418]], { kind: "dashed", fault: d.tripCondition });
+  drawWire(vp, [[740, 396], [754, 396], [754, 367], [768, 367]], { kind: "dashed", fault: d.tripCondition });
+  drawWire(vp, [[754, 396], [754, 421], [768, 421]], { kind: "dashed", fault: d.tripCondition });
 }
 
 function renderPattern3(vp, d) {
   drawSectionStrip(vp, 25, 25, 895, 295, "SECTION A: TARGET WEIGHT ARBITRATION & NET MASS MATH (SOLVED #1 → #2 → #3 EVERY SCAN)", "#1e3a8a");
-  drawFlag(vp, { id: "FLAG_RECIPE_WT", x: 42, y: 70, w: 165, side: "left", label: "'^/RECIPE_WT.CV'", sub: "From EPH Boss", liveText: `${state.recipeWt.toFixed(1)} kg`, status: state.useRecipe ? "ok" : "normal" });
-  drawFlag(vp, { id: "FLAG_LOCAL_WT", x: 42, y: 122, w: 165, side: "left", label: "'^/LOCAL_WT.CV'", sub: "Operator Entry", liveText: `${state.localWt.toFixed(1)} kg`, status: !state.useRecipe ? "ok" : "normal" });
-  drawFlag(vp, { id: "FLAG_USE_RECIPE", x: 42, y: 174, w: 165, side: "left", label: "'^/USE_RECIPE'", sub: "Selector Flag", liveText: state.useRecipe ? "TRUE (1)" : "FALSE (0)", status: "normal" });
+  drawFlag(vp, { id: "FLAG_RECIPE_WT", x: 42, y: 70, w: 165, side: "left", label: "^/RECIPE_WT.CV", sub: "From EPH Boss", liveText: `${state.recipeWt.toFixed(1)}`, status: state.useRecipe ? "ok" : "normal" });
+  drawFlag(vp, { id: "FLAG_LOCAL_WT", x: 42, y: 122, w: 165, side: "left", label: "^/LOCAL_WT.CV", sub: "Operator Entry", liveText: `${state.localWt.toFixed(1)}`, status: !state.useRecipe ? "ok" : "normal" });
+  drawFlag(vp, { id: "FLAG_USE_RECIPE", x: 42, y: 174, w: 165, side: "left", label: "^/USE_RECIPE.CV", sub: "Selector Flag", liveText: state.useRecipe ? "True" : "False", status: "normal" });
 
   drawFbdBlock(vp, {
     id: "BSEL1", x: 255, y: 74, w: 155, h: 128, cls: "BSEL", name: "BSEL1", execNum: 1,
-    inputs: [{ name: "IN1", dy: 38 }, { name: "IN2", dy: 70 }, { name: "SEL_D", dy: 104 }],
+    inputs: [{ name: "IN_1", dy: 38 }, { name: "IN_2", dy: 70 }, { name: "SEL_D", dy: 104 }],
     outputs: [{ name: "OUT", dy: 65 }],
-    bodyLines: ["Pick Active", "Target Wt"], status: "ok", liveBadge: `${d.targetWt.toFixed(0)} kg`
+    bodyLines: ["Pick Active", "Target Wt"], status: "ok", liveBadge: `${d.targetWt.toFixed(1)}`
   });
 
-  drawFlag(vp, { id: "FLAG_TANK_WT_CV", x: 240, y: 230, w: 185, side: "left", label: "'CM_TANK_WT/AI1/OUT'", sub: "Live Gross Weight", liveText: `${state.currentWt.toFixed(1)} kg`, status: state.scaleSt === "BAD" ? "bad" : "ok" });
-  drawFlag(vp, { id: "FLAG_START_WT", x: 240, y: 274, w: 185, side: "left", label: "'^/START_WT.CV'", sub: "Tare Snapshot (Idle→S10)", liveText: `${state.startWt.toFixed(1)} kg`, status: "normal" });
+  drawFlag(vp, { id: "FLAG_TANK_WT_CV", x: 235, y: 230, w: 190, side: "left", label: "CM_TANK_WT/AI1/OUT", sub: "Linked Gross Weight", liveText: `${state.currentWt.toFixed(1)}`, status: state.scaleSt === "BAD" ? "bad" : "ok", badSt: state.scaleSt === "BAD" });
+  drawFlag(vp, { id: "FLAG_START_WT", x: 235, y: 274, w: 190, side: "left", label: "^/START_WT.CV", sub: "Tare Snapshot (Idle→S10)", liveText: `${state.startWt.toFixed(1)}`, status: "normal" });
 
   drawFbdBlock(vp, {
     id: "CALC1", x: 475, y: 112, w: 175, h: 145, cls: "CALC", name: "CALC1", execNum: 2,
-    inputs: [{ name: "IN1 (Tgt)", dy: 38 }, { name: "IN2 (Cur)", dy: 82 }, { name: "IN3 (Tare)", dy: 118 }],
-    outputs: [{ name: "OUT", dy: 68 }],
-    bodyLines: ["Net = Cur - Tare", "Rem = Tgt - Net"],
-    status: state.scaleSt === "BAD" ? "bad" : "normal", liveBadge: `${d.remainingWt.toFixed(1)} kg`
+    inputs: [{ name: "IN_1", dy: 38 }, { name: "IN_2", dy: 82 }, { name: "IN_3", dy: 118 }],
+    outputs: [{ name: "OUT_1", dy: 68 }],
+    bodyLines: ["Net := IN_2 - IN_3", "OUT_1 := IN_1 - Net"],
+    status: state.scaleSt === "BAD" ? "bad" : "normal", liveBadge: `${d.remainingWt.toFixed(1)}`, badSt: state.scaleSt === "BAD"
   });
 
   drawFbdBlock(vp, {
     id: "CND3", x: 705, y: 120, w: 155, h: 118, cls: "CND", name: "CND3", execNum: 3,
-    inputs: [{ name: "IN1", dy: 60 }], outputs: [{ name: "OUT_D", dy: 60 }],
-    bodyLines: ["Rem <= Lead", `(${state.precloseLead} kg)`],
-    status: d.precloseReached ? "ok" : "normal", liveBadge: d.precloseReached ? "CUTOFF!" : "FILLING"
+    inputs: [{ name: "IN_D", dy: 60 }], outputs: [{ name: "OUT_D", dy: 60 }],
+    bodyLines: ["REM_WT <= Lead", `(${state.precloseLead} kg)`],
+    status: d.precloseReached ? "ok" : "normal", liveBadge: d.precloseReached ? "True" : "False"
   });
 
   drawWire(vp, [[207, 87], [230, 87], [230, 112], [255, 112]], { kind: "solid", active: state.useRecipe });
   drawWire(vp, [[207, 139], [230, 139], [230, 144], [255, 144]], { kind: "solid", active: !state.useRecipe });
   drawWire(vp, [[207, 191], [230, 191], [230, 178], [255, 178]], { kind: "dashed", active: state.useRecipe });
-  drawWire(vp, [[410, 139], [442, 139], [442, 150], [475, 150]], { kind: "solid", active: true, label: state.online ? `${d.targetWt.toFixed(0)} kg` : "TARGET_WT", labelPos: [442, 126] });
+  drawWire(vp, [[410, 139], [442, 139], [442, 150], [475, 150]], { kind: "solid", active: true, label: state.online ? `${d.targetWt.toFixed(1)}` : "TARGET_WT", labelPos: [442, 126] });
   drawWire(vp, [[425, 247], [448, 247], [448, 194], [475, 194]], { kind: "solid", fault: state.scaleSt === "BAD" });
   drawWire(vp, [[425, 291], [460, 291], [460, 230], [475, 230]], { kind: "solid" });
   drawWire(vp, [[650, 180], [705, 180]], { kind: "solid", active: d.precloseReached, label: state.online ? `${d.remainingWt.toFixed(1)}` : "REM_WT", labelPos: [678, 165] });
   drawWire(vp, [[860, 180], [908, 180]], { kind: "dashed", active: d.precloseReached });
   vp.appendChild(el("text", { x: 865, y: 165, "font-size": 10, "font-weight": 800, fill: "#1e3a8a" }, "→ T20"));
 
-  drawSectionStrip(vp, 25, 345, 895, 170, "SECTION B: CASCADE MODE ALIGNMENT (WHEN EM IS IN AUTO, PUSH MODE.TARGET := CAS TO CMs)", "#0f766e");
-  drawFlag(vp, { id: "FLAG_EM_AUTO", x: 50, y: 412, w: 195, side: "left", label: "'^/EM_MODE.ACTUAL'", sub: "Triggers when EM = AUTO", liveText: "AUTO", status: "ok" });
+  // Strip B: Separate MODE.TARGET (written by ACT2) from MODE.ACTUAL (read back from DC1!)
+  drawSectionStrip(vp, 25, 340, 895, 195, "SECTION B: CASCADE MODE PUSH (MODE.TARGET WRITTEN BY ACT2) VS. TRUE DC1 READBACK (MODE.ACTUAL)", "#0f766e");
+  drawFlag(vp, { id: "FLAG_EM_AUTO", x: 45, y: 416, w: 195, side: "left", label: "^/MODE.ACTUAL", sub: "EM Mode = AUTO", liveText: "AUTO", status: "ok" });
   drawFbdBlock(vp, {
-    id: "ACT2", x: 315, y: 382, w: 220, h: 108, cls: "ACT", name: "ACT2", execNum: 4,
-    inputs: [{ name: "IN_D", dy: 47 }], outputs: [{ name: "OUT1", dy: 38 }, { name: "OUT2", dy: 76 }],
-    bodyLines: ["Request CAS Mode", "on Downstream CMs"], status: "ok", liveBadge: "MODE := CAS"
+    id: "ACT2", x: 295, y: 382, w: 225, h: 110, cls: "ACT", name: "ACT2", execNum: 4,
+    inputs: [{ name: "IN_D", dy: 52 }], outputs: [{ name: "OUT_D", dy: 52 }],
+    bodyLines: ["'//CM_FEED_XV/DC1/", "MODE.TARGET' := CAS;"], status: "ok", liveBadge: "True"
   });
-  drawFlag(vp, { id: "FLAG_FEED_MODE_TGT", x: 610, y: 392, w: 280, side: "right", label: "'CM_FEED_XV/DC1/MODE.TARGET'", sub: "Requested: CAS | Actual: " + state.valveMode, liveText: `ACT: ${state.valveMode}`, status: state.valveMode === "CAS" ? "ok" : "bad" });
-  drawFlag(vp, { id: "FLAG_AGIT_MODE_TGT", x: 610, y: 444, w: 280, side: "right", label: "'CM_AGIT_MTR/DC1/MODE.TARGET'", sub: "Requested: CAS | Actual: CAS", liveText: "ACT: CAS", status: "ok" });
-  drawWire(vp, [[245, 429], [315, 429]], { kind: "dashed", active: true });
-  drawWire(vp, [[535, 420], [572, 420], [572, 409], [610, 409]], { kind: "dashed", active: state.valveMode === "CAS", fault: state.valveMode !== "CAS" });
-  drawWire(vp, [[535, 458], [572, 458], [572, 461], [610, 461]], { kind: "dashed", active: true });
+  drawFlag(vp, { id: "FLAG_FEED_MODE_TGT", x: 585, y: 374, w: 315, side: "right", label: "CM_FEED_XV/DC1/MODE.TARGET", sub: "Written by ACT2 (Requested Mode)", liveText: "CAS", status: "ok" });
+  drawFlag(vp, { id: "FLAG_AGIT_MODE_TGT", x: 585, y: 424, w: 315, side: "right", label: "CM_AGIT_MTR/DC1/MODE.TARGET", sub: "Written by ACT2 (Requested Mode)", liveText: "CAS", status: "ok" });
+  // Separate un-wired readback box showing what CM_FEED_XV/DC1/MODE.ACTUAL really is in the controller!
+  drawFlag(vp, { id: "FLAG_VALVE_MODE", x: 585, y: 482, w: 315, side: "left", label: "CM_FEED_XV/DC1/MODE.ACTUAL", sub: "Separate Readback! (Checked by Tab 2 CND1)", liveText: state.valveMode, status: state.valveMode === "CAS" ? "ok" : "bad" });
+  drawWire(vp, [[240, 433], [295, 434]], { kind: "dashed", active: true });
+  drawWire(vp, [[520, 434], [555, 434], [555, 391], [585, 391]], { kind: "dashed", active: true });
+  drawWire(vp, [[555, 434], [555, 441], [585, 441]], { kind: "dashed", active: true });
 }
 
 function renderPattern4(vp, d) {
   drawSectionStrip(vp, 30, 25, 860, 155, "STRIP A: OUTBOUND COMMANDS (EM → CONTROL MODULES VIA CAS_IN_D)", "#1e3a8a");
   drawFlag(vp, { id: "FLAG_STEP_SRC_XV", x: 55, y: 65, w: 250, side: "left", label: "Active SFC Step / Interlock", sub: `Current Step: ${STEPS[state.stepIdx]} (${state.emState})`, liveText: d.feedCmdText, status: d.feedCmdOpen ? "ok" : "normal" });
   drawFlag(vp, { id: "FLAG_STEP_SRC_MTR", x: 55, y: 120, w: 250, side: "left", label: "Step S30_AGITATE Action", sub: "Runs agitator after valve shut", liveText: d.agitCmdText, status: d.agitCmdRun ? "ok" : "normal" });
-  drawFlag(vp, { id: "FLAG_OUT_XV_CMD", x: 595, y: 65, w: 270, side: "right", label: "'CM_FEED_XV/DC1/CAS_IN_D'", sub: "Feed Valve Command Inbox", liveText: d.feedCmdText, status: d.feedCmdOpen ? "ok" : (state.valveMode !== "CAS" ? "warn" : "normal") });
-  drawFlag(vp, { id: "FLAG_OUT_MTR_CMD", x: 595, y: 120, w: 270, side: "right", label: "'CM_AGIT_MTR/DC1/CAS_IN_D'", sub: "Agitator Motor Command Inbox", liveText: d.agitCmdText, status: d.agitCmdRun ? "ok" : "normal" });
+  drawFlag(vp, { id: "FLAG_OUT_XV_CMD", x: 595, y: 65, w: 270, side: "right", label: "CM_FEED_XV/DC1/CAS_IN_D", sub: "Feed Valve Command Inbox", liveText: d.feedCmdText, status: d.feedCmdOpen ? "ok" : (state.valveMode !== "CAS" ? "warn" : "normal") });
+  drawFlag(vp, { id: "FLAG_OUT_MTR_CMD", x: 595, y: 120, w: 270, side: "right", label: "CM_AGIT_MTR/DC1/CAS_IN_D", sub: "Agitator Motor Command Inbox", liveText: d.agitCmdText, status: d.agitCmdRun ? "ok" : "normal" });
 
-  drawWire(vp, [[305, 82], [595, 82]], { kind: "dashed", active: d.feedCmdOpen, fault: d.valveMismatch, label: state.online ? `CMD := ${d.feedCmdText}` : "CAS_IN_D", labelPos: [450, 72] });
-  drawWire(vp, [[305, 137], [595, 137]], { kind: "dashed", active: d.agitCmdRun, label: state.online ? `CMD := ${d.agitCmdText}` : "CAS_IN_D", labelPos: [450, 127] });
+  drawWire(vp, [[305, 82], [595, 82]], { kind: "dashed", active: d.feedCmdOpen, fault: d.valveMismatch, label: state.online ? `:= ${d.feedCmdText}` : "CAS_IN_D", labelPos: [450, 72] });
+  drawWire(vp, [[305, 137], [595, 137]], { kind: "dashed", active: d.agitCmdRun, label: state.online ? `:= ${d.agitCmdText}` : "CAS_IN_D", labelPos: [450, 127] });
 
   drawSectionStrip(vp, 30, 205, 860, 315, "STRIP B: INBOUND LIMIT-SWITCH FEEDBACK & TRAVEL MISMATCH WATCH (CM → EM VIA PV_D)", "#0f766e");
-  drawFlag(vp, { id: "FLAG_IN_PV_D", x: 55, y: 262, w: 245, side: "left", label: "'CM_FEED_XV/DC1/PV_D'", sub: "Confirmed Physical Limit Switch", liveText: d.valvePvText, status: d.valveMismatch ? "bad" : (d.valveShutOk ? "ok" : "normal") });
-  drawFlag(vp, { id: "FLAG_IN_CMD_ECHO", x: 55, y: 405, w: 245, side: "left", label: "'CM_FEED_XV/DC1/CAS_IN_D'", sub: "Command Sent to Valve", liveText: d.feedCmdText, status: "normal" });
+  drawFlag(vp, { id: "FLAG_IN_PV_D", x: 55, y: 262, w: 245, side: "left", label: "CM_FEED_XV/DC1/PV_D", sub: "Confirmed Physical Limit Switch", liveText: d.valvePvText, status: (d.valveMismatch || state.valveMode === "OOS") ? "bad" : (d.valveShutOk ? "ok" : "normal"), badSt: state.valveMode === "OOS" });
+  drawFlag(vp, { id: "FLAG_IN_CMD_ECHO", x: 55, y: 405, w: 245, side: "left", label: "CM_FEED_XV/DC1/CAS_IN_D", sub: "Command Sent to Valve", liveText: d.feedCmdText, status: "normal" });
 
   drawFbdBlock(vp, {
     id: "CND4", x: 380, y: 240, w: 205, h: 108, cls: "CND", name: "CND4", execNum: 1,
-    inputs: [{ name: "IN1", dy: 48 }], outputs: [{ name: "OUT_D", dy: 48 }],
+    inputs: [{ name: "IN_D", dy: 48 }], outputs: [{ name: "OUT_D", dy: 48 }],
     bodyLines: ["Confirm Valve Shut", "PV_D = Closed"],
-    status: d.valveShutOk ? "ok" : "warn", liveBadge: d.valveShutOk ? "SHUT OK (1)" : "NOT SHUT (0)"
+    status: d.valveShutOk ? "ok" : "warn", liveBadge: d.valveShutOk ? "True" : "False"
   });
   drawFbdBlock(vp, {
     id: "CND5", x: 380, y: 382, w: 205, h: 118, cls: "CND", name: "CND5", execNum: 2,
-    inputs: [{ name: "CMD", dy: 44 }, { name: "PV_D", dy: 82 }], outputs: [{ name: "OUT_D", dy: 62 }],
+    inputs: [{ name: "IN_D", dy: 62 }], outputs: [{ name: "OUT_D", dy: 62 }],
     bodyLines: ["Mismatch > 10s", "CAS_IN_D != PV_D"],
-    status: d.valveMismatch ? "bad" : "normal", liveBadge: d.valveMismatch ? "ALARM (1)" : "NORMAL (0)"
+    status: d.valveMismatch ? "bad" : "normal", liveBadge: d.valveMismatch ? "True" : "False"
   });
 
-  drawFlag(vp, { id: "FLAG_VALVE_SHUT_OK", x: 645, y: 270, w: 220, side: "right", label: "'^/VALVE_SHUT_OK'", sub: "Feeds SFC Transition T30", liveText: d.valveShutOk ? "TRUE (1)" : "FALSE (0)", status: d.valveShutOk ? "ok" : "warn" });
-  drawFlag(vp, { id: "FLAG_MISMATCH_ALM", x: 645, y: 426, w: 220, side: "right", label: "'^/VALVE_MISMATCH_ALM'", sub: "Stuck Valve Diagnostic", liveText: d.valveMismatch ? "ACTIVE ALM!" : "CLEAR", status: d.valveMismatch ? "bad" : "ok" });
+  drawFlag(vp, { id: "FLAG_VALVE_SHUT_OK", x: 645, y: 270, w: 220, side: "right", label: "^/VALVE_SHUT_OK.CV", sub: "Feeds SFC Transition T30", liveText: d.valveShutOk ? "True" : "False", status: d.valveShutOk ? "ok" : "warn" });
+  drawFlag(vp, { id: "FLAG_MISMATCH_ALM", x: 645, y: 426, w: 220, side: "right", label: "^/VALVE_MISMATCH_ALM", sub: "Stuck Valve Diagnostic", liveText: d.valveMismatch ? "True" : "False", status: d.valveMismatch ? "bad" : "ok" });
 
   drawWire(vp, [[300, 279], [340, 279], [340, 288], [380, 288]], { kind: "dashed", active: d.valveShutOk, fault: d.valveMismatch });
-  drawWire(vp, [[340, 279], [340, 464], [380, 464]], { kind: "dashed", fault: d.valveMismatch });
-  drawWire(vp, [[300, 422], [322, 422], [322, 426], [380, 426]], { kind: "dashed", fault: d.valveMismatch });
+  drawWire(vp, [[340, 279], [340, 444], [380, 444]], { kind: "dashed", fault: d.valveMismatch });
+  drawWire(vp, [[300, 422], [322, 422], [322, 444], [380, 444]], { kind: "dashed", fault: d.valveMismatch });
   drawWire(vp, [[585, 288], [645, 288]], { kind: "dashed", active: d.valveShutOk, fault: !d.valveShutOk && state.stepIdx === 2 });
   drawWire(vp, [[585, 444], [645, 444]], { kind: "dashed", fault: d.valveMismatch });
 }
@@ -1463,10 +1626,12 @@ function renderPattern5Combo(vp, d) {
   cTrans.forEach(t => {
     const g = el("g", { class: "clickable", "data-id": t.id });
     const col = !state.online ? "#1e293b" : (t.ok ? "#16a34a" : "#dc2626");
-    g.appendChild(el("rect", { x: 285, y: t.y - 12, width: 225, height: 24, fill: "transparent" }));
-    g.appendChild(el("line", { x1: 298, y1: t.y, x2: 338, y2: t.y, stroke: col, "stroke-width": 4 }));
-    g.appendChild(el("text", { x: 346, y: t.y - 1, "font-size": 10.2, "font-weight": 800, fill: col, "font-family": "ui-monospace, monospace" }, t.label));
-    g.appendChild(el("text", { x: 346, y: t.y + 11, "font-size": 9, fill: "#475569", "font-family": "ui-monospace, monospace" }, t.expr));
+    g.appendChild(el("rect", { x: 280, y: t.y - 12, width: 230, height: 24, fill: "transparent" }));
+    drawCalcIcon(g, 283, t.y - 6.5);
+    g.appendChild(el("rect", { x: 300, y: t.y - 2.5, width: 36, height: 5, fill: "#dfddd6", stroke: col, "stroke-width": 1.6 }));
+    g.appendChild(el("text", { x: 344, y: t.y - 1, "font-size": 10.2, "font-weight": 800, fill: col, "font-family": "ui-monospace, monospace" }, t.label));
+    g.appendChild(el("text", { x: 344, y: t.y + 11, "font-size": 9.2, "font-weight": state.online ? 700 : 500, fill: state.online ? col : "#475569", "font-family": "Tahoma, ui-monospace, sans-serif" },
+      state.online ? `${t.ok ? "True" : "False"} (${t.expr})` : t.expr));
     vp.appendChild(g);
   });
 
@@ -1518,110 +1683,110 @@ function renderPattern5Combo(vp, d) {
     "Main Diagram [FBD Wire Sheet — Solved Continuously #1 → #9 Every Scan]"));
 
   // --- ZONE A (Top of FBD Sheet: #1 CND1, #2 CND2, #3 ACT1) ---
-  drawFlag(vp, { id: "FLAG_VALVE_MODE", x: 556, y: 92, w: 185, h: 30, side: "left", label: "CM_FEED_XV/MODE.ACT", sub: "", liveText: state.valveMode, status: d.permValveCas ? "ok" : "bad" });
-  drawFlag(vp, { id: "FLAG_SCALE_ST_P2A", x: 556, y: 134, w: 185, h: 30, side: "left", label: "CM_TANK_WT/OUT.ST", sub: "", liveText: state.scaleSt, status: d.permScaleGood ? "ok" : "bad" });
-  drawFlag(vp, { id: "FLAG_HI_HI", x: 556, y: 214, w: 185, h: 30, side: "left", label: "^/HI_HI_LVL.CV", sub: "", liveText: state.hiHi ? "TRIP(1)" : "0", status: state.hiHi ? "bad" : "ok" });
+  drawFlag(vp, { id: "FLAG_VALVE_MODE", x: 554, y: 92, w: 204, h: 30, side: "left", label: "CM_FEED_XV/DC1/MODE.ACTUAL", sub: "", liveText: state.valveMode, status: d.permValveCas ? "ok" : "bad" });
+  drawFlag(vp, { id: "FLAG_SCALE_ST_P2A", x: 554, y: 134, w: 204, h: 30, side: "left", label: "CM_TANK_WT/AI1/OUT.ST", sub: "", liveText: state.scaleSt, status: d.permScaleGood ? "ok" : "bad", badSt: state.scaleSt === "BAD" });
+  drawFlag(vp, { id: "FLAG_HI_HI", x: 554, y: 214, w: 204, h: 30, side: "left", label: "^/HI_HI_LVL.CV", sub: "", liveText: state.hiHi ? "1" : "0", status: state.hiHi ? "bad" : "ok" });
 
   drawFbdBlock(vp, {
     id: "CND1", x: 780, y: 88, w: 165, h: 92, cls: "CND", name: "CND1", execNum: 1,
-    inputs: [{ name: "MODE", dy: 38 }, { name: "ST", dy: 68 }], outputs: [{ name: "OUT_D", dy: 52 }],
-    bodyLines: ["Start Permissive"], status: d.permReady ? "ok" : "warn", liveBadge: d.permReady ? "1" : "0"
+    inputs: [{ name: "IN_D", dy: 52 }], outputs: [{ name: "OUT_D", dy: 52 }],
+    bodyLines: ["Start Permissive"], status: d.permReady ? "ok" : "warn", liveBadge: d.permReady ? "True" : "False"
   });
-  drawFlag(vp, { id: "FLAG_PERM_READY", x: 990, y: 124, w: 175, h: 30, side: "right", label: "^/PERM_READY", sub: "", liveText: d.permReady ? "→ T10 (1)" : "→ T10 (0)", status: d.permReady ? "ok" : "warn" });
+  drawFlag(vp, { id: "FLAG_PERM_READY", x: 990, y: 124, w: 175, h: 30, side: "right", label: "^/PERM_READY.CV", sub: "", liveText: d.permReady ? "True" : "False", status: d.permReady ? "ok" : "warn" });
 
   drawFbdBlock(vp, {
     id: "CND2", x: 780, y: 198, w: 165, h: 88, cls: "CND", name: "CND2", execNum: 2,
-    inputs: [{ name: "ST", dy: 38 }, { name: "HI_HI", dy: 66 }], outputs: [{ name: "OUT_D", dy: 52 }],
-    bodyLines: ["Active Trip"], status: d.tripCondition ? "bad" : "normal", liveBadge: d.tripCondition ? "TRIP" : "0"
+    inputs: [{ name: "IN_D", dy: 52 }], outputs: [{ name: "OUT_D", dy: 52 }],
+    bodyLines: ["Active Trip"], status: d.tripCondition ? "bad" : "normal", liveBadge: d.tripCondition ? "True" : "False"
   });
   drawFbdBlock(vp, {
     id: "ACT1", x: 985, y: 198, w: 160, h: 88, cls: "ACT", name: "ACT1", execNum: 3,
-    inputs: [{ name: "IN_D", dy: 52 }], outputs: [{ name: "HOLD", dy: 52 }],
-    bodyLines: ["Close & Hold"], status: d.tripCondition ? "bad" : "normal", liveBadge: d.tripCondition ? "FIRED" : "IDLE"
+    inputs: [{ name: "IN_D", dy: 52 }], outputs: [{ name: "OUT_D", dy: 52 }],
+    bodyLines: ["Close & Hold"], status: d.tripCondition ? "bad" : "normal", liveBadge: d.tripCondition ? "True" : "False"
   });
   drawFlag(vp, { id: "FLAG_TRIP_HOLD", x: 1180, y: 234, w: 202, h: 30, side: "right", label: "CAS_IN_D:=Close / HELD", sub: "", liveText: state.emState, status: d.tripCondition ? "bad" : "normal" });
 
-  drawWire(vp, [[741, 107], [760, 107], [760, 126], [780, 126]], { kind: "dashed", active: d.permValveCas, fault: !d.permValveCas });
-  drawWire(vp, [[741, 149], [760, 149], [760, 156], [780, 156]], { kind: "dashed", active: d.permScaleGood, fault: !d.permScaleGood });
+  drawWire(vp, [[758, 107], [768, 107], [768, 140], [780, 140]], { kind: "dashed", active: d.permValveCas, fault: !d.permValveCas });
+  drawWire(vp, [[758, 149], [768, 149], [768, 140], [780, 140]], { kind: "dashed", active: d.permScaleGood, fault: !d.permScaleGood });
   // Branch OUT.ST down to CND2 (#2) — real unified FBD shared wire!
-  drawWire(vp, [[760, 149], [760, 236], [780, 236]], { kind: "dashed", fault: state.scaleSt === "BAD" });
-  drawWire(vp, [[741, 229], [755, 229], [755, 264], [780, 264]], { kind: "dashed", fault: state.hiHi });
+  drawWire(vp, [[768, 149], [768, 250], [780, 250]], { kind: "dashed", fault: state.scaleSt === "BAD" });
+  drawWire(vp, [[758, 229], [764, 229], [764, 250], [780, 250]], { kind: "dashed", fault: state.hiHi });
   drawWire(vp, [[945, 140], [990, 140]], { kind: "dashed", active: d.permReady, fault: !d.permReady });
   drawWire(vp, [[945, 250], [985, 250]], { kind: "dashed", fault: d.tripCondition });
   drawWire(vp, [[1145, 250], [1180, 250]], { kind: "dashed", fault: d.tripCondition });
 
   // --- ZONE B (Middle of FBD Sheet: #4 BSEL1 → #5 CALC1 → #6 CND3 + #7 ACT2) ---
-  drawFlag(vp, { id: "FLAG_RECIPE_WT", x: 556, y: 314, w: 168, h: 28, side: "left", label: "^/RECIPE_WT (500)", sub: "", liveText: "", status: state.useRecipe ? "ok" : "normal" });
-  drawFlag(vp, { id: "FLAG_LOCAL_WT",  x: 556, y: 350, w: 168, h: 28, side: "left", label: "^/LOCAL_WT (250)", sub: "", liveText: "", status: !state.useRecipe ? "ok" : "normal" });
-  drawFlag(vp, { id: "FLAG_USE_RECIPE",x: 556, y: 386, w: 168, h: 28, side: "left", label: "^/USE_RECIPE", sub: "", liveText: state.useRecipe ? "1" : "0", status: "normal" });
-  drawFlag(vp, { id: "FLAG_TANK_WT_CV",x: 556, y: 438, w: 168, h: 28, side: "left", label: "CM_TANK_WT/OUT", sub: "", liveText: `${state.currentWt.toFixed(0)}kg`, status: state.scaleSt === "BAD" ? "bad" : "ok" });
-  drawFlag(vp, { id: "FLAG_START_WT",  x: 556, y: 474, w: 168, h: 28, side: "left", label: "^/START_WT.CV", sub: "", liveText: `${state.startWt.toFixed(0)}kg`, status: "normal" });
+  drawFlag(vp, { id: "FLAG_RECIPE_WT", x: 554, y: 314, w: 174, h: 28, side: "left", label: "^/RECIPE_WT.CV", sub: "", liveText: `${state.recipeWt.toFixed(0)}`, status: state.useRecipe ? "ok" : "normal" });
+  drawFlag(vp, { id: "FLAG_LOCAL_WT",  x: 554, y: 350, w: 174, h: 28, side: "left", label: "^/LOCAL_WT.CV", sub: "", liveText: `${state.localWt.toFixed(0)}`, status: !state.useRecipe ? "ok" : "normal" });
+  drawFlag(vp, { id: "FLAG_USE_RECIPE",x: 554, y: 386, w: 174, h: 28, side: "left", label: "^/USE_RECIPE.CV", sub: "", liveText: state.useRecipe ? "True" : "False", status: "normal" });
+  drawFlag(vp, { id: "FLAG_TANK_WT_CV",x: 554, y: 438, w: 174, h: 28, side: "left", label: "CM_TANK_WT/AI1/OUT", sub: "", liveText: `${state.currentWt.toFixed(0)}`, status: state.scaleSt === "BAD" ? "bad" : "ok", badSt: state.scaleSt === "BAD" });
+  drawFlag(vp, { id: "FLAG_START_WT",  x: 554, y: 474, w: 174, h: 28, side: "left", label: "^/START_WT.CV", sub: "", liveText: `${state.startWt.toFixed(0)}`, status: "normal" });
 
   drawFbdBlock(vp, {
     id: "BSEL1", x: 755, y: 312, w: 142, h: 108, cls: "BSEL", name: "BSEL1", execNum: 4,
-    inputs: [{ name: "IN1", dy: 34 }, { name: "IN2", dy: 62 }, { name: "SEL_D", dy: 90 }],
+    inputs: [{ name: "IN_1", dy: 34 }, { name: "IN_2", dy: 62 }, { name: "SEL_D", dy: 90 }],
     outputs: [{ name: "OUT", dy: 56 }],
-    bodyLines: ["Target Wt"], status: "ok", liveBadge: `${d.targetWt.toFixed(0)}kg`
+    bodyLines: ["Target Wt"], status: "ok", liveBadge: `${d.targetWt.toFixed(0)}`
   });
 
   drawFbdBlock(vp, {
     id: "CALC1", x: 928, y: 342, w: 155, h: 128, cls: "CALC", name: "CALC1", execNum: 5,
-    inputs: [{ name: "TGT", dy: 34 }, { name: "CUR", dy: 72 }, { name: "TARE", dy: 104 }],
-    outputs: [{ name: "REM", dy: 64 }],
-    bodyLines: ["Net & Rem"], status: state.scaleSt === "BAD" ? "bad" : "normal", liveBadge: `${d.remainingWt.toFixed(0)}kg`
+    inputs: [{ name: "IN_1", dy: 34 }, { name: "IN_2", dy: 72 }, { name: "IN_3", dy: 104 }],
+    outputs: [{ name: "OUT_1", dy: 64 }],
+    bodyLines: ["Net & Rem"], status: state.scaleSt === "BAD" ? "bad" : "normal", liveBadge: `${d.remainingWt.toFixed(0)}`, badSt: state.scaleSt === "BAD"
   });
 
   drawFbdBlock(vp, {
     id: "CND3", x: 1112, y: 356, w: 138, h: 98, cls: "CND", name: "CND3", execNum: 6,
-    inputs: [{ name: "REM", dy: 50 }], outputs: [{ name: "OUT_D", dy: 50 }],
-    bodyLines: ["<= 15 kg"], status: d.precloseReached ? "ok" : "normal", liveBadge: d.precloseReached ? "1" : "0"
+    inputs: [{ name: "IN_D", dy: 50 }], outputs: [{ name: "OUT_D", dy: 50 }],
+    bodyLines: ["<= 15 kg"], status: d.precloseReached ? "ok" : "normal", liveBadge: d.precloseReached ? "True" : "False"
   });
 
-  drawFlag(vp, { id: "T20_PRECLOSE", x: 1272, y: 391, w: 114, h: 30, side: "right", label: "→ T20_PRE", sub: "", liveText: d.precloseReached ? "TRUE" : "WAIT", status: d.precloseReached ? "ok" : "normal" });
+  drawFlag(vp, { id: "T20_PRECLOSE", x: 1272, y: 391, w: 114, h: 30, side: "right", label: "→ T20_PRE", sub: "", liveText: d.precloseReached ? "True" : "False", status: d.precloseReached ? "ok" : "normal" });
 
-  drawWire(vp, [[724, 328], [740, 328], [740, 346], [755, 346]], { kind: "solid", active: state.useRecipe });
-  drawWire(vp, [[724, 364], [740, 364], [740, 374], [755, 374]], { kind: "solid", active: !state.useRecipe });
-  drawWire(vp, [[724, 400], [740, 400], [740, 402], [755, 402]], { kind: "dashed", active: state.useRecipe });
+  drawWire(vp, [[728, 328], [740, 328], [740, 346], [755, 346]], { kind: "solid", active: state.useRecipe });
+  drawWire(vp, [[728, 364], [740, 364], [740, 374], [755, 374]], { kind: "solid", active: !state.useRecipe });
+  drawWire(vp, [[728, 400], [740, 400], [740, 402], [755, 402]], { kind: "dashed", active: state.useRecipe });
   drawWire(vp, [[897, 368], [912, 368], [912, 376], [928, 376]], { kind: "solid", active: true });
-  drawWire(vp, [[724, 452], [908, 452], [908, 414], [928, 414]], { kind: "solid", fault: state.scaleSt === "BAD" });
-  drawWire(vp, [[724, 488], [916, 488], [916, 446], [928, 446]], { kind: "solid" });
+  drawWire(vp, [[728, 452], [908, 452], [908, 414], [928, 414]], { kind: "solid", fault: state.scaleSt === "BAD" });
+  drawWire(vp, [[728, 488], [916, 488], [916, 446], [928, 446]], { kind: "solid" });
   drawWire(vp, [[1083, 406], [1112, 406]], { kind: "solid", active: d.precloseReached });
   drawWire(vp, [[1250, 406], [1272, 406]], { kind: "dashed", active: d.precloseReached });
 
-  // #7 ACT2 Cascade Mode Push
-  drawFlag(vp, { id: "FLAG_EM_AUTO", x: 556, y: 538, w: 168, h: 28, side: "left", label: "^/EM_MODE=AUTO", sub: "", liveText: "AUTO", status: "ok" });
+  // #7 ACT2 Cascade Mode Push (MODE.TARGET written := CAS; MODE.ACTUAL lives on DC1!)
+  drawFlag(vp, { id: "FLAG_EM_AUTO", x: 554, y: 538, w: 174, h: 28, side: "left", label: "^/MODE.ACTUAL", sub: "", liveText: "AUTO", status: "ok" });
   drawFbdBlock(vp, {
     id: "ACT2", x: 780, y: 514, w: 165, h: 78, cls: "ACT", name: "ACT2", execNum: 7,
-    inputs: [{ name: "IN_D", dy: 42 }], outputs: [{ name: "CAS", dy: 42 }],
-    bodyLines: ["Push CAS Mode"], status: "ok", liveBadge: "CAS"
+    inputs: [{ name: "IN_D", dy: 42 }], outputs: [{ name: "OUT_D", dy: 42 }],
+    bodyLines: ["MODE.TARGET:=CAS"], status: "ok", liveBadge: "True"
   });
-  drawFlag(vp, { id: "FLAG_FEED_MODE_TGT", x: 990, y: 541, w: 265, h: 30, side: "right", label: "XV & MTR / MODE.TARGET := CAS", sub: "", liveText: `ACT:${state.valveMode}`, status: state.valveMode === "CAS" ? "ok" : "bad" });
-  drawWire(vp, [[724, 552], [780, 556]], { kind: "dashed", active: true });
-  drawWire(vp, [[945, 556], [990, 556]], { kind: "dashed", active: state.valveMode === "CAS", fault: state.valveMode !== "CAS" });
+  drawFlag(vp, { id: "FLAG_FEED_MODE_TGT", x: 990, y: 541, w: 235, h: 30, side: "right", label: "CM_FEED_XV/DC1/MODE.TARGET", sub: "", liveText: "CAS", status: "ok" });
+  drawWire(vp, [[728, 552], [780, 556]], { kind: "dashed", active: true });
+  drawWire(vp, [[945, 556], [990, 556]], { kind: "dashed", active: true });
 
   // --- ZONE C (Bottom of FBD Sheet: Outbound CAS_IN_D + Inbound PV_D #8 CND4 & #9 CND5) ---
-  drawFlag(vp, { id: "FLAG_IN_PV_D", x: 556, y: 632, w: 185, h: 30, side: "left", label: "CM_FEED_XV/DC1/PV_D", sub: "", liveText: d.valvePvText, status: d.valveMismatch ? "bad" : (d.valveShutOk ? "ok" : "normal") });
-  drawFlag(vp, { id: "FLAG_IN_CMD_ECHO", x: 556, y: 726, w: 185, h: 30, side: "left", label: "CM_FEED_XV/CAS_IN_D", sub: "", liveText: d.feedCmdText, status: d.feedCmdOpen ? "ok" : "normal" });
+  drawFlag(vp, { id: "FLAG_IN_PV_D", x: 554, y: 632, w: 196, h: 30, side: "left", label: "CM_FEED_XV/DC1/PV_D", sub: "", liveText: d.valvePvText, status: (d.valveMismatch || state.valveMode === "OOS") ? "bad" : (d.valveShutOk ? "ok" : "normal"), badSt: state.valveMode === "OOS" });
+  drawFlag(vp, { id: "FLAG_IN_CMD_ECHO", x: 554, y: 726, w: 196, h: 30, side: "left", label: "CM_FEED_XV/DC1/CAS_IN_D", sub: "", liveText: d.feedCmdText, status: d.feedCmdOpen ? "ok" : "normal" });
 
   drawFbdBlock(vp, {
     id: "CND4", x: 780, y: 614, w: 165, h: 82, cls: "CND", name: "CND4", execNum: 8,
-    inputs: [{ name: "PV_D", dy: 44 }], outputs: [{ name: "OUT_D", dy: 44 }],
-    bodyLines: ["PV_D = Closed"], status: d.valveShutOk ? "ok" : "warn", liveBadge: d.valveShutOk ? "1" : "0"
+    inputs: [{ name: "IN_D", dy: 44 }], outputs: [{ name: "OUT_D", dy: 44 }],
+    bodyLines: ["PV_D = Closed"], status: d.valveShutOk ? "ok" : "warn", liveBadge: d.valveShutOk ? "True" : "False"
   });
-  drawFlag(vp, { id: "FLAG_VALVE_SHUT_OK", x: 990, y: 643, w: 182, h: 30, side: "right", label: "^/VALVE_SHUT_OK", sub: "", liveText: d.valveShutOk ? "→ T30 (1)" : "→ T30 (0)", status: d.valveShutOk ? "ok" : "warn" });
-  drawFlag(vp, { id: "FLAG_OUT_MTR_CMD", x: 1192, y: 643, w: 192, h: 30, side: "right", label: "CM_AGIT_MTR/CAS_IN_D", sub: "", liveText: d.agitCmdText, status: d.agitCmdRun ? "ok" : "normal" });
+  drawFlag(vp, { id: "FLAG_VALVE_SHUT_OK", x: 990, y: 643, w: 182, h: 30, side: "right", label: "^/VALVE_SHUT_OK.CV", sub: "", liveText: d.valveShutOk ? "True" : "False", status: d.valveShutOk ? "ok" : "warn" });
+  drawFlag(vp, { id: "FLAG_OUT_MTR_CMD", x: 1192, y: 643, w: 192, h: 30, side: "right", label: "CM_AGIT_MTR/DC1/CAS_IN_D", sub: "", liveText: d.agitCmdText, status: d.agitCmdRun ? "ok" : "normal" });
 
   drawFbdBlock(vp, {
     id: "CND5", x: 780, y: 710, w: 165, h: 84, cls: "CND", name: "CND5", execNum: 9,
-    inputs: [{ name: "PV_D", dy: 36 }, { name: "CMD", dy: 62 }], outputs: [{ name: "ALM", dy: 48 }],
-    bodyLines: ["Cmd<>PV (10s)"], status: d.valveMismatch ? "bad" : "normal", liveBadge: d.valveMismatch ? "ALM!" : "0"
+    inputs: [{ name: "IN_D", dy: 48 }], outputs: [{ name: "OUT_D", dy: 48 }],
+    bodyLines: ["Cmd != PV (10s)"], status: d.valveMismatch ? "bad" : "normal", liveBadge: d.valveMismatch ? "True" : "False"
   });
-  drawFlag(vp, { id: "FLAG_MISMATCH_ALM", x: 990, y: 743, w: 205, h: 30, side: "right", label: "^/VALVE_MISMATCH_ALM", sub: "", liveText: d.valveMismatch ? "ACTIVE!" : "CLEAR", status: d.valveMismatch ? "bad" : "ok" });
-  drawFlag(vp, { id: "FLAG_OUT_XV_CMD", x: 1208, y: 743, w: 176, h: 30, side: "right", label: "CM_FEED_XV/CAS_IN_D", sub: "", liveText: d.feedCmdText, status: d.feedCmdOpen ? "ok" : "normal" });
+  drawFlag(vp, { id: "FLAG_MISMATCH_ALM", x: 990, y: 743, w: 205, h: 30, side: "right", label: "^/VALVE_MISMATCH_ALM", sub: "", liveText: d.valveMismatch ? "True" : "False", status: d.valveMismatch ? "bad" : "ok" });
+  drawFlag(vp, { id: "FLAG_OUT_XV_CMD", x: 1208, y: 743, w: 176, h: 30, side: "right", label: "CM_FEED_XV/DC1/CAS_IN_D", sub: "", liveText: d.feedCmdText, status: d.feedCmdOpen ? "ok" : "normal" });
 
-  drawWire(vp, [[741, 647], [760, 647], [760, 658], [780, 658]], { kind: "dashed", active: d.valveShutOk, fault: d.valveMismatch });
-  drawWire(vp, [[760, 647], [760, 746], [780, 746]], { kind: "dashed", fault: d.valveMismatch });
-  drawWire(vp, [[741, 741], [752, 741], [752, 772], [780, 772]], { kind: "dashed", fault: d.valveMismatch });
+  drawWire(vp, [[750, 647], [764, 647], [764, 658], [780, 658]], { kind: "dashed", active: d.valveShutOk, fault: d.valveMismatch });
+  drawWire(vp, [[764, 647], [764, 758], [780, 758]], { kind: "dashed", fault: d.valveMismatch });
+  drawWire(vp, [[750, 741], [758, 741], [758, 758], [780, 758]], { kind: "dashed", fault: d.valveMismatch });
   drawWire(vp, [[945, 658], [990, 658]], { kind: "dashed", active: d.valveShutOk, fault: !d.valveShutOk && state.stepIdx === 2 });
   drawWire(vp, [[945, 758], [990, 758]], { kind: "dashed", fault: d.valveMismatch });
 
@@ -1734,11 +1899,13 @@ function renderHeaderTab1(vp, h) {
   // Spine down to Transition T1_CONFIRMED
   vp.appendChild(el("line", { x1: 417, y1: 228, x2: 417, y2: 348, stroke: "#334155", "stroke-width": 2.2 }));
   const tCol = !state.online ? "#1e293b" : (stepOk ? "#16a34a" : "#dc2626");
-  vp.appendChild(el("line", { x1: 393, y1: 288, x2: 441, y2: 288, stroke: tCol, "stroke-width": 4.5 }));
-  vp.appendChild(el("text", { x: 448, y: 285, "font-size": 10.5, "font-weight": 800, fill: tCol, "font-family": "ui-monospace, monospace" },
-    "T1_CONFIRMED"));
-  vp.appendChild(el("text", { x: 448, y: 300, "font-size": 9.3, fill: "#475569", "font-family": "ui-monospace, monospace" },
-    `PV_D = ${h.effectiveTarget}`));
+  const tGrp = el("g", { class: "clickable", "data-id": "CND_FAIL_ALM" });
+  drawCalcIcon(tGrp, 381, 281.5);
+  tGrp.appendChild(el("rect", { x: 398, y: 285.5, width: 38, height: 5, fill: "#dfddd6", stroke: tCol, "stroke-width": 1.7 }));
+  tGrp.appendChild(el("text", { x: 444, y: 285, "font-size": 10.5, "font-weight": 800, fill: tCol, "font-family": "ui-monospace, monospace" }, "T1_CONFIRMED"));
+  tGrp.appendChild(el("text", { x: 444, y: 300, "font-size": 9.5, "font-weight": state.online ? 700 : 500, fill: state.online ? tCol : "#475569", "font-family": "Tahoma, ui-monospace, sans-serif" },
+    state.online ? `${stepOk ? "True" : "False"} (PV_D = ${h.effectiveTarget})` : `PV_D = ${h.effectiveTarget}`));
+  vp.appendChild(tGrp);
 
   // Authentic DeltaV SFC Termination Bar (═╧═) — NO Step 2, Step 3!
   vp.appendChild(el("line", { x1: 385, y1: 348, x2: 449, y2: 348, stroke: "#0f172a", "stroke-width": 3.5 }));
@@ -2061,16 +2228,17 @@ function renderHeaderTab4Combo(vp, h) {
   drawWire(vp, [[950, 256], [985, 256]], { kind: "dashed", fault: h.highPressTrip });
   drawWire(vp, [[1150, 256], [1185, 256]], { kind: "dashed", fault: h.highPressTrip });
 
-  // #5 ACT_MODE_CAS (Mode Alignment — Pattern 3!)
-  drawFlag(vp, { id: "FLAG_EM_AUTO", x: 556, y: 356, w: 185, h: 30, side: "left", label: "^/MODE.ACTUAL=CAS", sub: "", liveText: "CAS", status: "ok" });
+  // #5 ACT_MODE_CAS (Mode Alignment — Pattern 3: separate MODE.TARGET vs MODE.ACTUAL!)
+  drawFlag(vp, { id: "FLAG_EM_AUTO", x: 556, y: 356, w: 185, h: 30, side: "left", label: "^/MODE.ACTUAL", sub: "", liveText: "CAS", status: "ok" });
   drawFbdBlock(vp, {
     id: "ACT2", x: 780, y: 332, w: 170, h: 80, cls: "ACT", name: "ACT_MODE_CAS", execNum: 5,
-    inputs: [{ name: "IN_D", dy: 42 }], outputs: [{ name: "CAS", dy: 42 }],
-    bodyLines: ["Push CAS to 4 CMs"], status: state.xv102Mode === "CAS" ? "ok" : "warn", liveBadge: "CAS"
+    inputs: [{ name: "IN_D", dy: 42 }], outputs: [{ name: "OUT_D", dy: 42 }],
+    bodyLines: ["MODE.TARGET:=CAS"], status: "ok", liveBadge: "True"
   });
-  drawFlag(vp, { id: "FLAG_FEED_MODE_TGT", x: 985, y: 359, w: 280, h: 30, side: "right", label: "XV101..103 & PMP / MODE.TARGET", sub: "", liveText: `XV102:${state.xv102Mode}`, status: state.xv102Mode === "CAS" ? "ok" : "bad" });
+  drawFlag(vp, { id: "FLAG_FEED_MODE_TGT", x: 985, y: 342, w: 200, h: 28, side: "right", label: "XV102/DC1/MODE.TARGET", sub: "", liveText: "CAS", status: "ok" });
+  drawFlag(vp, { id: "FLAG_XV102_PV", x: 1196, y: 342, w: 194, h: 28, side: "left", label: "XV102/DC1/MODE.ACTUAL", sub: "", liveText: state.xv102Mode, status: state.xv102Mode === "CAS" ? "ok" : "bad" });
   drawWire(vp, [[741, 371], [780, 374]], { kind: "dashed", active: true });
-  drawWire(vp, [[950, 374], [985, 374]], { kind: "dashed", active: state.xv102Mode === "CAS", fault: state.xv102Mode !== "CAS" });
+  drawWire(vp, [[950, 374], [968, 374], [968, 356], [985, 356]], { kind: "dashed", active: true });
 
   // #6 CALC_PV_STATE -> #7 CND_FAIL_ALM (CM Feedback & State Confirmation — Pattern 4!)
   drawFlag(vp, { id: "FLAG_T3_PMP", x: 556, y: 500, w: 185, h: 30, side: "left", label: "CM_XFER_PMP/PV_D", sub: "", liveText: h.pmpPv, status: h.pmpMatch ? "ok" : "warn" });
@@ -2139,17 +2307,30 @@ function getInspectorInfo(id, d, h) {
     T10_START_OK: {
       type: "PATTERN 1 — SFC TRANSITION",
       title: "T10_START_OK (Pre-Start Gate)",
-      role: "Horizontal crossbar gate between S0_IDLE and S10_CHARGE_OPEN. Requires Pattern 2 CND1 (PERM_READY) = True.",
-      paths: [["^/START_CMD.CV", "Start request"], ["^/PERM_READY", "Output of Pattern 2 CND1"]],
-      expr: `('^/START_CMD.CV' = 1) AND ('^/PERM_READY' = 1);`,
-      live: [["T10 Result", d.t10Ok ? "TRUE" : "FALSE", d.t10Ok ? "v-good" : "v-warn"], ["CM_FEED_XV Mode", state.valveMode, state.valveMode === "CAS" ? "v-good" : "v-bad"]]
+      role: "Horizontal crossbar gate between S0_IDLE and S10_CHARGE_OPEN. In Control Studio On-Line, double-clicking T10 opens the Expression window above to see which term is False!",
+      paths: [["^/START_CMD.CV", "Internal Start request"], ["^/PERM_READY.CV", "Output of Pattern 2 CND1"]],
+      expr: `('^/START_CMD.CV' = 1) AND ('^/PERM_READY.CV' = 1)`,
+      csExpr: {
+        winTitle: "T10_START_OK: Expression [Auto Advance]",
+        tree: [
+          { indent: 0, ok: d.t10Ok, text: "AND" },
+          { indent: 1, ok: true, text: "'^/START_CMD.CV' = 1" },
+          { indent: 1, ok: d.permReady, text: "'^/PERM_READY.CV' = 1  (see CND1)" }
+        ],
+        watch: [
+          ["^/START_CMD.CV", "1", "Good"],
+          ["^/PERM_READY.CV", d.permReady ? "True" : "False", "Good"],
+          ["//CM_FEED_XV/DC1/MODE.ACTUAL", state.valveMode, state.valveMode === "CAS" ? "GoodCascade" : (state.valveMode === "OOS" ? "BadOutOfService" : "GoodNonCascade")]
+        ]
+      },
+      live: [["T10 Result", d.t10Ok ? "True" : "False", d.t10Ok ? "v-good" : "v-warn"], ["CM_FEED_XV Mode", state.valveMode, state.valveMode === "CAS" ? "v-good" : "v-bad"]]
     },
     S10_CHARGE_OPEN: {
       type: "PATTERN 1 — SFC STEP",
       title: "S10_CHARGE_OPEN",
       role: "Opens CM_FEED_XV to feed solvent. On initial entry from S0_IDLE ONLY (Pulse action), snapshots CM_TANK_WT into START_WT.CV.",
-      paths: [["^/START_WT.CV", "Tare snapshot locked on Idle → S10 edge"], ["CM_FEED_XV/DC1/CAS_IN_D", "Written := Open while step runs"]],
-      expr: `(* [P] Pulse Once on Idle -> S10 ONLY *)\n'^/START_WT.CV' := 'CM_TANK_WT/AI1/OUT.CV';\n'CM_FEED_XV/DC1/CAS_IN_D' := Open;`,
+      paths: [["^/START_WT.CV", "Tare snapshot locked on Idle → S10 edge"], ["//CM_FEED_XV/DC1/CAS_IN_D", "Written := Open while step runs"]],
+      expr: `(* [P] Pulse Once on Idle -> S10 ONLY *)\n'^/START_WT.CV' := '//CM_TANK_WT/AI1/OUT.CV';\n'//CM_FEED_XV/DC1/CAS_IN_D' := Open;`,
       live: [["START_WT.CV", `${state.startWt.toFixed(1)} kg`, "v-info"], ["DELIVERED_WT", `${d.deliveredWt.toFixed(1)} kg`, "v-good"], ["REMAINING_WT", `${d.remainingWt.toFixed(1)} kg`, "v-info"]]
     },
     T20_PRECLOSE: {
@@ -2157,112 +2338,215 @@ function getInspectorInfo(id, d, h) {
       title: "T20_PRECLOSE (In-Flight Cutoff Gate)",
       role: "Advances from S10_CHARGE_OPEN to S20_TRIM_CLOSE slightly early (PRECLOSE_LEAD = 15 kg) to compensate for valve closing stroke time.",
       paths: [["^/REMAINING_WT.CV", "Computed every Scan by Pattern 3 CALC1"], ["^/PRECLOSE_LEAD.CV", "In-flight lead compensation (15.0 kg)"]],
-      expr: `'^/REMAINING_WT.CV' <= '^/PRECLOSE_LEAD.CV';`,
-      live: [["REMAINING_WT", `${d.remainingWt.toFixed(1)} kg`, "v-info"], ["T20 Result", d.t20Ok ? "TRUE" : "FALSE", d.t20Ok ? "v-good" : "v-warn"]]
+      expr: `'^/REMAINING_WT.CV' <= '^/PRECLOSE_LEAD.CV'`,
+      csExpr: {
+        winTitle: "T20_PRECLOSE: Expression [Auto Advance]",
+        tree: [
+          { indent: 0, ok: d.t20Ok, text: "<=" },
+          { indent: 1, ok: state.scaleSt !== "BAD", text: "'^/REMAINING_WT.CV'" },
+          { indent: 1, ok: true, text: "'^/PRECLOSE_LEAD.CV'" }
+        ],
+        watch: [
+          ["^/REMAINING_WT.CV", d.remainingWt.toFixed(1), state.scaleSt === "BAD" ? "Bad" : "Good"],
+          ["^/PRECLOSE_LEAD.CV", state.precloseLead.toFixed(1), "Good"]
+        ]
+      },
+      live: [["REMAINING_WT", `${d.remainingWt.toFixed(1)} kg`, "v-info"], ["T20 Result", d.t20Ok ? "True" : "False", d.t20Ok ? "v-good" : "v-warn"]]
     },
     S20_TRIM_CLOSE: {
       type: "PATTERN 1 — SFC STEP",
       title: "S20_TRIM_CLOSE",
       role: "Stamps Close onto CM_FEED_XV/DC1/CAS_IN_D and waits for confirmed limit-switch closure (PV_D = Closed).",
-      paths: [["CM_FEED_XV/DC1/CAS_IN_D", "Written := Close"], ["CM_FEED_XV/DC1/PV_D", "Checked by Pattern 4 CND4"]],
-      expr: `'CM_FEED_XV/DC1/CAS_IN_D' := Close;`,
+      paths: [["//CM_FEED_XV/DC1/CAS_IN_D", "Written := Close"], ["//CM_FEED_XV/DC1/PV_D", "Checked by Pattern 4 CND4"]],
+      expr: `'//CM_FEED_XV/DC1/CAS_IN_D' := Close;`,
       live: [["Valve Command", d.feedCmdText, "v-info"], ["Valve PV_D", d.valvePvText, d.valveShutOk ? "v-good" : "v-bad"]]
     },
     T30_SHUT_OK: {
       type: "PATTERN 1 — SFC TRANSITION",
       title: "T30_SHUT_OK (Confirmed Closed Gate)",
       role: "Blocks agitator start until Pattern 4 (CND4) proves CM_FEED_XV physically closed via PV_D = Closed.",
-      paths: [["^/VALVE_SHUT_OK", "Output of Pattern 4 CND4"]],
-      expr: `('^/VALVE_SHUT_OK' = 1) AND (STEP_TIME >= 5);`,
-      live: [["VALVE_SHUT_OK", d.valveShutOk ? "TRUE" : "FALSE (Stuck!)", d.valveShutOk ? "v-good" : "v-bad"]]
+      paths: [["^/VALVE_SHUT_OK.CV", "Output of Pattern 4 CND4"]],
+      expr: `('^/VALVE_SHUT_OK.CV' = 1) AND (STEP_TIME >= 5)`,
+      csExpr: {
+        winTitle: "T30_SHUT_OK: Expression [Auto Advance]",
+        tree: [
+          { indent: 0, ok: d.t30Ok, text: "AND" },
+          { indent: 1, ok: d.valveShutOk, text: "'^/VALVE_SHUT_OK.CV' = 1" },
+          { indent: 1, ok: true, text: "STEP_TIME >= 5" }
+        ],
+        watch: [
+          ["^/VALVE_SHUT_OK.CV", d.valveShutOk ? "True" : "False", "Good"],
+          ["//CM_FEED_XV/DC1/PV_D", d.valvePvText, state.valveMode === "OOS" ? "BadOutOfService" : "Good"]
+        ]
+      },
+      live: [["VALVE_SHUT_OK", d.valveShutOk ? "True" : "False (Stuck!)", d.valveShutOk ? "v-good" : "v-bad"]]
     },
     S30_AGITATE: {
       type: "PATTERN 1 — SFC STEP",
       title: "S30_AGITATE",
       role: "Starts CM_AGIT_MTR once feed valve is confirmed closed and reports COMPLETE to the EPH.",
-      paths: [["CM_AGIT_MTR/DC1/CAS_IN_D", "Written := Start"], ["^/EM_STATE", "Reports COMPLETE"]],
-      expr: `'CM_AGIT_MTR/DC1/CAS_IN_D' := Start;\n'^/EM_STATE' := COMPLETE;`,
+      paths: [["//CM_AGIT_MTR/DC1/CAS_IN_D", "Written := Start"], ["^/EM_STATE", "Reports COMPLETE"]],
+      expr: `'//CM_AGIT_MTR/DC1/CAS_IN_D' := Start;\n'^/EM_STATE' := COMPLETE;`,
       live: [["Agitator PV_D", d.agitPvText, d.agitCmdRun ? "v-good" : "v-info"]]
     },
     GOLDEN_TARE: {
       type: "ENGINEERING RULE — TARE & HOLD/RESTART",
       title: "Hold / Restart & The Golden Tare Rule",
       role: "HOLD safely pauses a charge while keeping START_WT.CV locked. RESTART resumes without re-taring so the tank never overfills.",
-      paths: [["^/START_WT.CV", "Captured ONCE on S0_IDLE → S10_CHARGE_OPEN"], ["^/DELIVERED_WT.CV", "CM_TANK_WT/AI1/OUT.CV minus START_WT.CV"]],
-      expr: `IF (IDLE_TO_RUN_EDGE) THEN\n  '^/START_WT.CV' := 'CM_TANK_WT/AI1/OUT.CV';\nENDIF;`,
+      paths: [["^/START_WT.CV", "Captured ONCE on S0_IDLE → S10_CHARGE_OPEN"], ["^/DELIVERED_WT.CV", "//CM_TANK_WT/AI1/OUT.CV minus START_WT.CV"]],
+      expr: `IF (IDLE_TO_RUN_EDGE) THEN\n  '^/START_WT.CV' := '//CM_TANK_WT/AI1/OUT.CV';\nENDIF;`,
       live: [["START_WT.CV", `${state.startWt.toFixed(1)} kg`, "v-info"], ["Tare Locked?", state.tareLocked ? "YES" : "NO", "v-good"]]
     },
     CND1: {
       type: "PATTERN 2 — FBD CONDITION BLOCK (#1)",
       title: "CND1 — Pre-Start Permissive Gate",
-      role: "Checks valve MODE.ACTUAL = CAS, target weight > 0, and scale .ST = GOOD before leaving Idle.",
-      paths: [["CM_FEED_XV/DC1/MODE.ACTUAL", "True current mode"], ["CM_TANK_WT/AI1/OUT.ST", "Signal health tag"]],
-      expr: `('CM_FEED_XV/DC1/MODE.ACTUAL' = CAS)\nAND ('^/TARGET_WT.CV' > 0.0)\nAND ('CM_TANK_WT/AI1/OUT.ST' >= GOOD)\nAND ('^/HI_HI_LVL.CV' = 0);`,
-      live: [["Execution Order", "#1", "v-info"], ["OUT_D", d.permReady ? "TRUE (1)" : "FALSE (0)", d.permReady ? "v-good" : "v-warn"]]
+      role: "Evaluates the pre-start Structured Text expression every Scan. Notice the Control Studio On-Line Expression tree above: in real DeltaV, external paths like '//CM_FEED_XV/DC1/MODE.ACTUAL' are inspected right inside this tree!",
+      paths: [["//CM_FEED_XV/DC1/MODE.ACTUAL", "True current mode on DC1 block"], ["//CM_TANK_WT/AI1/OUT.ST", "Signal health tag"]],
+      expr: `('//CM_FEED_XV/DC1/MODE.ACTUAL' = CAS)\nAND ('^/TARGET_WT.CV' > 0.0)\nAND ('//CM_TANK_WT/AI1/OUT.ST' >= GOOD)\nAND ('^/HI_HI_LVL.CV' = 0)`,
+      csExpr: {
+        winTitle: "CND1: Expression [On-Line]",
+        tree: [
+          { indent: 0, ok: d.permReady, text: "AND" },
+          { indent: 1, ok: d.permValveCas, text: "'//CM_FEED_XV/DC1/MODE.ACTUAL' = CAS" },
+          { indent: 1, ok: d.permTargetOk, text: "'^/TARGET_WT.CV' > 0.0" },
+          { indent: 1, ok: d.permScaleGood, text: "'//CM_TANK_WT/AI1/OUT.ST' >= GOOD" },
+          { indent: 1, ok: d.permHiHiClear, text: "'^/HI_HI_LVL.CV' = 0" }
+        ],
+        watch: [
+          ["//CM_FEED_XV/DC1/MODE.ACTUAL", state.valveMode, state.valveMode === "CAS" ? "GoodCascade" : (state.valveMode === "OOS" ? "BadOutOfService" : "GoodNonCascade")],
+          ["^/TARGET_WT.CV", d.targetWt.toFixed(1), "Good"],
+          ["//CM_TANK_WT/AI1/OUT.ST", state.scaleSt, state.scaleSt === "BAD" ? "BadSensorFailure" : "Good"],
+          ["^/HI_HI_LVL.CV", state.hiHi ? "1" : "0", "Good"]
+        ]
+      },
+      live: [["Execution Order", "#1", "v-info"], ["OUT_D", d.permReady ? "True" : "False", d.permReady ? "v-good" : "v-warn"]]
     },
     CND2: {
       type: "PATTERN 2 — FBD CONDITION BLOCK (#2)",
       title: "CND2 — Active Interlock Watch",
       role: "Watches every Scan for scale .ST = BAD or High-High tank level during an active charge.",
-      paths: [["CM_TANK_WT/AI1/OUT.ST", "Detects broken/OOS scale"], ["^/HI_HI_LVL.CV", "Overfill switch"]],
-      expr: `('CM_TANK_WT/AI1/OUT.ST' = BAD) OR ('^/HI_HI_LVL.CV' = 1);`,
-      live: [["Execution Order", "#2", "v-info"], ["OUT_D", d.tripCondition ? "TRIP!" : "CLEAR", d.tripCondition ? "v-bad" : "v-good"]]
+      paths: [["//CM_TANK_WT/AI1/OUT.ST", "Detects broken/OOS scale"], ["^/HI_HI_LVL.CV", "Overfill switch"]],
+      expr: `('//CM_TANK_WT/AI1/OUT.ST' = BAD) OR ('^/HI_HI_LVL.CV' = 1)`,
+      csExpr: {
+        winTitle: "CND2: Expression [On-Line]",
+        tree: [
+          { indent: 0, ok: d.tripCondition, text: "OR" },
+          { indent: 1, ok: state.scaleSt === "BAD", text: "'//CM_TANK_WT/AI1/OUT.ST' = BAD" },
+          { indent: 1, ok: state.hiHi, text: "'^/HI_HI_LVL.CV' = 1" }
+        ],
+        watch: [
+          ["//CM_TANK_WT/AI1/OUT.ST", state.scaleSt, state.scaleSt === "BAD" ? "BadSensorFailure" : "Good"],
+          ["^/HI_HI_LVL.CV", state.hiHi ? "1" : "0", "Good"]
+        ]
+      },
+      live: [["Execution Order", "#2", "v-info"], ["OUT_D", d.tripCondition ? "True (Trip!)" : "False", d.tripCondition ? "v-bad" : "v-good"]]
     },
     ACT1: {
       type: "PATTERN 2 — FBD ACTION BLOCK (#3)",
       title: "ACT1 — Interlock Trip Stamp",
-      role: "Immediately stamps Close on CM_FEED_XV and forces EM_STATE := HELD when CND2 trips.",
-      paths: [["CM_FEED_XV/DC1/CAS_IN_D", "Stamped := Close"], ["^/EM_STATE", "Forced := HELD"]],
-      expr: `'CM_FEED_XV/DC1/CAS_IN_D' := Close;\n'^/EM_STATE' := HELD;`,
-      live: [["Execution Order", "#3", "v-info"], ["ACT1", d.tripCondition ? "FIRED" : "Standby", d.tripCondition ? "v-bad" : "v-good"]]
+      role: "Immediately stamps Close on CM_FEED_XV and forces EM_STATE := HELD when CND2.OUT_D drives ACT1.IN_D True.",
+      paths: [["//CM_FEED_XV/DC1/CAS_IN_D", "Stamped := Close"], ["^/EM_STATE", "Forced := HELD"]],
+      expr: `'//CM_FEED_XV/DC1/CAS_IN_D' := Close;\n'^/EM_STATE' := HELD;`,
+      live: [["Execution Order", "#3", "v-info"], ["IN_D / OUT_D", d.tripCondition ? "True (Fired)" : "False", d.tripCondition ? "v-bad" : "v-good"]]
     },
     BSEL1: {
       type: "PATTERN 3 — FBD SELECTOR BLOCK (#1)",
       title: "BSEL1 — Target Weight Switch",
-      role: "Picks EPH Recipe Weight (IN1) vs. Operator Local Weight (IN2) based on USE_RECIPE (SEL_D).",
-      paths: [["^/RECIPE_WT.CV", "IN1 (Solid wire)"], ["^/LOCAL_WT.CV", "IN2 (Solid wire)"], ["^/USE_RECIPE", "SEL_D (Dashed wire)"]],
-      expr: `OUT := IF (SEL_D = 1) THEN IN1 ELSE IN2;`,
-      live: [["Execution Order", "#1", "v-info"], ["TARGET_WT", `${d.targetWt.toFixed(1)} kg`, "v-good"]]
+      role: "Picks EPH Recipe Weight (IN_1) vs. Operator Local Weight (IN_2) based on USE_RECIPE (SEL_D).",
+      paths: [["^/RECIPE_WT.CV", "IN_1 (Solid wire)"], ["^/LOCAL_WT.CV", "IN_2 (Solid wire)"], ["^/USE_RECIPE.CV", "SEL_D (Dashed wire)"]],
+      expr: `OUT := IF (SEL_D = 1) THEN IN_1 ELSE IN_2;`,
+      live: [["Execution Order", "#1", "v-info"], ["OUT", `${d.targetWt.toFixed(1)} kg`, "v-good"]]
     },
     CALC1: {
       type: "PATTERN 3 — FBD CALCULATION BLOCK (#2)",
       title: "CALC1 — Net Delivered & Remaining Mass",
-      role: "Solves #2 after BSEL1 (#1) and before CND3 (#3). Computes net solvent added and remaining mass.",
-      paths: [["CM_TANK_WT/AI1/OUT.CV", "IN2 Gross weight"], ["^/START_WT.CV", "IN3 Locked tare"]],
-      expr: `DELIVERED := IN2 - IN3;\nOUT := IN1 - DELIVERED;`,
-      live: [["Execution Order", "#2", "v-info"], ["REMAINING_WT", `${d.remainingWt.toFixed(1)} kg`, "v-good"]]
+      role: "Solves #2 after BSEL1 (#1) and before CND3 (#3). Notice that if CM_TANK_WT/AI1/OUT goes BAD (.ST=BAD), Bad status (Red ✕) propagates straight onto CALC1/OUT_1!",
+      paths: [["//CM_TANK_WT/AI1/OUT.CV", "IN_2 Gross weight"], ["^/START_WT.CV", "IN_3 Locked tare"]],
+      expr: `DELIVERED := IN_2 - IN_3;\nOUT_1 := IN_1 - DELIVERED;`,
+      live: [["Execution Order", "#2", "v-info"], ["OUT_1 (Remaining)", `${d.remainingWt.toFixed(1)} kg`, state.scaleSt === "BAD" ? "v-bad" : "v-good"]]
     },
     CND3: {
       type: "PATTERN 3 — FBD CONDITION BLOCK (#3)",
       title: "CND3 — Preclose Cutoff Comparator",
       role: "Fires True when REMAINING_WT <= PRECLOSE_LEAD (15 kg), triggering T20_PRECLOSE.",
-      paths: [["^/REMAINING_WT.CV", "From CALC1 (#2)"], ["^/PRECLOSE_LEAD.CV", "15.0 kg lead"]],
-      expr: `IN1 <= '^/PRECLOSE_LEAD.CV';`,
-      live: [["Execution Order", "#3", "v-info"], ["OUT_D", d.precloseReached ? "CUTOFF!" : "FILLING", d.precloseReached ? "v-good" : "v-info"]]
+      paths: [["^/REMAINING_WT.CV", "From CALC1/OUT_1 (#2)"], ["^/PRECLOSE_LEAD.CV", "15.0 kg lead"]],
+      expr: `'^/REMAINING_WT.CV' <= '^/PRECLOSE_LEAD.CV'`,
+      csExpr: {
+        winTitle: "CND3: Expression [On-Line]",
+        tree: [
+          { indent: 0, ok: d.precloseReached, text: "<=" },
+          { indent: 1, ok: state.scaleSt !== "BAD", text: "'^/REMAINING_WT.CV'" },
+          { indent: 1, ok: true, text: "'^/PRECLOSE_LEAD.CV'" }
+        ],
+        watch: [
+          ["^/REMAINING_WT.CV", d.remainingWt.toFixed(1), state.scaleSt === "BAD" ? "Bad" : "Good"],
+          ["^/PRECLOSE_LEAD.CV", state.precloseLead.toFixed(1), "Good"]
+        ]
+      },
+      live: [["Execution Order", "#3", "v-info"], ["OUT_D", d.precloseReached ? "True" : "False", d.precloseReached ? "v-good" : "v-info"]]
     },
     ACT2: {
       type: "PATTERN 3 — FBD ACTION BLOCK (#4)",
       title: "ACT2 — Cascade Mode Alignment",
-      role: "Pushes MODE.TARGET := CAS down to CMs when EM is in AUTO.",
-      paths: [["CM_FEED_XV/DC1/MODE.TARGET", "Requests CAS"], ["CM_AGIT_MTR/DC1/MODE.TARGET", "Requests CAS"]],
-      expr: `'CM_FEED_XV/DC1/MODE.TARGET' := CAS;\n'CM_AGIT_MTR/DC1/MODE.TARGET' := CAS;`,
-      live: [["Valve MODE.ACTUAL", state.valveMode, state.valveMode === "CAS" ? "v-good" : "v-bad"]]
+      role: "Writes CAS to MODE.TARGET on downstream CMs when EM enters AUTO. Crucial DeltaV lesson: MODE.TARGET and MODE.ACTUAL are TWO separate fields—writing MODE.TARGET := CAS does NOT guarantee MODE.ACTUAL is CAS!",
+      paths: [["//CM_FEED_XV/DC1/MODE.TARGET", "Written := CAS"], ["//CM_FEED_XV/DC1/MODE.ACTUAL", "True current mode (checked in CND1)"]],
+      expr: `'//CM_FEED_XV/DC1/MODE.TARGET' := CAS;\n'//CM_AGIT_MTR/DC1/MODE.TARGET' := CAS;`,
+      live: [["MODE.TARGET", "CAS", "v-good"], ["MODE.ACTUAL", state.valveMode, state.valveMode === "CAS" ? "v-good" : "v-bad"]]
+    },
+    FLAG_VALVE_MODE: {
+      type: "LINKED EXTERNAL PARAMETER — MODE.ACTUAL",
+      title: "CM_FEED_XV/DC1/MODE.ACTUAL",
+      role: "Reads the TRUE active operating mode of DC1 inside CM_FEED_XV. In real Control Studio, this either appears as a rectangular Input Parameter box with CM_FEED_XV/DC1/MODE.ACTUAL linked underneath it, OR directly inside CND1's Expression window!",
+      paths: [["CM_FEED_XV", "Feed Valve Control Module"], ["DC1", "Device Control Block"], ["MODE.ACTUAL", "True Current Mode (never abbreviated .ACT!)"]],
+      expr: `'//CM_FEED_XV/DC1/MODE.ACTUAL' = CAS`,
+      live: [["MODE.ACTUAL", state.valveMode, state.valveMode === "CAS" ? "v-good" : "v-bad"], ["Signal Status", state.valveMode === "OOS" ? "BadOutOfService" : (state.valveMode === "CAS" ? "GoodCascade" : "GoodNonCascade"), state.valveMode === "OOS" ? "v-bad" : "v-info"]]
+    },
+    FLAG_FEED_MODE_TGT: {
+      type: "EXTERNAL WRITE REFERENCE — MODE.TARGET",
+      title: "CM_FEED_XV/DC1/MODE.TARGET",
+      role: "Target mode requested by ACT2 ('CAS'). Notice that in Control Studio, inspecting MODE.TARGET only shows the requested target—it will NOT show that an operator or local override placed MODE.ACTUAL in MAN!",
+      paths: [["//CM_FEED_XV/DC1/MODE.TARGET", "Requested Mode"], ["//CM_FEED_XV/DC1/MODE.ACTUAL", "Separate parameter showing actual DC1 mode"]],
+      expr: `'//CM_FEED_XV/DC1/MODE.TARGET' := CAS;`,
+      live: [["MODE.TARGET", "CAS", "v-good"], ["DC1 MODE.ACTUAL", state.valveMode, state.valveMode === "CAS" ? "v-good" : "v-bad"]]
     },
     CND4: {
       type: "PATTERN 4 — FBD CONDITION BLOCK (#1)",
       title: "CND4 — Confirmed Valve Closed Check",
       role: "Verifies physical limit-switch feedback PV_D = Closed before allowing S30_AGITATE.",
-      paths: [["CM_FEED_XV/DC1/PV_D", "Physical limit-switch state"]],
-      expr: `'CM_FEED_XV/DC1/PV_D' = Closed;`,
+      paths: [["//CM_FEED_XV/DC1/PV_D", "Physical limit-switch state"]],
+      expr: `'//CM_FEED_XV/DC1/PV_D' = Closed`,
+      csExpr: {
+        winTitle: "CND4: Expression [On-Line]",
+        tree: [
+          { indent: 0, ok: d.valveShutOk, text: "=" },
+          { indent: 1, ok: state.valveMode !== "OOS", text: "'//CM_FEED_XV/DC1/PV_D'" },
+          { indent: 1, ok: true, text: "Closed" }
+        ],
+        watch: [
+          ["//CM_FEED_XV/DC1/PV_D", d.valvePvText, state.valveMode === "OOS" ? "BadOutOfService" : "Good"]
+        ]
+      },
       live: [["PV_D", d.valvePvText, d.valveShutOk ? "v-good" : "v-bad"]]
     },
     CND5: {
       type: "PATTERN 4 — FBD CONDITION BLOCK (#2)",
       title: "CND5 — Command vs. Feedback Mismatch Alarm",
-      role: "Compares CAS_IN_D against PV_D with a 10s DURATION delay to catch a stuck valve.",
-      paths: [["CM_FEED_XV/DC1/CAS_IN_D", "Command"], ["CM_FEED_XV/DC1/PV_D", "Limit-switch proof"]],
-      expr: `(* DURATION = 10s *)\n'CM_FEED_XV/DC1/CAS_IN_D' <> 'CM_FEED_XV/DC1/PV_D';`,
-      live: [["MISMATCH_ALM", d.valveMismatch ? "ACTIVE!" : "Clear", d.valveMismatch ? "v-bad" : "v-good"]]
+      role: "Compares CAS_IN_D against PV_D (!= button in Control Studio Expression Assistant) with a 10s DURATION delay to catch a stuck valve.",
+      paths: [["//CM_FEED_XV/DC1/CAS_IN_D", "Command"], ["//CM_FEED_XV/DC1/PV_D", "Limit-switch proof"]],
+      expr: `(* DURATION = 10s *)\n'//CM_FEED_XV/DC1/CAS_IN_D' != '//CM_FEED_XV/DC1/PV_D'`,
+      csExpr: {
+        winTitle: "CND5: Expression [On-Line]",
+        tree: [
+          { indent: 0, ok: d.valveMismatch, text: "!=  (DURATION = 10s)" },
+          { indent: 1, ok: true, text: "'//CM_FEED_XV/DC1/CAS_IN_D'" },
+          { indent: 1, ok: state.valveMode !== "OOS", text: "'//CM_FEED_XV/DC1/PV_D'" }
+        ],
+        watch: [
+          ["//CM_FEED_XV/DC1/CAS_IN_D", d.feedCmdText, "Good"],
+          ["//CM_FEED_XV/DC1/PV_D", d.valvePvText, state.valveMode === "OOS" ? "BadOutOfService" : "Good"]
+        ]
+      },
+      live: [["MISMATCH_ALM", d.valveMismatch ? "True (Alarm!)" : "False", d.valveMismatch ? "v-bad" : "v-good"]]
     },
 
     // --- MODULE 2: EM_XFER_HDR (STATE-DRIVEN — CH. 7) ---
@@ -2333,33 +2617,60 @@ function getInspectorInfo(id, d, h) {
     CND_PATH_OK: {
       type: "HDR TAB 2 — FBD CONDITION BLOCK (#1)",
       title: "CND_PATH_OK — Anti-Cross-Mix Valve Proof",
-      role: "Checks physical limit-switch PV_D on all 3 manifold valves before allowing CM_XFER_PMP to start. If XV102 is stuck open when routing to Tank A, CND_PATH_OK stays False and blocks the pump!",
-      paths: [["CM_HDR_XV101/DC1/PV_D", "Tank A limit switch"], ["CM_HDR_XV102/DC1/PV_D", "Tank B limit switch"], ["CM_HDR_XV103/DC1/PV_D", "CIP Drain limit switch"]],
-      expr: `('CM_HDR_XV101/DC1/PV_D' = REQ_101)\nAND ('CM_HDR_XV102/DC1/PV_D' = REQ_102)\nAND ('CM_HDR_XV103/DC1/PV_D' = REQ_103);`,
-      live: [["Execution Order", "#1", "v-info"], ["OUT_D", h.valvesAligned ? "TRUE (Safe)" : "FALSE (Blocked!)", h.valvesAligned ? "v-good" : "v-bad"]]
+      role: "Checks physical limit-switch PV_D on all 3 manifold valves before allowing CM_XFER_PMP to start. Inspect the Control Studio On-Line Expression tree above to see each valve clause live!",
+      paths: [["//CM_HDR_XV101/DC1/PV_D", "Tank A limit switch"], ["//CM_HDR_XV102/DC1/PV_D", "Tank B limit switch"], ["//CM_HDR_XV103/DC1/PV_D", "CIP Drain limit switch"]],
+      expr: `('//CM_HDR_XV101/DC1/PV_D' = ${h.xv101Cmd === "Open" ? "Open" : "Closed"})\nAND ('//CM_HDR_XV102/DC1/PV_D' = ${h.xv102Cmd === "Open" ? "Open" : "Closed"})\nAND ('//CM_HDR_XV103/DC1/PV_D' = ${h.xv103Cmd === "Open" ? "Open" : "Closed"})`,
+      csExpr: {
+        winTitle: "CND_PATH_OK: Expression [On-Line]",
+        tree: [
+          { indent: 0, ok: h.valvesAligned, text: "AND" },
+          { indent: 1, ok: h.xv101Match, text: `'//CM_HDR_XV101/DC1/PV_D' = ${h.xv101Cmd === "Open" ? "Open" : "Closed"}` },
+          { indent: 1, ok: h.xv102Match && (state.xv102Mode === "CAS" || h.xv102Cmd === "Close"), text: `'//CM_HDR_XV102/DC1/PV_D' = ${h.xv102Cmd === "Open" ? "Open" : "Closed"}` },
+          { indent: 1, ok: h.xv103Match, text: `'//CM_HDR_XV103/DC1/PV_D' = ${h.xv103Cmd === "Open" ? "Open" : "Closed"}` }
+        ],
+        watch: [
+          ["//CM_HDR_XV101/DC1/PV_D", h.xv101Pv, "Good"],
+          ["//CM_HDR_XV102/DC1/PV_D", h.xv102Pv, state.xv102Mode === "CAS" ? "Good" : "GoodNonCascade"],
+          ["//CM_HDR_XV102/DC1/MODE.ACTUAL", state.xv102Mode, state.xv102Mode === "CAS" ? "GoodCascade" : "GoodNonCascade"],
+          ["//CM_HDR_XV103/DC1/PV_D", h.xv103Pv, "Good"]
+        ]
+      },
+      live: [["Execution Order", "#1", "v-info"], ["OUT_D", h.valvesAligned ? "True (Safe)" : "False (Blocked!)", h.valvesAligned ? "v-good" : "v-bad"]]
     },
     ACT_PMP_GATE: {
       type: "HDR TAB 2 — FBD ACTION BLOCK (#2)",
       title: "ACT_PMP_GATE — Permissive Pump Start",
       role: "Writes Start to CM_XFER_PMP/DC1/CAS_IN_D ONLY when the target state calls for pumping AND CND_PATH_OK (#1) is True.",
-      paths: [["CM_XFER_PMP/DC1/CAS_IN_D", "Pump command inbox"]],
-      expr: `IF (STATE_NEEDS_PMP AND CND_PATH_OK.OUT_D) THEN\n  'CM_XFER_PMP/DC1/CAS_IN_D' := Start;\nELSE\n  'CM_XFER_PMP/DC1/CAS_IN_D' := Stop;\nENDIF;`,
+      paths: [["//CM_XFER_PMP/DC1/CAS_IN_D", "Pump command inbox"]],
+      expr: `IF (STATE_NEEDS_PMP AND CND_PATH_OK.OUT_D) THEN\n  '//CM_XFER_PMP/DC1/CAS_IN_D' := Start;\nELSE\n  '//CM_XFER_PMP/DC1/CAS_IN_D' := Stop;\nENDIF;`,
       live: [["Execution Order", "#2", "v-info"], ["Pump Command", h.pmpCmd, h.pmpCmd === "Start" ? "v-good" : "v-warn"]]
     },
     CND_HDR_HI: {
       type: "HDR TAB 2 — FBD CONDITION BLOCK (#3)",
       title: "CND_HDR_HI — Header Overpressure Interlock",
-      role: "Reads solid analog wire 'CM_HDR_PT/AI1/OUT.CV' every Scan. Trips if line pressure exceeds 6.0 bar (deadheaded header).",
-      paths: [["CM_HDR_PT/AI1/OUT.CV", "Header pressure in bar (solid wire)"]],
-      expr: `('CM_HDR_PT/AI1/OUT.CV' > 6.0)\nOR ('CM_HDR_PT/AI1/OUT.ST' = BAD);`,
-      live: [["Header Pressure", `${state.hdrPress.toFixed(1)} bar`, h.highPressTrip ? "v-bad" : "v-good"], ["Trip?", h.highPressTrip ? "YES (>6.0 bar)" : "NO", h.highPressTrip ? "v-bad" : "v-good"]]
+      role: "Reads solid analog wire '//CM_HDR_PT/AI1/OUT.CV' every Scan. Trips if line pressure exceeds 6.0 bar (deadheaded header).",
+      paths: [["//CM_HDR_PT/AI1/OUT.CV", "Header pressure in bar (solid wire)"]],
+      expr: `('//CM_HDR_PT/AI1/OUT.CV' > 6.0) OR ('//CM_HDR_PT/AI1/OUT.ST' = BAD)`,
+      csExpr: {
+        winTitle: "CND_HDR_HI: Expression [On-Line]",
+        tree: [
+          { indent: 0, ok: h.highPressTrip, text: "OR" },
+          { indent: 1, ok: h.highPressTrip, text: "'//CM_HDR_PT/AI1/OUT.CV' > 6.0" },
+          { indent: 1, ok: false, text: "'//CM_HDR_PT/AI1/OUT.ST' = BAD" }
+        ],
+        watch: [
+          ["//CM_HDR_PT/AI1/OUT.CV", state.hdrPress.toFixed(1), "Good"],
+          ["//CM_HDR_PT/AI1/OUT.ST", "GOOD", "Good"]
+        ]
+      },
+      live: [["Header Pressure", `${state.hdrPress.toFixed(1)} bar`, h.highPressTrip ? "v-bad" : "v-good"], ["Trip?", h.highPressTrip ? "True (>6.0 bar)" : "False", h.highPressTrip ? "v-bad" : "v-good"]]
     },
     ACT_FAIL_STATE: {
       type: "HDR TAB 2 — FBD ACTION BLOCK (#4)",
       title: "ACT_FAIL_STATE — Drive to Safe State",
       role: "When CND_HDR_HI (#3) trips, immediately overrides the manifold to FAIL_STATE (HEADER_CLOSED), stopping the pump and closing all valves.",
       paths: [["^/FAIL_STATE", "HEADER_CLOSED"]],
-      expr: `'CM_XFER_PMP/DC1/CAS_IN_D' := Stop;\n(* Snap all header valves := Close *)`,
+      expr: `'//CM_XFER_PMP/DC1/CAS_IN_D' := Stop;\n(* Snap all header valves := Close *)`,
       live: [["FAIL_STATE Active?", h.highPressTrip ? "YES — FORCED SHUT" : "Standby", h.highPressTrip ? "v-bad" : "v-good"]]
     },
     CALC_PV_STATE: {
@@ -2373,10 +2684,23 @@ function getInspectorInfo(id, d, h) {
     CND_FAIL_ALM: {
       type: "HDR TAB 3 — FBD CONDITION BLOCK (#2)",
       title: "CND_FAIL_ALM — Transition Timeout (DURATION = 8s)",
-      role: "Gives valves 8 seconds to stroke when SP_D changes. If PV_D still doesn't equal SP_D after 8s (e.g., XV102 left in MAN or stuck open), sets FAIL_ACTIVE = 1.",
+      role: "Gives valves 8 seconds to stroke when SP_D changes. If PV_D != SP_D after 8s (e.g., XV102 left in MAN or stuck open), sets FAIL_ACTIVE = 1.",
       paths: [["^/SP_D", "Target State"], ["^/PV_D", "Confirmed State"], ["^/FAIL_ACTIVE", "Header State Mismatch Alarm"]],
-      expr: `(* DURATION = 8s *)\n'^/SP_D' <> '^/PV_D';`,
-      live: [["Execution Order", "#2", "v-info"], ["FAIL_ACTIVE", h.failActive ? "TRUE (1)" : "FALSE (0)", h.failActive ? "v-bad" : "v-good"]]
+      expr: `(* DURATION = 8s *)\n'^/SP_D' != '^/PV_D'`,
+      csExpr: {
+        winTitle: "CND_FAIL_ALM: Expression [On-Line]",
+        tree: [
+          { indent: 0, ok: h.failActive, text: "!=  (DURATION = 8s)" },
+          { indent: 1, ok: true, text: "'^/SP_D'" },
+          { indent: 1, ok: h.stateAligned, text: "'^/PV_D'" }
+        ],
+        watch: [
+          ["^/SP_D", state.hdrCmdState, "Good"],
+          ["^/PV_D", h.pvState, "Good"],
+          ["//CM_HDR_XV102/DC1/MODE.ACTUAL", state.xv102Mode, state.xv102Mode === "CAS" ? "GoodCascade" : "GoodNonCascade"]
+        ]
+      },
+      live: [["Execution Order", "#2", "v-info"], ["FAIL_ACTIVE", h.failActive ? "True (1)" : "False (0)", h.failActive ? "v-bad" : "v-good"]]
     }
   };
 
@@ -2501,6 +2825,37 @@ function render() {
   document.getElementById("inspTitle").textContent = info.title;
   document.getElementById("inspRole").textContent = info.role;
   document.getElementById("inspExpr").textContent = info.expr;
+
+  // Render Control Studio On-Line Expression [...] Tree + Watch Table (Sequence Tutorial p.26)
+  const csCard = document.getElementById("inspCsExprCard");
+  if (state.online && info.csExpr) {
+    csCard.style.display = "block";
+    document.getElementById("csExprWinTitle").textContent = info.csExpr.winTitle;
+    const treeEl = document.getElementById("csExprTree");
+    treeEl.innerHTML = "";
+    info.csExpr.tree.forEach(row => {
+      const div = document.createElement("div");
+      div.className = "cs-tree-row" + (row.indent ? " indent" : "");
+      const mark = document.createElement("span");
+      mark.className = row.ok ? "cs-chk-ok" : "cs-chk-bad";
+      mark.textContent = row.ok ? "✓" : "✗";
+      const txt = document.createElement("span");
+      txt.textContent = row.text;
+      div.appendChild(mark);
+      div.appendChild(txt);
+      treeEl.appendChild(div);
+    });
+    const watchBody = document.getElementById("csExprWatch");
+    watchBody.innerHTML = "";
+    info.csExpr.watch.forEach(([item, val, st]) => {
+      const tr = document.createElement("tr");
+      const isBad = String(st).startsWith("Bad");
+      tr.innerHTML = `<td>${item}</td><td><strong>${val}</strong></td><td class="${isBad ? "st-bad" : ""}">${st}</td>`;
+      watchBody.appendChild(tr);
+    });
+  } else {
+    csCard.style.display = "none";
+  }
 
   const ul = document.getElementById("inspPath");
   ul.innerHTML = "";
