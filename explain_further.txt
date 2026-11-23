@@ -1,3 +1,41 @@
-LO  (Local Override) &  OOS  (Out of Service): If  SHUTDOWN_D=1 ,  INTERLOCK_D=0 ,  TRK_IN_D=1 , or
+-LO  (Local Override) &  OOS  (Out of Service): If  SHUTDOWN_D=1 ,  INTERLOCK_D=0 ,  TRK_IN_D=1 , or
 PERMISSIVE_D=0  in Passive,  DC1/MODE.ACTUAL  automatically drops to  LO . Placing a block in  OOS  locks it out
 and marks outputs  Bad: Out of Service  (Red  ✕)
+
+-how does it make a tunnel, if pid1/mode can reach the same parameters through expressions, whats the advantage(correct me if i stated this wrong) : MODE  has no wireable pin on  DC  or
+PID ! Dropping an unwired left-side box set
+to  Internal Reference  punches an
+invisible tunnel straight to  PID1/MODE  so
+State-Driven EM tables (7016 p. 140 —
+module-level paths only!) and faceplates can
+read/write  MODE.TARGET  &  MODE.ACTUAL .
+Bonus (CONFIG p. 214): Internal References
+also enable Restore Parameter Values on
+controller restart
+
+
+-seems like 'at the module level' is important but its never fully explained and deep dived into: Created automatically on class-based
+modules when "Allow instance value to be
+configured" is enabled! Exposes a child
+block's internal setting (like tuning gain or
+I/O channel) at the module level for bulk
+editing & faceplates without breaking class
+inheritance
+
+-im missing the importance or the point of this, explain: Look at the hollow square pin ( □ ): on  3WT-
+0001-NEUT  ( IMG_1117 ), inputs like
+HOLD_REQ  have  □  on the right, while
+higher-level outputs like  FAILED  and
+HORN  have  □  on the left—still unwired,
+written directly by  MONITOR  expressions!
+
+-really need to explain this out: Check the Parameter View table at the bottom of Control Studio (just like  IMG_1115 !): Read the Parameter
+Type column— Internal Reference  = tunnel to a block inside this module;  External / Dynamic Reference  =
+tunnel to another module;  Parameter Shortcut  = exposed class child parameter;  Float / Boolean / Named
+Set  = read/written by expressions, SFCs, or HMIs!
+
+-i have absolutely no idea how to do this, not specific enough, check and make sure visual explorer can do this:  Try It Live Now: In Visual Explorer, open  FIC_101  → Tab 3. Unwired Boxes X-Ray and toggle 🔍 X-Ray: OFF
+/ ON to watch all 4 invisible controller tunnels light up
+
+
+

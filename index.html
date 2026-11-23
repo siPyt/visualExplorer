@@ -789,6 +789,7 @@
     <button class="sim-btn" id="btnPidAiSt" title="Toggle AI1 sensor health (.ST)">AI1 .ST: GOOD</button>
     <button class="sim-btn" id="btnPidHiLim" title="Simulate valve saturated at 100% (AO1 sends Limited High on BKCAL_OUT)">Valve: Normal</button>
     <button class="sim-btn" id="btnPidTrk" title="Trigger CND_INTERLOCK → PID1/TRK_IN_D = True (forces LO &amp; TRK_VAL=0%)">TRK_IN_D: Clear</button>
+    <button class="sim-btn primary" id="btnPidXray" style="display:none;" title="Toggle hidden invisible controller tunnels on Tab 3 (Unwired Boxes X-Ray)">🔍 X-Ray Tunnels: OFF</button>
     <button class="sim-btn" id="btnPidReset" title="Reset FIC_101 loop to normal AUTO/CAS">Reset Loop</button>
   </div>
 </div>
@@ -3504,32 +3505,38 @@ function renderPidTab3(vp, pid) {
     vp.appendChild(el("text", { x: 654, y: 358, "font-size": 9.1, "font-weight": 800, fill: "#7c3aed" }, "all 4 hidden controller tunnels!"));
   }
 
+  // Pin-side compass labels above left & right columns
+  vp.appendChild(el("text", { x: 38, y: 47, "font-size": 8.6, "font-weight": 800, fill: "#0369a1", "font-family": "ui-monospace, monospace" }, "PIN □ ON RIGHT = INPUTS IN (Causes)"));
+  vp.appendChild(el("text", { x: 684, y: 98, "font-size": 8.6, "font-weight": 800, fill: "#0f766e", "font-family": "ui-monospace, monospace" }, "PIN □ ON LEFT = OUTPUTS OUT"));
+
   // BOTTOM STRIP: Authentic Control Studio Parameter View Pane (like IMG_1115!)
-  drawSectionStrip(vp, 22, 400, 896, 150, "CONTROL STUDIO BOTTOM PARAMETER VIEW (CLICK ANY ROW TO INSPECT — JUST LIKE YOUR IMG_1115!)", "#1e3a8a");
+  drawSectionStrip(vp, 22, 400, 896, 150, "CONTROL STUDIO BOTTOM PARAMETER VIEW (View → Parameter View — CLICK ANY ROW, LIKE IMG_1115!)", "#1e3a8a");
   const pvRows = [
-    ["UX_MODE",     "MODE",         pid.pidActual,  "Internal Reference", "PID1/MODE  (7017 pp. 243–244 — no wireable pin!)"],
-    ["UX_EXT_REF",  "EXT_TANK_LVL", "64.2%",        "External Reference", "//LT_101/AI1/OUT  (clean local alias for remote module)"],
-    ["UX_MOD_VAR",  "HI_FLOW_LIM",  "95.0 gpm",     "Floating Point",     "Internal  (read by CND_HI_FLOW expr — try dragging FLOW PV > 95!)"],
-    ["UX_SHORTCUT", "PID1$GAIN",    "1.25",         "Parameter Shortcut", "PID1/GAIN  (CONFIG p. 468 — class-tunable instance shortcut)"],
-    ["UX_WIRED_SP", "CAS_SP",       `${state.pidSp} gpm`, "Floating Point", "Wired → PID1/CAS_IN  (real solid FBD wire for contrast!)"]
+    ["UX_MODE",     "MODE",         pid.pidActual,        "Internal",           "Internal Reference", "PID1/MODE (Front-door tunnel — no pin!)"],
+    ["UX_EXT_REF",  "EXT_TANK_LVL", "64.2%",              "External",           "External Reference", "//LT_101/AI1/OUT (Remote module alias)"],
+    ["UX_MOD_VAR",  "HI_FLOW_LIM",  "95.0 gpm",           "Internal",           "Floating Point",     "Read by CND_HI_FLOW expr (Drag PV > 95!)"],
+    ["UX_SHORTCUT", "PID1$GAIN",    "1.25",               "Internal read only", "Parameter Shortcut", "PID1/GAIN (Class-tunable module level)"],
+    ["UX_WIRED_SP", "CAS_SP",       `${state.pidSp} gpm`, "Internal (Wired)",   "Floating Point",     "Wired → PID1/CAS_IN (Real solid wire)"]
   ];
 
   // Header
   vp.appendChild(el("rect", { x: 32, y: 428, width: 876, height: 19, fill: "#e2e8f0" }));
-  vp.appendChild(el("text", { x: 40, y: 441, "font-size": 9.0, "font-weight": 800, fill: "#0f172a", "font-family": "ui-monospace, monospace" }, "Parameter"));
-  vp.appendChild(el("text", { x: 168, y: 441, "font-size": 9.0, "font-weight": 800, fill: "#0f172a", "font-family": "ui-monospace, monospace" }, "On-Line Value"));
-  vp.appendChild(el("text", { x: 276, y: 441, "font-size": 9.0, "font-weight": 800, fill: "#0f172a", "font-family": "ui-monospace, monospace" }, "Parameter Type"));
-  vp.appendChild(el("text", { x: 432, y: 441, "font-size": 9.0, "font-weight": 800, fill: "#0f172a", "font-family": "ui-monospace, monospace" }, "Hidden Target / Connection Explanation"));
+  vp.appendChild(el("text", { x: 40, y: 441, "font-size": 8.9, "font-weight": 800, fill: "#0f172a", "font-family": "ui-monospace, monospace" }, "Parameter"));
+  vp.appendChild(el("text", { x: 146, y: 441, "font-size": 8.9, "font-weight": 800, fill: "#0f172a", "font-family": "ui-monospace, monospace" }, "On-Line"));
+  vp.appendChild(el("text", { x: 222, y: 441, "font-size": 8.9, "font-weight": 800, fill: "#0f172a", "font-family": "ui-monospace, monospace" }, "Connection Type"));
+  vp.appendChild(el("text", { x: 356, y: 441, "font-size": 8.9, "font-weight": 800, fill: "#0f172a", "font-family": "ui-monospace, monospace" }, "Parameter Type"));
+  vp.appendChild(el("text", { x: 492, y: 441, "font-size": 8.9, "font-weight": 800, fill: "#0f172a", "font-family": "ui-monospace, monospace" }, "Hidden Target / Meaning"));
 
-  pvRows.forEach(([id, nm, val, ptype, desc], idx) => {
+  pvRows.forEach(([id, nm, val, ctype, ptype, desc], idx) => {
     const ry = 448 + idx * 19;
     const isSel = state.selectedId === id;
     const rg = el("g", { class: "clickable", "data-id": id });
     rg.appendChild(el("rect", { x: 32, y: ry, width: 876, height: 18, fill: isSel ? "#dbeafe" : (idx % 2 === 0 ? "#ffffff" : "#f8fafc"), stroke: isSel ? "#0284c7" : "#e2e8f0" }));
-    rg.appendChild(el("text", { x: 40, y: ry + 12.5, "font-size": 8.9, "font-weight": 800, fill: "#0f172a", "font-family": "ui-monospace, monospace" }, nm));
-    rg.appendChild(el("text", { x: 168, y: ry + 12.5, "font-size": 8.9, "font-weight": 700, fill: "#0369a1", "font-family": "ui-monospace, monospace" }, val));
-    rg.appendChild(el("text", { x: 276, y: ry + 12.5, "font-size": 8.8, "font-weight": 700, fill: ptype.includes("Reference") || ptype.includes("Shortcut") ? "#6b21a8" : "#15803d", "font-family": "ui-monospace, monospace" }, ptype));
-    rg.appendChild(el("text", { x: 432, y: ry + 12.5, "font-size": 8.7, fill: "#334155", "font-family": "ui-monospace, monospace" }, desc));
+    rg.appendChild(el("text", { x: 40, y: ry + 12.5, "font-size": 8.8, "font-weight": 800, fill: "#0f172a", "font-family": "ui-monospace, monospace" }, nm));
+    rg.appendChild(el("text", { x: 146, y: ry + 12.5, "font-size": 8.8, "font-weight": 700, fill: "#0369a1", "font-family": "ui-monospace, monospace" }, val));
+    rg.appendChild(el("text", { x: 222, y: ry + 12.5, "font-size": 8.6, "font-weight": 600, fill: "#475569", "font-family": "ui-monospace, monospace" }, ctype));
+    rg.appendChild(el("text", { x: 356, y: ry + 12.5, "font-size": 8.7, "font-weight": 700, fill: ptype.includes("Reference") || ptype.includes("Shortcut") ? "#6b21a8" : "#15803d", "font-family": "ui-monospace, monospace" }, ptype));
+    rg.appendChild(el("text", { x: 492, y: ry + 12.5, "font-size": 8.6, fill: "#334155", "font-family": "ui-monospace, monospace" }, desc));
     vp.appendChild(rg);
   });
 }
@@ -5204,6 +5211,10 @@ function render() {
     const btnTrk = document.getElementById("btnPidTrk");
     btnTrk.textContent = state.pidTrkTrip ? "TRK_IN_D: TRIP (LO)!" : "TRK_IN_D: Clear";
     btnTrk.className = state.pidTrkTrip ? "sim-btn active-toggle" : "sim-btn";
+    const btnXray = document.getElementById("btnPidXray");
+    btnXray.style.display = state.tab === "pid3" ? "inline-block" : "none";
+    btnXray.textContent = state.showComboLens ? "🔍 X-Ray Tunnels: ON" : "🔍 X-Ray Tunnels: OFF";
+    btnXray.className = state.showComboLens ? "sim-btn ok" : "sim-btn primary";
 
     const banner = document.getElementById("diagBanner");
     let lvl = (pid.pidActual === "LO" || pid.aiBad || pid.aoActual === "OOS") ? "alert" : ((pid.pidActual === "IMan" || pid.windupClamped) ? "warn" : "ok");
@@ -5715,6 +5726,7 @@ document.getElementById("pidPvSlider").addEventListener("input", (e) => { state.
 document.getElementById("btnPidAiSt").addEventListener("click", () => { state.pidAiSt = state.pidAiSt === "GOOD" ? "BAD" : "GOOD"; state.notice = ""; render(); });
 document.getElementById("btnPidHiLim").addEventListener("click", () => { state.pidHiLim = !state.pidHiLim; state.notice = ""; render(); });
 document.getElementById("btnPidTrk").addEventListener("click", () => { state.pidTrkTrip = !state.pidTrkTrip; state.notice = ""; render(); });
+document.getElementById("btnPidXray").addEventListener("click", () => { state.showComboLens = !state.showComboLens; state.notice = ""; render(); });
 document.getElementById("btnPidReset").addEventListener("click", () => {
   state.pidTarget = "AUTO"; state.aoTarget = "CAS"; state.pidSp = 80; state.pidPv = 75;
   state.pidAiSt = "GOOD"; state.pidHiLim = false; state.pidTrkTrip = false;

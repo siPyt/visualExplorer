@@ -99,10 +99,13 @@ HOW THIS WORKSPACE OPERATES (SYNCED ACROSS MACHINES)
            SM_01..17=True physical vs SM_18..19=False AVG/RMP; HM_AT1 = 2 cfg'd),
            photo-accurate FAIL_EXPRESSION (^ACTION_TIMER), SM_BYPASS/HM_BYPASS,
            OAR CND1 wired TIME_DURATION, TMR1 4 wired inputs, and inactive '??? X'
-       - Deepened Unwired Parameter Boxes (Section 2.5 + Fig. 2.2 in PDF + new
-         FIC_101 Tab 3 'Unwired Boxes X-Ray' with Raw/X-Ray toggle & Bottom
-         Parameter View table + 5 native types: Internal Ref, External/Dynamic Ref,
-         Module Vars/TPs, Parameter Shortcut '$', Higher-Level Output Boxes).
+       - Deepened Unwired Parameter Boxes (Section 2.5 + 2.5.1–2.5.3 + Fig. 2.2
+         in PDF + FIC_101 Tab 3 'Unwired Boxes X-Ray' with top-bar & in-diagram
+         X-Ray toggle + 5-column Bottom Parameter View table): Module Level
+         (front door, 1 slash) vs. Block Level (2 slashes), why Internal Ref beats
+         deep paths (State-Driven tables, reusable faceplates, restart restore),
+         Parameter Shortcut '$' class inheritance, □ pin-side compass (Right=IN
+         Causes vs Left=OUT Symptoms), and reading View -> Parameter View (IMG_1115).
        - Deepened DC Block LO vs. OOS & 4 Safety Pins (Section 3.2 + Fig. 3.1 in
          PDF, verified FBR pp. 419–427): Active-High (SHUTDOWN_D=1 always active,
          TRK_IN_D=1 copies FV_D) vs. Fail-Safe Low (INTERLOCK_D=0 trips running,

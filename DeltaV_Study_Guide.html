@@ -874,10 +874,10 @@
   </thead>
   <tbody>
     <tr>
-      <td><strong>1. Internal Reference Shortcut</strong><br/><em>(7017 pp. 243–244)</em></td>
+      <td><strong>1. Internal Reference</strong><br/><em>(7017 pp. 243–244)</em></td>
       <td><code>Internal Reference</code></td>
       <td><code>MODE → PID1/MODE</code><br/><code>MODE → DC1/MODE</code></td>
-      <td><code>MODE</code> has <strong>no wireable pin</strong> on <code>DC</code> or <code>PID</code>! Dropping an unwired left-side box set to <code>Internal Reference</code> punches an invisible tunnel straight to <code>PID1/MODE</code> so State-Driven EM tables (<em>7016</em> p. 140 — module-level paths only!) and faceplates can read/write <code>MODE.TARGET</code> &amp; <code>MODE.ACTUAL</code>. Bonus (<em>CONFIG</em> p. 214): Internal References also enable <em>Restore Parameter Values</em> on controller restart!</td>
+      <td><code>MODE</code> has <strong>no wireable pin</strong> on <code>DC</code> or <code>PID</code>. Dropping an unwired left-side box set to <code>Internal Reference</code> creates a module-level front-door pointer straight to <code>PID1/MODE</code> (see deep dive below!).</td>
     </tr>
     <tr>
       <td><strong>2. External / Dynamic Reference</strong><br/><em>(CONFIG p. 70)</em></td>
@@ -895,52 +895,134 @@
       <td><strong>4. Parameter Shortcut (<code>$</code>)</strong><br/><em>(CONFIG pp. 57, 468; IMG_1115)</em></td>
       <td><code>Parameter Shortcut</code></td>
       <td><code>PID1$GAIN</code>, <code>AI1$IO_IN.REF</code>,<br/><code>ACQ_REL</code> / <code>MONITOR</code></td>
-      <td>Created automatically on class-based modules when <em>"Allow instance value to be configured"</em> is enabled! Exposes a child block's internal setting (like tuning gain or I/O channel) at the module level for bulk editing &amp; faceplates without breaking class inheritance.</td>
+      <td>Created automatically on class-based modules when <em>"Allow instance value to be configured"</em> is enabled—exposing a child block's internal setting at the <strong>module level</strong> without breaking class inheritance (see deep dive below!).</td>
     </tr>
     <tr>
       <td><strong>5. Higher-Level Status Outputs</strong><br/><em>(IMG_1117)</em></td>
       <td><code>Boolean</code> / <code>String</code><br/><em>(Pin <code>□</code> on LEFT!)</em></td>
       <td><code>[ □ FAILED ]</code>, <code>[ □ HORN ]</code>,<br/><code>[ □ PROMPTING ]</code></td>
-      <td>Look at the hollow square pin (<code>□</code>): on <code>3WT-0001-NEUT</code> (<code>IMG_1117</code>), inputs like <code>HOLD_REQ</code> have <code>□</code> on the <strong>right</strong>, while higher-level outputs like <code>FAILED</code> and <code>HORN</code> have <code>□</code> on the <strong>left</strong>—still unwired, written directly by <code>MONITOR</code> expressions!</td>
+      <td>Written directly by internal logic/composites (like <code>MONITOR</code>) and broadcast outward to higher-level HMIs or parent modules—zero wire required!</td>
+    </tr>
+  </tbody>
+</table>
+
+<h4>2.5.1 What Does "At the Module Level" Mean—And Why Build an <code>Internal Reference</code> Tunnel If Expressions Can Reach <code>PID1/MODE</code> Directly?</h4>
+<p>First, let's be 100% clear: <strong>yes, an SFC or <code>CND</code>/<code>ACT</code> expression <em>can</em> reach <code>'//FIC_101/PID1/MODE.ACTUAL'</code> directly without any <code>Internal Reference</code> box!</strong> So why do DeltaV engineers bother dropping an unwired <code>MODE</code> box on the left side of a module? Because DeltaV draws a hard wall between <strong>Module Level</strong> and <strong>Block Level</strong>:</p>
+
+<ul>
+  <li><strong>Module Level (The "Front Door" — 1 Slash: <code>//FIC_101/MODE</code>):</strong> Parameters that sit on the outside wall of the module itself (<code>MODE</code>, <code>PV</code>, <code>CAS_SP</code>, <code>PID1$GAIN</code>). They are immediately visible to DeltaV Explorer, State-Driven EM tables, Excel Bulk Edit, and generic HMI faceplates—nobody has to know what function blocks live inside!</li>
+  <li><strong>Block Level (Deep Inside a Room — 2 Slashes: <code>//FIC_101/PID1/MODE</code>):</strong> Parameters buried inside a specific function block (<code>PID1</code>, <code>DC1</code>, <code>AI1</code>). Only custom expressions that hard-code that exact block name can reach them.</li>
+</ul>
+
+<p><strong>How the "Tunnel" Actually Works &amp; Its 4 Huge Real-Plant Advantages:</strong> When you drop an Input Parameter named <code>MODE</code> onto <code>FIC_101</code> and set <code>Parameter Type = Internal Reference</code> pointing to <code>PID1/MODE</code>, there is no magic—DeltaV simply creates a live <strong>front-door pointer (alias)</strong> at <code>FIC_101/MODE</code> wired in memory to <code>PID1/MODE</code> (since <code>PID1</code> has no physical <code>□</code> pin for <code>MODE</code>, zero wire is drawn). That single unwired box unlocks four things deep block paths cannot do:</p>
+<ol>
+  <li><strong>State-Driven EM Tables FORBID Deep Block Paths (<em>7016</em> p. 140):</strong> Unlike SFC expressions, DeltaV's State-Driven <code>Items × States</code> table <strong>only allows module-level paths</strong> (<code>CM_FEED_XV/MODE.TARGET</code>). Without that unwired <code>MODE</code> Internal Reference box, a State-Driven EM literally cannot switch a valve to <code>Cascade</code> or <code>Auto</code>!</li>
+  <li><strong>One Standard Faceplate &amp; EM Template for Hundreds of Modules:</strong> In one CM the valve block might be called <code>DC1</code>, in another <code>VLV_DC</code>, in a flow loop <code>PID_FLOW</code>. By giving <em>every</em> CM a standard module-level front door (<code>MODE</code>, <code>PV</code>, <code>CAS_SP</code>), one reusable HMI faceplate and one PCSD EM template can talk to <code>&lt;ANY_CM&gt;/MODE</code> without caring what the hidden block inside is named!</li>
+  <li><strong>Survives Controller Restart (<em>CONFIG</em> p. 214):</strong> Exposing an internal block parameter through an <code>Internal Reference</code> enables DeltaV's module-level <strong>Restore Parameter Values</strong> feature on restart.</li>
+  <li><strong>Preserving Class Inheritance via Parameter Shortcuts (<code>$</code> — <em>CONFIG</em> pp. 57, 463, 468):</strong> Plants don't build 300 flow loops by hand—they build <strong>one Master Module Class</strong> (e.g., <code>STD_FLOW_PID</code>) in the Library and stamp out 300 linked instances (<code>FIC_101</code>…<code>FIC_400</code>). If you dive into <code>FIC_101</code> and edit <code>PID1</code> directly, you risk <em>breaking the class link</em> so future library updates won't reach it. Instead, checking <em>"Allow instance value to be configured"</em> inside the Class creates a module-level <strong>Parameter Shortcut</strong> (e.g., <code>PID1$GAIN</code> or <code>AI1$IO_IN.REF</code>) right on the front door—letting each instance hold its own gain or I/O channel in Bulk Edit while staying 100% linked to the master Class!</li>
+</ol>
+
+<h4>2.5.2 Why Does the Side of the Tiny Hollow Square Pin (<code>□</code>) Matter When There Is NO Wire?</h4>
+<p>When you stare at a zero-wire PCSD diagram like your real <code>3WT-0001-NEUT</code> (<code>IMG_1117</code>) with 15 floating parameter boxes, you might wonder: <em>"If nothing is wired to it, why should I care whether the tiny <code>□</code> square is on the left edge or right edge?"</em> Because <strong>on an unwired sheet, the side of the <code>□</code> pin is your instant 1-second compass separating CAUSES from SYMPTOMS!</strong></p>
+<ul>
+  <li><strong><code>□</code> on the RIGHT Edge (<code>[ HOLD_REQ □ ]</code>, <code>[ OPR_CMD_MASK □ ]</code>) = Input / Setting Coming INTO This Module:</strong> The pin faces <em>inward</em> toward the logic. Someone outside (operator faceplate, HMI button, or upstream module) writes this parameter <em>into</em> the sheet to drive how the module behaves.</li>
+  <li><strong><code>□</code> on the LEFT Edge (<code>[ □ FAILED ]</code>, <code>[ □ HORN ]</code>, <code>[ □ PROMPTING ]</code>) = Output / Result Leaving OUT of This Module:</strong> The pin faces away from the center toward higher-level displays. <em>This module's own logic</em> (like <code>MONITOR</code>) writes this value and broadcasts it outward to HMIs or parent coordinators.</li>
+  <li><strong>2:00 AM Payoff:</strong> Looking at the <code>□</code> side prevents two classic rookie mistakes: wasting 10 minutes looking for internal logic that "wrote" an input setting (<code>□</code> on right), or trying to manually overwrite an output flag (<code>□</code> on left) that internal expressions immediately overwrite on the very next scan!</li>
+</ul>
+
+<h4>2.5.3 How to Open &amp; Read Control Studio's Bottom "Parameter View" Table (Just Like Your <code>IMG_1114–1115</code>!)</h4>
+<p>Whenever you spot an unwired box in real Control Studio and want to know <em>for certain</em> what it is doing, look at the <strong>Parameter View pane docked across the bottom of Control Studio</strong> (if hidden, click the top ribbon: <strong>View → ☑ Parameter View</strong>, visible in your <code>IMG_1116</code>!). Click the box on the diagram—or scroll the table—and read the 6 real Control Studio columns from left to right (shown exactly as they appear on your plant's <code>IMG_1115</code>):</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="width:15%;">Parameter</th>
+      <th style="width:12%;">On-line value</th>
+      <th style="width:11%;">Default</th>
+      <th style="width:8%;">Linked</th>
+      <th style="width:18%;">Connection type</th>
+      <th style="width:18%;">Parameter type</th>
+      <th>Plain-English Translation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>MODE</code></td>
+      <td><code>AUTO</code></td>
+      <td><code>AUTO</code></td>
+      <td><code>True</code></td>
+      <td><code>Internal</code></td>
+      <td><strong><code>Internal Reference</code></strong></td>
+      <td>Front-door tunnel to a block inside <em>this</em> module (<code>PID1/MODE</code> or <code>DC1/MODE</code>).</td>
+    </tr>
+    <tr>
+      <td><code>EXT_TANK_LVL</code></td>
+      <td><code>64.2</code></td>
+      <td><code>0</code></td>
+      <td><code>True</code></td>
+      <td><code>External</code></td>
+      <td><strong><code>External Reference</code></strong></td>
+      <td>Alias tunnel pointing out to <em>another</em> module (<code>//LT_101/AI1/OUT</code>).</td>
+    </tr>
+    <tr>
+      <td><code>HOLD_REQ</code></td>
+      <td><code>True</code></td>
+      <td><code>True</code></td>
+      <td><code>True</code></td>
+      <td><code>Internal read only</code></td>
+      <td><strong><code>Parameter Shortcut</code></strong></td>
+      <td>Class-exposed child block parameter (just like <code>ACQ_REL</code> &amp; <code>MONITOR</code> in <code>IMG_1115</code>!).</td>
+    </tr>
+    <tr>
+      <td><code>TP001_VALUE</code></td>
+      <td><code>50</code></td>
+      <td><code>50</code></td>
+      <td><code>False</code></td>
+      <td><code>Internal</code></td>
+      <td><strong><code>Floating Point</code></strong></td>
+      <td>Module variable stored right here—read/written by expressions, SFCs, or HMI!</td>
     </tr>
   </tbody>
 </table>
 
 <div class="callout">
-  <div class="callout-title">Your 5-Second Real-Plant Diagnostic Checklist for Any Unwired Box</div>
+  <div class="callout-title">Exact Click-by-Click Steps to Test This Live in Visual Explorer Right Now</div>
   <ol style="margin:2px 0 0;">
-    <li><strong>Look at the <code>□</code> pin side:</strong> Right edge (<code>[ Name □ ]</code>) = Input/Internal into the module; Left edge (<code>[ □ Name ]</code>) = Output leaving the module.</li>
-    <li><strong>Check the Parameter View table at the bottom of Control Studio (just like <code>IMG_1115</code>!):</strong> Read the <strong>Parameter Type</strong> column—<code>Internal Reference</code> = tunnel to a block inside this module; <code>External / Dynamic Reference</code> = tunnel to another module; <code>Parameter Shortcut</code> = exposed class child parameter; <code>Float / Boolean / Named Set</code> = read/written by expressions, SFCs, or HMIs!</li>
-    <li><strong>Double-click the box (or check <code>CND</code>/<code>ACT</code>/SFC steps):</strong> For Reference boxes, the exact target path appears right inside its properties. For normal variables, look inside the sheet's <code>CND</code>/<code>ACT</code>/<code>CALC</code> blocks or SFC steps to see who reads/writes <code>'^/NAME.CV'</code>.</li>
-    <li><strong>Try It Live Now:</strong> In <strong>Visual Explorer</strong>, open <code>FIC_101</code> → Tab <strong>3. Unwired Boxes X-Ray</strong> and toggle <strong>🔍 X-Ray: OFF / ON</strong> to watch all 4 invisible controller tunnels light up!</li>
+    <li><strong>Launch Visual Explorer:</strong> Type <code>run</code> in PowerShell (or double-click <code>index.html</code>) so it opens in your browser.</li>
+    <li><strong>Switch Modules (Top-Left Dropdown):</strong> Click the dark blue dropdown box at the very top-left next to the <em>Visual Explorer</em> badge (currently showing <code>EM_TANK_CHARGE</code>) and select <strong><code>FIC_101 (Analog PID + BKCAL &amp; Track — Ch. 8 &amp; 10)</code></strong>.</li>
+    <li><strong>Open Tab 3 (Second Row of Tabs):</strong> Right below the dropdown, click the 3rd tab: <strong><code>3. Unwired Boxes X-Ray [CH 2.5]</code></strong>.</li>
+    <li><strong>Toggle the X-Ray Tunnels ON:</strong> Click the purple/blue <strong><code>🔍 X-Ray Tunnels: OFF</code></strong> button in the Simulation Bar (or the matching <strong><code>🔍 X-Ray: OFF</code></strong> button at the top-right corner of the white diagram box) so it switches to <strong><code>ON</code></strong>—watching all 4 hidden controller tunnels appear!</li>
+    <li><strong>Click Any Box or Bottom Parameter View Row:</strong> Click <code>MODE</code>, <code>EXT_TANK_LVL</code>, <code>HI_FLOW_LIM</code>, or <code>PID1$GAIN</code> (either on the diagram OR in the Bottom Parameter View table) to read its exact properties in the right-hand Inspector—then drag the <strong>Flow PV</strong> slider in the top bar past <code>95 gpm</code> to watch unwired <code>HI_FLOW_LIM</code> trip <code>CND_HI_FLOW</code> live!</li>
   </ol>
 </div>
 
 <!-- WORKSHOP 2 -->
 <div class="workshop">
   <div class="workshop-head">
-    <span class="ws-title">Workshop 2: Watching Pattern 1 Step While Patterns 2–4 Scan Continuously</span>
-    <span class="ws-badge">Hands-On Lab • 4 Min</span>
+    <span class="ws-title">Workshop 2: Watching Pattern 1 Step While Patterns 2–4 Scan Continuously + Unwired Boxes X-Ray</span>
+    <span class="ws-badge">Hands-On Lab • 6 Min</span>
   </div>
   <div class="workshop-body">
     <div class="workshop-setup">
-      <strong>Setup:</strong> In <strong>Visual Explorer</strong>, select <code>EM_TANK_CHARGE (Command-Driven)</code>, click <strong>On-Line</strong>, and click <strong>Reset</strong>.
+      <strong>Setup:</strong> Launch <strong>Visual Explorer</strong> (<code>run</code>), select <code>EM_TANK_CHARGE (Command-Driven)</code> in the top-left dropdown, click <strong>On-Line</strong>, and click <strong>Reset</strong>.
     </div>
     <ol>
       <li><strong>Inspect Pattern 1 in Idle:</strong> Click Tab <strong>1. Step Flow (SFC)</strong>. Notice <code>S0_IDLE</code> has a <strong>double border</strong> (Initial Step), elapsed seconds appear under every step, a Termination bar (<code>═╧═</code>) sits below <code>S30_AGITATE</code>, and <code>T10_START_OK</code> reads <code>True</code>. Look at the <em>Action view</em> box on the right to see <code>[P]</code> and <code>[N]</code> actions writing <code>'vlvnc-sp:CLOSE'</code> and <code>'mtr2-sp:STOP'</code> to <code>CAS_SP.CV</code>.</li>
       <li><strong>Prove Patterns 2 &amp; 3 Are Already Running While Idle:</strong> Without leaving <code>S0_IDLE</code>, drag the <strong>CM_TANK_WT</strong> slider from <code>100</code> up to <code>145</code>. Now click Tab <strong>3. Mode &amp; Setpoint Routing (FBD)</strong>.
         <br/><em>Observe:</em> Even though Pattern 1 hasn't moved out of Idle, <code>CM_TANK_WT/AI1/OUT</code> and <code>^/START_WT.CV</code> are updating live on every Scan! Drag the slider back to <code>100</code>.</li>
-      <li><strong>Compare Against a State-Driven EM's <code>Items × States</code> Table:</strong> Open the top-left module dropdown and switch to <code>EM_XFER_HDR (State-Driven — Ch. 7)</code>. Look at Tab <strong>1. Items × States Table</strong>: there are <em>no SFC steps at all</em>—Control Studio configures a table of module-level Write &amp; Readback paths across state columns (<code>HEADER_CLOSED</code>, <code>ROUTE_TANK_A</code>, <code>ROUTE_TANK_B</code>, <code>CIP_FLUSH</code>)!</li>
-      <li><strong>Lab: Unwired Parameter Boxes X-Ray (Ch. 2.5!):</strong> Switch the top-left dropdown to <code>FIC_101 (Analog PID + BKCAL &amp; Track)</code> and open Tab <strong>3. Unwired Boxes X-Ray</strong>.
+      <li><strong>Compare Against a State-Driven EM's <code>Items × States</code> Table:</strong> Click the top-left module dropdown and select <code>EM_XFER_HDR (State-Driven — Ch. 7)</code>. Look at Tab <strong>1. Items × States Table</strong>: zero SFC steps—just module-level Write &amp; Readback paths across state columns!</li>
+      <li><strong>Lab — Unwired Parameter Boxes X-Ray (Ch. 2.5):</strong>
         <ul>
-          <li>First view it in <strong>Raw Control Studio</strong> mode (X-Ray OFF): notice 4 left-side boxes (<code>MODE</code>, <code>EXT_TANK_LVL</code>, <code>HI_FLOW_LIM</code>, <code>PID1$GAIN</code>) and 1 right-side box (<code>HMI_MODE_TXT</code>) have <strong>zero wires</strong>—only <code>CAS_SP</code> is hardwired!</li>
-          <li>Now click <strong>🔍 X-Ray: OFF</strong> in the top-right corner of the diagram so it flips to <strong>ON</strong>: watch all 4 hidden controller tunnels light up (<code>Internal Reference → PID1/MODE</code>, <code>External Reference → //LT_101</code>, <code>Expr Read</code>, and <code>Parameter Shortcut → PID1/GAIN</code>).</li>
-          <li>Click each row in the <strong>Bottom Parameter View</strong> table (just like your real plant <code>IMG_1115</code>!) to inspect its <code>Parameter Type</code>, then drag the <strong>FLOW PV</strong> slider above <code>95 gpm</code> and watch <code>CND_HI_FLOW</code> trip <code>HI_FLOW_ALM</code> through the unwired <code>HI_FLOW_LIM</code> variable!</li>
+          <li><strong>Step 4a:</strong> Click the <strong>top-left module dropdown</strong> and select <strong><code>FIC_101 (Analog PID + BKCAL &amp; Track — Ch. 8 &amp; 10)</code></strong>.</li>
+          <li><strong>Step 4b:</strong> In the row of tabs right below the dropdown, click the 3rd tab: <strong><code>3. Unwired Boxes X-Ray [CH 2.5]</code></strong>.</li>
+          <li><strong>Step 4c (Raw Control Studio View):</strong> Notice 4 boxes on the left (<code>MODE</code>, <code>EXT_TANK_LVL</code>, <code>HI_FLOW_LIM</code>, <code>PID1$GAIN</code> — all with <code>□</code> on the <strong>right</strong> = Inputs IN) and 1 box on the right (<code>HMI_MODE_TXT</code> — <code>□</code> on the <strong>left</strong> = Output OUT) have <strong>zero wires</strong>, while <code>CAS_SP</code> at bottom-left has a real green wire for contrast!</li>
+          <li><strong>Step 4d (Reveal the Invisible Tunnels):</strong> Click <strong><code>🔍 X-Ray Tunnels: OFF</code></strong> in the Simulation Bar (or top-right of the diagram) so it flips to <strong><code>ON</code></strong>. Watch the hidden <code>Internal Reference</code>, <code>External Reference</code>, <code>Expr Read</code>, and <code>Parameter Shortcut</code> tunnels light up!</li>
+          <li><strong>Step 4e (Read the Bottom Parameter View &amp; Test Live):</strong> Click each row in the <strong>Control Studio Bottom Parameter View</strong> table (<code>Connection Type</code> + <code>Parameter Type</code>), then drag the <strong>Flow PV</strong> slider in the top bar past <strong><code>95 gpm</code></strong> and watch <code>CND_HI_FLOW</code> trip <code>HI_FLOW_ALM</code> through the unwired <code>HI_FLOW_LIM</code> box!</li>
         </ul>
       </li>
     </ol>
     <div class="workshop-takeaway">
-      <strong>What You Are Supposed to Learn From This Workshop:</strong> (1) Don't confuse <strong>SFC Steps</strong> (<code>S0 → S10 → S20</code> waiting over minutes) with <strong>FBD Execution Badges</strong> (<code>#1 → #2 → #3</code> solving inside 1 millisecond every scan); and (2) <strong>Zero wires does NOT mean unused!</strong> Always inspect the <code>□</code> pin side and Bottom Parameter View (<code>Internal Reference</code>, <code>External Reference</code>, <code>Parameter Shortcut</code>, or expression-read module variable) before assuming a box is disconnected.
+      <strong>What You Are Supposed to Learn From This Workshop:</strong> (1) Don't confuse <strong>SFC Steps</strong> (waiting over minutes) with <strong>FBD Execution Badges</strong> (<code>#1 → #2 → #3</code> solving inside 1 ms every scan); (2) <strong>Module Level</strong> (<code>//MOD/PARAM</code>) is the clean front door required by State-Driven tables, faceplates, and linked Class shortcuts; and (3) on any unwired sheet, check the <strong><code>□</code> pin side</strong> (Right = Input IN, Left = Output OUT) and the bottom <strong>Parameter View</strong> (<code>Connection type</code> + <code>Parameter type</code>)!
     </div>
   </div>
 </div>
