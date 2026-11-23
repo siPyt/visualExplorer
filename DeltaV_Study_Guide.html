@@ -761,15 +761,159 @@
   <li><strong>SFC Elements &amp; Action Qualifiers (<em>7009-8</em> pp. 4–24, <em>PDS</em> p. 5):</strong> Double-bordered Initial Step (<code>S0_IDLE</code>), bright green border on the active step On-Line, <strong>elapsed seconds printed under every step</strong>, Transition cross (<code>┼</code>) with <code>True</code> / <code>False</code> underneath, and a Termination bar (<code>═╧═</code>) at the bottom. Key qualifiers: <code>[P]</code> (Pulse — runs on first scan of the step only) and <code>[N]</code> (Non-stored — runs every scan while active; <strong>in DeltaV, <code>[N]</code> <code>:=</code> assignments keep their written value after the step ends!</strong>).</li>
 </ol>
 
+<h3 class="page-break">2.5 Deep-Dive: Why Real Plant Diagrams Have Unwired Parameter Boxes on the Left (and Right!)</h3>
+<p>One of the biggest shocks when opening a live plant Control Studio diagram for the first time is seeing <strong>rectangular Parameter Reference boxes parked neatly along the left edge (or right edge) with ZERO wires coming off them</strong>—and <code>CND</code> blocks sitting in the middle of the sheet with nothing wired into their left side. Your instinct says, <em>"Those boxes aren't connected—must be unused!"</em> <strong>In DeltaV, that instinct is almost always wrong!</strong></p>
+
+<p>A Control Studio diagram is <em>not</em> just a wiring schematic—it is also the module's live public interface. Inside DeltaV, live data travels through <strong>three completely separate channels</strong>, and <strong>two of those three draw zero wires on the diagram</strong>:</p>
+<ol>
+  <li><strong>Hardwired FBD Connections (Visible Wires):</strong> Solid/bold/dotted lines physically linking hollow square pins (<code>□</code>) between blocks (e.g., <code>AI1/OUT → PID1/IN</code>, <code>CAS_SP → DC1/CAS_IN_D</code>).</li>
+  <li><strong>Built-In Reference Pointers (Zero Wires Drawn!):</strong> <code>Internal Reference</code>, <code>External Reference</code>, <code>Dynamic Reference</code>, and <code>Parameter Shortcut</code> boxes—the connection lives invisibly inside the box's <em>Properties</em> (<em>7017</em> pp. 243–244; <em>CONFIG</em> pp. 57, 70, 468).</li>
+  <li><strong>Expression &amp; SFC Reads/Writes (Zero Wires Drawn!):</strong> Code inside <code>CND</code>, <code>ACT</code>, <code>CALC</code>, SFC steps/transitions, or HMI faceplates that reads/writes the parameter by path (<code>'^/RECIPE_WT.CV'</code>, <code>'//CM_FEED_XV/PV.CV'</code>).</li>
+</ol>
+
+<div class="diagram-box">
+  <svg viewBox="0 0 690 242" width="100%" height="232" xmlns="http://www.w3.org/2000/svg">
+    <rect width="690" height="242" fill="#f8fafc" stroke="#cbd5e1" rx="5"/>
+    <!-- Left Panel: What You See in Raw Control Studio -->
+    <rect x="10" y="10" width="322" height="222" rx="4" fill="#ffffff" stroke="#475569" stroke-width="1.4"/>
+    <rect x="11" y="11" width="320" height="20" rx="3" fill="#1e293b"/>
+    <text x="171" y="24.5" text-anchor="middle" fill="#ffffff" font-size="8.6" font-weight="800" font-family="Consolas, monospace">WHAT YOU SEE IN RAW CONTROL STUDIO (NO WIRES!)</text>
+
+    <!-- 4 Unwired left boxes + 1 wired box -->
+    <rect x="20" y="42" width="124" height="24" fill="#f1f5f9" stroke="#475569"/>
+    <text x="26" y="57" font-size="8.2" font-weight="800" fill="#0f172a" font-family="Consolas, monospace">MODE</text>
+    <rect x="135" y="51" width="6" height="6" fill="#fff" stroke="#1e293b"/>
+
+    <rect x="20" y="74" width="124" height="24" fill="#f1f5f9" stroke="#475569"/>
+    <text x="26" y="89" font-size="8.2" font-weight="800" fill="#0f172a" font-family="Consolas, monospace">EXT_TANK_LVL</text>
+    <rect x="135" y="83" width="6" height="6" fill="#fff" stroke="#1e293b"/>
+
+    <rect x="20" y="106" width="124" height="24" fill="#f1f5f9" stroke="#475569"/>
+    <text x="26" y="121" font-size="8.2" font-weight="800" fill="#0f172a" font-family="Consolas, monospace">HI_FLOW_LIM</text>
+    <rect x="135" y="115" width="6" height="6" fill="#fff" stroke="#1e293b"/>
+
+    <rect x="20" y="138" width="124" height="24" fill="#f1f5f9" stroke="#475569"/>
+    <text x="26" y="153" font-size="8.2" font-weight="800" fill="#0f172a" font-family="Consolas, monospace">PID1$GAIN</text>
+    <rect x="135" y="147" width="6" height="6" fill="#fff" stroke="#1e293b"/>
+
+    <!-- Wired contrast box -->
+    <rect x="20" y="178" width="124" height="24" fill="#dcfce7" stroke="#15803d"/>
+    <text x="26" y="193" font-size="8.2" font-weight="800" fill="#14532d" font-family="Consolas, monospace">CAS_SP (Wired)</text>
+    <rect x="135" y="187" width="6" height="6" fill="#fff" stroke="#1e293b"/>
+    <line x1="144" y1="190" x2="188" y2="190" stroke="#16a34a" stroke-width="2.2"/>
+
+    <!-- Blocks on right of left panel -->
+    <rect x="188" y="42" width="132" height="72" rx="2" fill="#dfddd6" stroke="#57554e"/>
+    <rect x="189" y="43" width="130" height="16" fill="#cfccc2"/>
+    <text x="195" y="54" font-size="8.2" font-weight="800" fill="#0f172a" font-family="Consolas, monospace">CND_HI_FLOW (#1)</text>
+    <text x="254" y="79" text-anchor="middle" font-size="7.4" fill="#334155">Zero input pins!</text>
+    <text x="254" y="92" text-anchor="middle" font-size="7.4" fill="#334155">(Looks "floating")</text>
+
+    <rect x="188" y="132" width="132" height="82" rx="2" fill="#dfddd6" stroke="#57554e"/>
+    <rect x="189" y="133" width="130" height="16" fill="#cfccc2"/>
+    <text x="195" y="144" font-size="8.2" font-weight="800" fill="#0f172a" font-family="Consolas, monospace">PID1 (#2)</text>
+    <text x="196" y="193" font-size="7.6" font-weight="700" fill="#0f172a" font-family="Consolas, monospace">□ CAS_IN</text>
+    <text x="254" y="168" text-anchor="middle" font-size="7.3" fill="#475569">No MODE or GAIN pin!</text>
+
+    <!-- Right Panel: X-Ray View of Invisible Connections -->
+    <rect x="346" y="10" width="334" height="222" rx="4" fill="#ffffff" stroke="#7c3aed" stroke-width="1.6"/>
+    <rect x="347" y="11" width="332" height="20" rx="3" fill="#6b21a8"/>
+    <text x="513" y="24.5" text-anchor="middle" fill="#ffffff" font-size="8.6" font-weight="800" font-family="Consolas, monospace">X-RAY: WHAT IS ACTUALLY CONNECTED IN THE CONTROLLER!</text>
+
+    <!-- 4 Boxes with invisible tunnels -->
+    <rect x="356" y="40" width="118" height="32" fill="#eff6ff" stroke="#0284c7"/>
+    <text x="362" y="53" font-size="7.8" font-weight="800" fill="#0369a1" font-family="Consolas, monospace">MODE (Int Ref)</text>
+    <text x="362" y="65" font-size="6.9" fill="#334155">7017 pp. 243–244</text>
+
+    <rect x="356" y="80" width="118" height="32" fill="#fef3c7" stroke="#d97706"/>
+    <text x="362" y="93" font-size="7.8" font-weight="800" fill="#92400e" font-family="Consolas, monospace">EXT_TANK_LVL</text>
+    <text x="362" y="105" font-size="6.9" fill="#334155">External Ref (//LT)</text>
+
+    <rect x="356" y="120" width="118" height="32" fill="#faf5ff" stroke="#9333ea"/>
+    <text x="362" y="133" font-size="7.8" font-weight="800" fill="#6b21a8" font-family="Consolas, monospace">HI_FLOW_LIM</text>
+    <text x="362" y="145" font-size="6.9" fill="#334155">Float Var (120 gpm)</text>
+
+    <rect x="356" y="160" width="118" height="32" fill="#f0fdfa" stroke="#0f766e"/>
+    <text x="362" y="173" font-size="7.8" font-weight="800" fill="#115e59" font-family="Consolas, monospace">PID1$GAIN</text>
+    <text x="362" y="185" font-size="6.9" fill="#334155">Param Shortcut ($)</text>
+
+    <!-- Invisible Tunnel Arrows (Purple/Cyan Dashed) -->
+    <path d="M 474 56 L 516 56 L 516 144 L 542 144" fill="none" stroke="#0284c7" stroke-width="1.8" stroke-dasharray="4,3"/>
+    <path d="M 474 96 L 502 96 L 502 68 L 542 68" fill="none" stroke="#d97706" stroke-width="1.8" stroke-dasharray="4,3"/>
+    <path d="M 474 136 L 508 136 L 508 86 L 542 86" fill="none" stroke="#9333ea" stroke-width="1.8" stroke-dasharray="4,3"/>
+    <path d="M 474 176 L 542 176" fill="none" stroke="#0f766e" stroke-width="1.8" stroke-dasharray="4,3"/>
+
+    <!-- Target Blocks on Right -->
+    <rect x="542" y="42" width="128" height="66" rx="3" fill="#faf5ff" stroke="#9333ea" stroke-width="1.4"/>
+    <text x="606" y="56" text-anchor="middle" font-size="8.0" font-weight="800" fill="#6b21a8" font-family="Consolas, monospace">CND_HI_FLOW Expr</text>
+    <text x="606" y="72" text-anchor="middle" font-size="7.0" fill="#1e293b" font-family="Consolas, monospace">'^/EXT_TANK_LVL' &gt; 80</text>
+    <text x="606" y="86" text-anchor="middle" font-size="7.0" fill="#1e293b" font-family="Consolas, monospace">OR 'PID1/PV' &gt; LIM</text>
+    <text x="606" y="100" text-anchor="middle" font-size="6.8" fill="#6b21a8">(Expression reads!)</text>
+
+    <rect x="542" y="122" width="128" height="72" rx="3" fill="#eff6ff" stroke="#0284c7" stroke-width="1.4"/>
+    <text x="606" y="136" text-anchor="middle" font-size="8.0" font-weight="800" fill="#1e3a8a" font-family="Consolas, monospace">PID1 Internals</text>
+    <text x="606" y="151" text-anchor="middle" font-size="7.1" fill="#0369a1" font-family="Consolas, monospace">→ PID1/MODE (Target/Act)</text>
+    <text x="606" y="166" text-anchor="middle" font-size="7.1" fill="#115e59" font-family="Consolas, monospace">→ PID1/GAIN (Tuning)</text>
+    <text x="606" y="183" text-anchor="middle" font-size="6.8" fill="#475569">(Zero wireable pins!)</text>
+
+    <text x="513" y="216" text-anchor="middle" font-size="7.5" font-weight="800" fill="#5b21b6">Dashed lines above are INVISIBLE in real Control Studio — check Parameter Type!</text>
+  </svg>
+  <div class="diagram-caption">Figure 2.2: Unwired Parameter Boxes X-Ray — Left: how a live DeltaV diagram actually appears (only CAS_SP has a wire). Right: the four invisible controller links operating behind the scenes every scan!</div>
+</div>
+
+<p>Every unwired rectangular box you will ever see on a live DeltaV diagram belongs to one of <strong>five native Emerson practices</strong>:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="width:20%;">Unwired Box Type</th>
+      <th style="width:18%;">Parameter Type<br/><em>(Bottom Pane)</em></th>
+      <th style="width:26%;">Real Plant Example</th>
+      <th>Why Zero Wire Is Drawn &amp; What It Actually Does</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>1. Internal Reference Shortcut</strong><br/><em>(7017 pp. 243–244)</em></td>
+      <td><code>Internal Reference</code></td>
+      <td><code>MODE → PID1/MODE</code><br/><code>MODE → DC1/MODE</code></td>
+      <td><code>MODE</code> has <strong>no wireable pin</strong> on <code>DC</code> or <code>PID</code>! Dropping an unwired left-side box set to <code>Internal Reference</code> punches an invisible tunnel straight to <code>PID1/MODE</code> so State-Driven EM tables (<em>7016</em> p. 140 — module-level paths only!) and faceplates can read/write <code>MODE.TARGET</code> &amp; <code>MODE.ACTUAL</code>. Bonus (<em>CONFIG</em> p. 214): Internal References also enable <em>Restore Parameter Values</em> on controller restart!</td>
+    </tr>
+    <tr>
+      <td><strong>2. External / Dynamic Reference</strong><br/><em>(CONFIG p. 70)</em></td>
+      <td><code>External Reference</code> or <code>Dynamic Reference</code></td>
+      <td><code>EXT_TANK_LVL → //LT_101/AI1/OUT</code></td>
+      <td>Creates one clean local alias for a remote module path so multiple local expressions or HMI graphics don't repeat long <code>'//...'</code> strings. A <strong>Dynamic Reference</strong> lets its <code>$REF</code> path string switch at <em>run-time</em> (e.g., Tank A vs. Tank B)!</td>
+    </tr>
+    <tr>
+      <td><strong>3. Module Variables &amp; Tuning Setpoints</strong><br/><em>(IMG_1117, 1122)</em></td>
+      <td><code>Floating Point</code>, <code>Boolean</code>, <code>Named Set</code></td>
+      <td><code>RECIPE_WT</code>, <code>START_WT</code>,<br/><code>TP001–TP008</code>, <code>HOLD_REQ</code></td>
+      <td><code>CND</code> has zero input pins, <code>ACT</code> has zero output pins, and SFCs sit in separate tabs. Engineers drop module variables onto the Main Diagram so they: (1) appear on the module interface for operators/HMIs, and (2) display <strong>live On-Line white value boxes</strong> right on the sheet!</td>
+    </tr>
+    <tr>
+      <td><strong>4. Parameter Shortcut (<code>$</code>)</strong><br/><em>(CONFIG pp. 57, 468; IMG_1115)</em></td>
+      <td><code>Parameter Shortcut</code></td>
+      <td><code>PID1$GAIN</code>, <code>AI1$IO_IN.REF</code>,<br/><code>ACQ_REL</code> / <code>MONITOR</code></td>
+      <td>Created automatically on class-based modules when <em>"Allow instance value to be configured"</em> is enabled! Exposes a child block's internal setting (like tuning gain or I/O channel) at the module level for bulk editing &amp; faceplates without breaking class inheritance.</td>
+    </tr>
+    <tr>
+      <td><strong>5. Higher-Level Status Outputs</strong><br/><em>(IMG_1117)</em></td>
+      <td><code>Boolean</code> / <code>String</code><br/><em>(Pin <code>□</code> on LEFT!)</em></td>
+      <td><code>[ □ FAILED ]</code>, <code>[ □ HORN ]</code>,<br/><code>[ □ PROMPTING ]</code></td>
+      <td>Look at the hollow square pin (<code>□</code>): on <code>3WT-0001-NEUT</code> (<code>IMG_1117</code>), inputs like <code>HOLD_REQ</code> have <code>□</code> on the <strong>right</strong>, while higher-level outputs like <code>FAILED</code> and <code>HORN</code> have <code>□</code> on the <strong>left</strong>—still unwired, written directly by <code>MONITOR</code> expressions!</td>
+    </tr>
+  </tbody>
+</table>
+
 <div class="callout">
-  <div class="callout-title">Real-Plant Sighting: Why You See Unwired Parameter Boxes on the Left Side of Live Diagrams</div>
-  <p style="margin-bottom:5px;">Because <code>CND</code> and <code>ACT</code> expressions can fetch external paths like <code>'//CM_FEED_XV/PV.CV'</code> directly without any wire or diagram box, a real Control Studio sheet will often show a <code>CND</code> block with nothing wired to its left—that block is <em>not</em> disconnected (just double-click it to read its expression). Conversely, in real plants you will <em>also</em> see rectangular Parameter Reference boxes parked along the left side of the Main Diagram with <strong>no wires coming off them</strong>. That is completely intentional—and stems from three native DeltaV practices (<em>7017</em> pp. 243–244):</p>
-  <ul style="margin:0 0 5px;">
-    <li><strong>1. Module-Level Internal Reference Shortcuts (e.g., <code>MODE → DC1/MODE</code>):</strong> Because <code>MODE</code> has no wireable pin on a <code>DC</code> or <code>PID</code> block, engineers drop an Input Parameter named <code>MODE</code> onto the left side of a Control Module as an <em>Internal Reference</em> pointing to <code>DC1/MODE</code> (or <code>PID1/MODE</code>) with zero wires. That exposes <code>MODE</code> cleanly at the module level so State-Driven EM tables (<em>7016</em> p. 140) and faceplates can access it.</li>
-    <li><strong>2. Module Variables &amp; Recipe Inputs Used in Expressions:</strong> Parameters such as <code>RECIPE_WT</code>, <code>START_WT</code>, or <code>PRECLOSE_LEAD</code> are dropped onto the diagram so they exist on the module interface for upstream Phases/operators <em>and</em> display live On-Line value boxes right on the sheet—even though only SFC steps, <code>CND</code>s, or <code>ACT</code>s read/write them via expressions.</li>
-    <li><strong>3. External Reference Aliases:</strong> An unwired <em>External Reference</em> box lets multiple local expressions or DeltaV Operate graphics share one clean local parameter name instead of repeating a long <code>'//...'</code> path.</li>
-  </ul>
-  <p style="margin:0;"><strong>2-Second Plant Check:</strong> Double-click any unwired left-side box and check its <strong>Parameter Type</strong>—<code>Internal Reference</code> = shortcut to an internal block parameter; <code>External Reference</code> = pointer to another module; <code>Floating Point / Boolean / Named Set</code> = module variable read or written by expressions/SFCs.</p>
+  <div class="callout-title">Your 5-Second Real-Plant Diagnostic Checklist for Any Unwired Box</div>
+  <ol style="margin:2px 0 0;">
+    <li><strong>Look at the <code>□</code> pin side:</strong> Right edge (<code>[ Name □ ]</code>) = Input/Internal into the module; Left edge (<code>[ □ Name ]</code>) = Output leaving the module.</li>
+    <li><strong>Check the Parameter View table at the bottom of Control Studio (just like <code>IMG_1115</code>!):</strong> Read the <strong>Parameter Type</strong> column—<code>Internal Reference</code> = tunnel to a block inside this module; <code>External / Dynamic Reference</code> = tunnel to another module; <code>Parameter Shortcut</code> = exposed class child parameter; <code>Float / Boolean / Named Set</code> = read/written by expressions, SFCs, or HMIs!</li>
+    <li><strong>Double-click the box (or check <code>CND</code>/<code>ACT</code>/SFC steps):</strong> For Reference boxes, the exact target path appears right inside its properties. For normal variables, look inside the sheet's <code>CND</code>/<code>ACT</code>/<code>CALC</code> blocks or SFC steps to see who reads/writes <code>'^/NAME.CV'</code>.</li>
+    <li><strong>Try It Live Now:</strong> In <strong>Visual Explorer</strong>, open <code>FIC_101</code> → Tab <strong>3. Unwired Boxes X-Ray</strong> and toggle <strong>🔍 X-Ray: OFF / ON</strong> to watch all 4 invisible controller tunnels light up!</li>
+  </ol>
 </div>
 
 <!-- WORKSHOP 2 -->

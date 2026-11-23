@@ -758,6 +758,25 @@ const DECODE_DRILLS = [
       { text: "To keep AI02AVG averaging at 50 samples per minute.", ok: false }
     ],
     takeaway: "Always check whether a PID is single-valve (safe = 0%) or split-range Acid/Base (safe = 50% midpoint) before writing TRK_VAL!"
+  },
+  {
+    id: "d9",
+    level: "Decode 9 • Unwired Internal Reference",
+    title: "Module-Level MODE Shortcut (Course 7017 p. 244!)",
+    context: "Why you see an unwired 'MODE' box on the left side of real plant valve/PID CMs (7017 pp. 243–244)",
+    tokens: [
+      { t: "'//CM_FEED_XV/MODE.ACTUAL'", cls: "tok-path", tip: "Module-level path (no '/DC1/'!). Works ONLY because an unwired left-side box named MODE was added as an Internal Reference pointing to DC1/MODE!" },
+      { t: "=", cls: "tok-op", tip: "Equality comparison (=)." },
+      { t: "CAS", cls: "tok-kw", tip: "Unquoted Cascade mode constant. Passes invisibly through the Internal Reference straight to DC1/MODE.ACTUAL!" }
+    ],
+    question: "On CM_FEED_XV's diagram, the rectangular 'MODE' box on the left edge has ZERO wires coming off it. Why does '//CM_FEED_XV/MODE.ACTUAL' still read DC1's live mode?",
+    options: [
+      { text: "Because MODE is configured as an Internal Reference pointing to DC1/MODE — DC1 has no wireable MODE pin, so zero wire is drawn!", ok: true },
+      { text: "Because Control Studio hid the wire to save screen space.", ok: false },
+      { text: "It doesn't — unwired boxes always return 0 until wired to a pin.", ok: false },
+      { text: "Because DeltaV automatically wires any box placed on the left edge.", ok: false }
+    ],
+    takeaway: "No wire != unused! Internal Reference boxes (MODE → DC1/MODE or PID1/MODE) punch invisible tunnels straight into block parameters that have no wireable pin (7017 pp. 243–244)!"
   }
 ];
 
@@ -959,6 +978,18 @@ const DEBUG_DRILLS = [
     chips: ["'^/A_PV.CV'", "'^/A_COMMAND.CV'", "=", "'em_neut:OFF'"],
     canon: "'^/A_PV.CV' = 'em_neut:OFF'",
     validate: (norm) => norm === "'^/a_pv.cv'='em_neut:off'"
+  },
+  {
+    id: "x7",
+    level: "Bug Hunt 7 • State-Driven Table Needs Internal Ref!",
+    kind: "assign",
+    title: "State-Driven EM Rejected Deep Block Path ('/DC1/')!",
+    symptom: "Per Course 7016 p. 140, State-Driven EM Items × States tables ONLY allow module-level paths — engineers expose DC1/MODE via an unwired left-side Internal Reference box named MODE! Fix this write to use the module-level MODE Internal Reference.",
+    buggy: "'//CM_FEED_XV/DC1/MODE.TARGET' := CAS",
+    whyBug: "Used the deep block-level path '/DC1/MODE.TARGET' instead of the module-level Internal Reference '//CM_FEED_XV/MODE.TARGET' (added unwired on the left side per 7017 p. 244)!",
+    chips: ["'//CM_FEED_XV/MODE.TARGET'", "'//CM_FEED_XV/DC1/MODE.TARGET'", ":=", "CAS", "AUTO"],
+    canon: "'//CM_FEED_XV/MODE.TARGET' := CAS",
+    validate: (norm) => norm === "'//cm_feed_xv/mode.target':=cas" || norm === "'cm_feed_xv/mode.target':=cas"
   }
 ];
 

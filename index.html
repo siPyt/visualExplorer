@@ -990,7 +990,8 @@ const MODULE_TABS = {
   ],
   pid: [
     { id: "pid1", label: "1. Main PID Diagram", kind: "FBD", defaultSel: "PID1_BLK" },
-    { id: "pid2", label: "2. BKCAL & Windup X-Ray", kind: "X-RAY", defaultSel: "PID_BKCAL_WIRE" }
+    { id: "pid2", label: "2. BKCAL & Windup X-Ray", kind: "X-RAY", defaultSel: "PID_BKCAL_WIRE" },
+    { id: "pid3", label: "3. Unwired Boxes X-Ray", kind: "CH 2.5", defaultSel: "UX_MODE" }
   ],
   cascade: [
     { id: "cas1", label: "1. Master → Slave Cascade", kind: "FBD", defaultSel: "CAS_FIC_BLK" },
@@ -3417,6 +3418,122 @@ function renderPidTab2(vp, pid) {
   vp.appendChild(tbl);
 }
 
+function renderPidTab3(vp, pid) {
+  const showXray = Boolean(state.showComboLens);
+  const hiFlow = state.pidPv > 95;
+
+  drawSectionStrip(vp, 22, 14, 896, 376,
+    "UNWIRED PARAMETER BOXES X-RAY (7017 p. 243 • CONFIG pp. 57, 70)", "#5b21b6");
+
+  // Interactive X-Ray Toggle Pill right inside the top strip
+  const xrayBtn = el("g", { class: "clickable", "data-id": "TOGGLE_COMBO_LENS" });
+  xrayBtn.appendChild(el("rect", {
+    x: 644, y: 18, width: 262, height: 22, rx: 4,
+    fill: showXray ? "#7c3aed" : "#1e293b", stroke: "#c4b5fd", "stroke-width": 1.3
+  }));
+  xrayBtn.appendChild(el("text", {
+    x: 775, y: 33, "text-anchor": "middle", "font-size": 10, "font-weight": 800, fill: "#ffffff"
+  }, showXray ? "🔍 X-Ray: ON (Click for Raw Control Studio)" : "🔍 X-Ray: OFF (Click to Reveal Hidden Links)"));
+  vp.appendChild(xrayBtn);
+
+  // LEFT SIDE: 4 UNWIRED real-plant parameter boxes + 1 WIRED box for visual contrast!
+  drawFlag(vp, { id: "UX_MODE", x: 38, y: 66, w: 192, h: 34, side: "left", label: "MODE", sub: "Internal Ref → PID1/MODE", liveText: pid.pidActual, status: pid.pidActual === "AUTO" ? "ok" : "warn" });
+  drawFlag(vp, { id: "UX_EXT_REF", x: 38, y: 128, w: 192, h: 34, side: "left", label: "EXT_TANK_LVL", sub: "External Ref → //LT_101/OUT", liveText: "64.2%", status: "ok" });
+  drawFlag(vp, { id: "UX_MOD_VAR", x: 38, y: 190, w: 192, h: 34, side: "left", label: "HI_FLOW_LIM", sub: "Float Variable (Read by CND)", liveText: "95 gpm", status: hiFlow ? "warn" : "normal" });
+  drawFlag(vp, { id: "UX_SHORTCUT", x: 38, y: 252, w: 192, h: 34, side: "left", label: "PID1$GAIN", sub: "Param Shortcut (Class Tunable)", liveText: "1.25", status: "normal" });
+
+  // WIRED CONTRAST BOX (bottom-left)
+  drawFlag(vp, { id: "UX_WIRED_SP", x: 38, y: 326, w: 192, h: 34, side: "left", label: "CAS_SP (WIRED!)", sub: "Real wire → PID1/CAS_IN", liveText: `${state.pidSp} gpm`, status: "ok" });
+
+  // MIDDLE BLOCKS: CND_HI_FLOW (#1 — zero input pins!) + PID1 (#2 — no MODE or GAIN pin!)
+  drawFbdBlock(vp, {
+    id: "UX_CND_HI", x: 386, y: 74, w: 222, h: 112, cls: "CND", name: "CND_HI_FLOW", execNum: 1,
+    inputs: [], outputs: [{ name: "OUT_D", dy: 64 }],
+    bodyLines: [
+      "Zero input pins (FBR p415)",
+      `PV (${state.pidPv}) > HI_FLOW_LIM (95)`,
+      "Reads ^/HI_FLOW_LIM in Expr"
+    ],
+    status: hiFlow ? "bad" : "ok", liveBadge: hiFlow ? "True" : "False"
+  });
+
+  drawFbdBlock(vp, {
+    id: "PID1_BLK", x: 386, y: 218, w: 222, h: 150, cls: "PID", name: "PID1 (FIC-101)", execNum: 2,
+    inputs: [{ name: "CAS_IN", dy: 125 }],
+    outputs: [{ name: "OUT", dy: 100 }],
+    bodyLines: [
+      `MODE: ${pid.pidActual} (NO pin!)`,
+      `GAIN: 1.25 (NO pin!)`,
+      `PV: ${state.pidPv} gpm | SP: ${state.pidSp} gpm`
+    ],
+    status: pid.pidActual === "AUTO" ? "ok" : "warn", liveBadge: `${pid.pidOut}%`
+  });
+
+  // RIGHT SIDE: Unwired Output Parameter Box (pin □ on LEFT!) — like FAILED / HORN on IMG_1117!
+  drawFlag(vp, { id: "UX_OUT_ALM", x: 684, y: 120, w: 218, h: 36, side: "right", label: "HI_FLOW_ALM (Pin □ Left!)", sub: "Wired OUT_D → Higher Level", liveText: hiFlow ? "ALARM!" : "Normal", status: hiFlow ? "bad" : "ok" });
+  drawFlag(vp, { id: "UX_OUT_STATUS", x: 684, y: 214, w: 218, h: 36, side: "right", label: "HMI_MODE_TXT (Unwired!)", sub: "Output Box (Expr / Faceplate)", liveText: pid.pidActual, status: "normal" });
+
+  // REAL WIRES (ALWAYS VISIBLE EVEN IN RAW CONTROL STUDIO!)
+  drawWire(vp, [[230, 343], [386, 343]], { active: true, label: "REAL WIRE", labelPos: [308, 328] });
+  drawWire(vp, [[608, 138], [684, 138]], { active: hiFlow, fault: hiFlow });
+
+  // INVISIBLE X-RAY TUNNELS (ONLY SHOWN WHEN USER TURNS X-RAY ON!)
+  if (showXray) {
+    // 1. MODE Internal Reference -> PID1/MODE (cyan dashed along clean right-edge vertical lane x=366)
+    vp.appendChild(el("path", { d: "M 230 83 L 366 83 L 366 244 L 386 244", fill: "none", stroke: "#0284c7", "stroke-width": 2.2, "stroke-dasharray": "5,3" }));
+    drawWire(vp, [[230, 83], [366, 83]], { ref: true, label: "Int Ref → PID1/MODE", labelPos: [302, 66] });
+
+    // 2. EXT_TANK_LVL -> CND_HI_FLOW expr
+    drawWire(vp, [[230, 145], [354, 145], [354, 118], [386, 118]], { ref: true, label: "Ext Ref (//LT_101)", labelPos: [298, 130] });
+
+    // 3. HI_FLOW_LIM -> CND_HI_FLOW expr
+    drawWire(vp, [[230, 207], [374, 207], [374, 154], [386, 154]], { ref: true, label: "Expr Read (^/LIM)", labelPos: [298, 193] });
+
+    // 4. PID1$GAIN -> PID1 internal GAIN
+    drawWire(vp, [[230, 269], [386, 269]], { ref: true, label: "Shortcut → PID1/GAIN", labelPos: [306, 255] });
+
+    // 5. PID1/MODE -> HMI_MODE_TXT unwired output
+    drawWire(vp, [[608, 232], [684, 232]], { ref: true, label: "Expr Write", labelPos: [646, 216] });
+  } else {
+    // Subtle Raw Control Studio callout reminding the user to click X-Ray!
+    vp.appendChild(el("rect", { x: 642, y: 274, width: 264, height: 100, rx: 5, fill: "#faf5ff", stroke: "#c084fc", "stroke-width": 1.3 }));
+    vp.appendChild(el("text", { x: 654, y: 294, "font-size": 9.8, "font-weight": 800, fill: "#6b21a8" }, "RAW CONTROL STUDIO VIEW:"));
+    vp.appendChild(el("text", { x: 654, y: 312, "font-size": 9.1, fill: "#334155" }, "Notice 4 boxes on the left have ZERO"));
+    vp.appendChild(el("text", { x: 654, y: 326, "font-size": 9.1, fill: "#334155" }, "wires — ONLY CAS_SP is wired!"));
+    vp.appendChild(el("text", { x: 654, y: 344, "font-size": 9.1, "font-weight": 800, fill: "#7c3aed" }, "👉 Click 'X-Ray: OFF' above to see"));
+    vp.appendChild(el("text", { x: 654, y: 358, "font-size": 9.1, "font-weight": 800, fill: "#7c3aed" }, "all 4 hidden controller tunnels!"));
+  }
+
+  // BOTTOM STRIP: Authentic Control Studio Parameter View Pane (like IMG_1115!)
+  drawSectionStrip(vp, 22, 400, 896, 150, "CONTROL STUDIO BOTTOM PARAMETER VIEW (CLICK ANY ROW TO INSPECT — JUST LIKE YOUR IMG_1115!)", "#1e3a8a");
+  const pvRows = [
+    ["UX_MODE",     "MODE",         pid.pidActual,  "Internal Reference", "PID1/MODE  (7017 pp. 243–244 — no wireable pin!)"],
+    ["UX_EXT_REF",  "EXT_TANK_LVL", "64.2%",        "External Reference", "//LT_101/AI1/OUT  (clean local alias for remote module)"],
+    ["UX_MOD_VAR",  "HI_FLOW_LIM",  "95.0 gpm",     "Floating Point",     "Internal  (read by CND_HI_FLOW expr — try dragging FLOW PV > 95!)"],
+    ["UX_SHORTCUT", "PID1$GAIN",    "1.25",         "Parameter Shortcut", "PID1/GAIN  (CONFIG p. 468 — class-tunable instance shortcut)"],
+    ["UX_WIRED_SP", "CAS_SP",       `${state.pidSp} gpm`, "Floating Point", "Wired → PID1/CAS_IN  (real solid FBD wire for contrast!)"]
+  ];
+
+  // Header
+  vp.appendChild(el("rect", { x: 32, y: 428, width: 876, height: 19, fill: "#e2e8f0" }));
+  vp.appendChild(el("text", { x: 40, y: 441, "font-size": 9.0, "font-weight": 800, fill: "#0f172a", "font-family": "ui-monospace, monospace" }, "Parameter"));
+  vp.appendChild(el("text", { x: 168, y: 441, "font-size": 9.0, "font-weight": 800, fill: "#0f172a", "font-family": "ui-monospace, monospace" }, "On-Line Value"));
+  vp.appendChild(el("text", { x: 276, y: 441, "font-size": 9.0, "font-weight": 800, fill: "#0f172a", "font-family": "ui-monospace, monospace" }, "Parameter Type"));
+  vp.appendChild(el("text", { x: 432, y: 441, "font-size": 9.0, "font-weight": 800, fill: "#0f172a", "font-family": "ui-monospace, monospace" }, "Hidden Target / Connection Explanation"));
+
+  pvRows.forEach(([id, nm, val, ptype, desc], idx) => {
+    const ry = 448 + idx * 19;
+    const isSel = state.selectedId === id;
+    const rg = el("g", { class: "clickable", "data-id": id });
+    rg.appendChild(el("rect", { x: 32, y: ry, width: 876, height: 18, fill: isSel ? "#dbeafe" : (idx % 2 === 0 ? "#ffffff" : "#f8fafc"), stroke: isSel ? "#0284c7" : "#e2e8f0" }));
+    rg.appendChild(el("text", { x: 40, y: ry + 12.5, "font-size": 8.9, "font-weight": 800, fill: "#0f172a", "font-family": "ui-monospace, monospace" }, nm));
+    rg.appendChild(el("text", { x: 168, y: ry + 12.5, "font-size": 8.9, "font-weight": 700, fill: "#0369a1", "font-family": "ui-monospace, monospace" }, val));
+    rg.appendChild(el("text", { x: 276, y: ry + 12.5, "font-size": 8.8, "font-weight": 700, fill: ptype.includes("Reference") || ptype.includes("Shortcut") ? "#6b21a8" : "#15803d", "font-family": "ui-monospace, monospace" }, ptype));
+    rg.appendChild(el("text", { x: 432, y: ry + 12.5, "font-size": 8.7, fill: "#334155", "font-family": "ui-monospace, monospace" }, desc));
+    vp.appendChild(rg);
+  });
+}
+
 // =========================================================================
 // 4E. RENDERERS FOR MODULE 5: CASCADE_201 (MASTER-SLAVE CASCADE + CTLSL OVERRIDE — CH. 9)
 // =========================================================================
@@ -4643,6 +4760,70 @@ function getInspectorInfo(id, d, h, ts, pid, cas, pw) {
       expr: `'//PT_101/HI_HI_ACT.CV' = True`,
       live: [["Execution Order", "#4", "v-info"], ["TRK_IN_D", state.pidTrkTrip ? "True (LO → 0%)" : "False", state.pidTrkTrip ? "v-bad" : "v-good"]]
     },
+    UX_MODE: {
+      type: "UNWIRED TYPE 1 — INTERNAL REFERENCE (7017 pp. 243–244)",
+      title: "MODE → PID1/MODE (Zero Wire Needed!)",
+      role: "Why is MODE sitting on the left edge with NO wire? Because PID1 and DC1 have NO wireable MODE pin! Engineers add an Input Parameter named MODE with Parameter Type = 'Internal Reference' pointing to PID1/MODE (or DC1/MODE). Now State-Driven EM tables (7016 p. 140 — module-level paths only!) and HMI faceplates can read/write FIC_101/MODE.TARGET & MODE.ACTUAL directly!",
+      paths: [["Parameter Type", "Internal Reference (CONFIG p. 70)"], ["Internal Target", "PID1/MODE (also supports Restore on Restart — CONFIG p. 214!)"]],
+      expr: `(* State-Driven EM or Faceplate accesses module-level path: *)\n'//FIC_101/MODE.TARGET' := AUTO;\n'//FIC_101/MODE.ACTUAL' = AUTO  (* Passes straight through to PID1/MODE! *)`,
+      live: [["Parameter Type", "Internal Reference", "v-info"], ["Live PID1/MODE", pid.pidActual, pid.pidActual === "AUTO" ? "v-good" : "v-warn"], ["Wire Drawn?", "NONE (Built-In Tunnel)", "v-info"]]
+    },
+    UX_EXT_REF: {
+      type: "UNWIRED TYPE 2 — EXTERNAL / DYNAMIC REFERENCE (CONFIG p. 70)",
+      title: "EXT_TANK_LVL → //LT_101/AI1/OUT",
+      role: "An unwired External Reference box creates one clean local alias pointing to a remote module parameter ('//LT_101/AI1/OUT'). Multiple CND/ACT/SFC expressions can read '^/EXT_TANK_LVL.CV' cleanly—and if the field tag changes, you update it in ONE place! (A Dynamic Reference lets its $REF path swap at run-time!)",
+      paths: [["Parameter Type", "External Reference (or Dynamic Reference)"], ["Remote Target", "//LT_101/AI1/OUT.CV & .ST"]],
+      expr: `(* Local expressions read the clean alias instead of long '//...' paths: *)\n'^/EXT_TANK_LVL.CV' > 80.0`,
+      live: [["Parameter Type", "External Reference", "v-info"], ["Live Value", "64.2%", "v-good"], ["Wire Drawn?", "NONE (Remote Alias)", "v-info"]]
+    },
+    UX_MOD_VAR: {
+      type: "UNWIRED TYPE 3 — MODULE VARIABLE / TUNING SP (IMG_1122)",
+      title: "HI_FLOW_LIM (Floating Point — Read by Expressions)",
+      role: "Just like TP001–TP008 on your real 3WT-0001-NEUT (IMG_1122) or RECIPE_WT on EM_TANK_CHARGE! Because CND blocks have zero input pins and SFCs sit in separate tabs, engineers drop module variables onto the left edge so operators/HMIs can adjust them AND see live On-Line value boxes right on the diagram! Try dragging FLOW PV above 95 gpm above to watch CND_HI_FLOW trip!",
+      paths: [["Parameter Type", "Floating Point (Connection: Internal)"], ["Used By", "CND_HI_FLOW expression ('PID1/PV.CV' > '^/HI_FLOW_LIM.CV')"]],
+      expr: `(* Inside CND_HI_FLOW (#1) — zero input pins! *)\n'PID1/PV.CV' > '^/HI_FLOW_LIM.CV'`,
+      live: [["Parameter Type", "Floating Point (Internal)", "v-info"], ["Setpoint / Live PV", `95 gpm / ${state.pidPv} gpm`, state.pidPv > 95 ? "v-bad" : "v-good"]]
+    },
+    UX_SHORTCUT: {
+      type: "UNWIRED TYPE 4 — PARAMETER SHORTCUT (CONFIG pp. 57, 468 • IMG_1115)",
+      title: "PID1$GAIN (Class-Based Parameter Shortcut)",
+      role: "Created automatically in Module Classes when 'Allow instance value to be configured' is checked! Notice the dollar sign ('BLOCK$PARAM')—and look at the bottom of your real plant IMG_1115 Parameter View where ACQ_REL, HOLD_REQ, and MONITOR show Parameter Type = 'Parameter Shortcut'! Exposes a child block setting for bulk editing & faceplates without breaking class inheritance.",
+      paths: [["Parameter Type", "Parameter Shortcut (CONFIG p. 468)"], ["Target Block Param", "PID1/GAIN (1.25)"]],
+      expr: `(* Class export / bulk-edit column name: PID1$GAIN *)\n(* Maps directly to PID1/GAIN inside each module instance! *)`,
+      live: [["Parameter Type", "Parameter Shortcut", "v-info"], ["PID1/GAIN", "1.25", "v-info"]]
+    },
+    UX_WIRED_SP: {
+      type: "CONTRAST — TRADITIONAL HARDWIRED INPUT BOX",
+      title: "CAS_SP → PID1/CAS_IN (Real Solid Wire!)",
+      role: "Included right below the 4 unwired boxes for instant visual contrast! Because PID1 HAS a wireable CAS_IN pin (□), CAS_SP connects with a real solid FBD wire directly into PID1/CAS_IN.",
+      paths: [["Parameter Type", "Floating Point (Hardwired)"], ["Destination Pin", "PID1/CAS_IN (hollow □ pin)"]],
+      expr: `(* Traditional wired FBD connection — bold black On-Line when non-zero! *)`,
+      live: [["Flow SP", `${state.pidSp} gpm`, "v-good"], ["Wire Drawn?", "YES (Real FBD Wire)", "v-good"]]
+    },
+    UX_CND_HI: {
+      type: "CONDITION BLOCK (#1 — ZERO INPUT PINS, FBR p. 415)",
+      title: "CND_HI_FLOW (Reads Unwired Variables Inside Expression)",
+      role: "Notice nothing is wired into the left wall of CND_HI_FLOW—that does NOT mean it is disconnected! CND blocks never have input pins; drag the FLOW PV slider above 95 gpm to watch CND_HI_FLOW flip True and trigger HI_FLOW_ALM!",
+      paths: [["Reads", "'PID1/PV.CV' & '^/HI_FLOW_LIM.CV'"], ["Wired Output", "OUT_D → HI_FLOW_ALM"]],
+      expr: `'PID1/PV.CV' > '^/HI_FLOW_LIM.CV'`,
+      live: [["Flow PV vs Lim", `${state.pidPv} vs 95 gpm`, state.pidPv > 95 ? "v-bad" : "v-good"], ["OUT_D", state.pidPv > 95 ? "True (1)" : "False (0)", state.pidPv > 95 ? "v-bad" : "v-good"]]
+    },
+    UX_OUT_ALM: {
+      type: "RIGHT-SIDE OUTPUT PARAMETER (PIN □ ON LEFT EDGE!)",
+      title: "HI_FLOW_ALM (Wired Output Leaving Module)",
+      role: "Hollow square pin □ sits on the LEFT edge because data is LEAVING the diagram to higher-level HMIs or Equipment Modules.",
+      paths: [["Pin Side", "LEFT edge = Output leaving diagram"]],
+      expr: `(* Driven by CND_HI_FLOW/OUT_D *)`,
+      live: [["Alarm State", state.pidPv > 95 ? "ALARM!" : "Normal", state.pidPv > 95 ? "v-bad" : "v-good"]]
+    },
+    UX_OUT_STATUS: {
+      type: "UNWIRED TYPE 5 — HIGHER-LEVEL OUTPUT BOX (IMG_1117)",
+      title: "HMI_MODE_TXT (Unwired Right-Side Output Box)",
+      role: "Just like FAILED, FAILURE, PROMPTING, and HORN ('For Higher Level') on your real 3WT-0001-NEUT (IMG_1117)! Pin □ sits on the LEFT edge (Output), with zero wires because expressions/composites write it directly for higher-level displays.",
+      paths: [["Pin Side", "LEFT edge = Output parameter (unwired expression target)"]],
+      expr: `(* Written by internal expression / composite — no wire required *)`,
+      live: [["Live Text", pid.pidActual, "v-info"]]
+    },
 
     // --- MODULE 5: CASCADE_201 (MASTER-SLAVE CASCADE + CTLSL OVERRIDE) ---
     CAS_AI_TT: {
@@ -5040,7 +5221,8 @@ function render() {
     document.getElementById("diagMetrics").textContent = `PID1: ${pid.pidActual} (${pid.pidOut}%) | AO1: ${pid.aoActual} (${pid.aoOut}%) | BKCAL: ${pid.bkcalShort}`;
 
     if (state.tab === "pid1") renderPidTab1(vp, pid);
-    else renderPidTab2(vp, pid);
+    else if (state.tab === "pid2") renderPidTab2(vp, pid);
+    else renderPidTab3(vp, pid);
   } else if (state.module === "cascade") {
     // Module 5: CASCADE_201 (Cascade + CTLSL Override)
     const cPill = document.getElementById("casStatusPill");
@@ -5646,6 +5828,7 @@ window.addEventListener("resize", fitToView);
     state.tab = match.id;
     state.selectedId = match.defaultSel;
   }
+  if (q.get("lens") === "1") state.showComboLens = true;
 })();
 rebuildTabs();
 render();

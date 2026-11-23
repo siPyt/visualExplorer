@@ -1,0 +1,3 @@
+LO  (Local Override) &  OOS  (Out of Service): If  SHUTDOWN_D=1 ,  INTERLOCK_D=0 ,  TRK_IN_D=1 , or
+PERMISSIVE_D=0  in Passive,  DC1/MODE.ACTUAL  automatically drops to  LO . Placing a block in  OOS  locks it out
+and marks outputs  Bad: Out of Service  (Red  ✕)
