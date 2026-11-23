@@ -17,7 +17,7 @@ HOW THIS WORKSPACE OPERATES
    Interactive visual Control Studio trainer (EM_TANK_CHARGE + EM_XFER_HDR +
    EM_2STAGE_VLV). Uses authentic Control Studio geometry, pins, modes, and
    State-Driven tables (including '(not written)' cells & 4-Pattern Lens) while
-   keeping clearly labeled study-aid colors and dotted expression-ref lines.
+   keeping clearly labeled study-aid colors and purple dashed expression-ref lines.
 2. Expression Forge (ex.html — launch anytime by typing 'run ex' in terminal):
    Web & mobile-ready interactive DeltaV Structured Text expression & parameter
    trainer (Decode Cold, Forge Builder, 2 AM Bug Hunt, and On-Line Expression

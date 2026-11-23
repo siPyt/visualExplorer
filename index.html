@@ -340,8 +340,8 @@
   }
   .legend-item { display: flex; align-items: center; gap: 5px; font-weight: 600; }
   .swatch-solid { width: 20px; height: 2px; background: #1e293b; }
-  .swatch-dashed { width: 20px; height: 0; border-top: 2px dashed #1e293b; }
-  .swatch-ref { width: 20px; height: 0; border-top: 2px dotted #94a3b8; }
+  .swatch-dashed { width: 20px; height: 0; border-top: 2px dotted #475569; }
+  .swatch-ref { width: 20px; height: 0; border-top: 2px dashed #9333ea; }
   .swatch-active { width: 12px; height: 12px; background: #dcfce7; border: 2px solid #16a34a; border-radius: 2px; }
   .swatch-trip { width: 12px; height: 12px; background: #fee2e2; border: 2px solid #dc2626; border-radius: 2px; }
   .swatch-val {
@@ -779,8 +779,8 @@
     <div class="legend-box">
       <div class="legend-item"><span class="swatch-solid"></span>Wire</div>
       <div class="legend-item"><span class="swatch-solid" style="height:4px;"></span>Bold = non-zero (On-Line)</div>
-      <div class="legend-item"><span class="swatch-dashed"></span>Dashed = feedback (next scan)</div>
-      <div class="legend-item"><span class="swatch-ref"></span>Dotted = expression reference (study aid)</div>
+      <div class="legend-item"><span class="swatch-dashed"></span>Gray dotted/dashed = feedback wire (DeltaV next scan)</div>
+      <div class="legend-item"><span class="swatch-ref"></span>Purple dashed = expression ref (learning only)</div>
       <div class="legend-item"><span class="swatch-val">100<span class="swatch-badx">✕</span></span>Bad status</div>
       <div class="legend-item"><span class="swatch-val">64<span style="color:#2563eb;font-weight:900;margin-left:2px;">?</span></span>Uncertain</div>
       <div class="legend-item"><span class="swatch-active"></span><span class="swatch-trip"></span>Colors = study aid</div>
@@ -1325,11 +1325,11 @@ function drawCalcIcon(parent, x, y) {
 //   bold line  = wire carrying a non-zero value
 //   dashed line = FEEDBACK wire (source block executes after destination; value arrives next scan)
 // "kind" is kept for old call sites but no longer means analog vs. discrete (that convention is NOT DeltaV).
-// ref:true draws a dotted gray "expression reference" line — a study aid only; DeltaV draws no wire for these.
+// ref:true draws a purple dashed "expression reference" line — learning aid only; DeltaV draws no wire for these.
 function drawWire(parent, points, { active = false, fault = false, label = "", labelPos = null, ref = false, feedback = false } = {}) {
   const d = points.map((p, i) => `${i === 0 ? "M" : "L"} ${p[0]} ${p[1]}`).join(" ");
   if (ref) {
-    parent.appendChild(el("path", { d, fill: "none", stroke: "#94a3b8", "stroke-width": 1.4, "stroke-dasharray": "2,3" }));
+    parent.appendChild(el("path", { d, fill: "none", stroke: "#9333ea", "stroke-width": 1.6, "stroke-dasharray": "4,3" }));
   } else {
     let stroke = "#1e293b";
     let marker = "url(#arrow-solid)";
@@ -1340,7 +1340,10 @@ function drawWire(parent, points, { active = false, fault = false, label = "", l
       else if (active) { stroke = "#16a34a"; marker = "url(#arrow-green)"; } // study-aid tint
     }
     const attrs = { d, fill: "none", stroke, "stroke-width": width, "marker-end": marker };
-    if (feedback) attrs["stroke-dasharray"] = "7,4";
+    if (feedback) {
+      attrs.stroke = "#475569";
+      attrs["stroke-dasharray"] = "2,3";
+    }
     parent.appendChild(el("path", attrs));
   }
 
@@ -1348,11 +1351,11 @@ function drawWire(parent, points, { active = false, fault = false, label = "", l
     const lw = label.length * 6.3 + 12;
     parent.appendChild(el("rect", {
       x: labelPos[0] - lw / 2, y: labelPos[1] - 11, width: lw, height: 17, rx: 1,
-      fill: "#ffffff", stroke: ref ? "#cbd5e1" : "#57554e", "stroke-width": 1
+      fill: ref ? "#faf5ff" : "#ffffff", stroke: ref ? "#c084fc" : "#57554e", "stroke-width": 1
     }));
     parent.appendChild(el("text", {
       x: labelPos[0], y: labelPos[1] + 2,
-      "text-anchor": "middle", "font-size": 10, "font-weight": 700, fill: ref ? "#64748b" : "#0f172a",
+      "text-anchor": "middle", "font-size": 10, "font-weight": 700, fill: ref ? "#7e22ce" : "#0f172a",
       "font-family": "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
     }, label));
   }
@@ -3450,8 +3453,8 @@ function getInspectorInfo(id, d, h, ts) {
   return {
     type: "CONTROL STUDIO PARAMETER REFERENCE (PDS p1)",
     title: id.replace(/^TS_FLAG_|^FLAG_/, ""),
-    role: "Rectangular Control Studio parameter reference box with a hollow square connection pin (or study-aid expression reference target when linked by a dotted gray line).",
-    paths: [["Solid/Bold Wire", "Real FBD pin connection (Bold = non-zero On-Line, CONFIG p368)"], ["Dotted Gray Line", "Study-aid pointer showing what a CND/ACT expression reads or writes"]],
+    role: "Rectangular Control Studio parameter reference box with a hollow square connection pin (or learning-only expression reference target when linked by a purple dashed line).",
+    paths: [["Solid/Bold Wire", "Real FBD pin connection (Bold = non-zero On-Line, CONFIG p368)"], ["Purple Dashed Line", "Learning-only pointer showing what a CND/ACT expression reads or writes (real Control Studio draws no wire here)"]],
     expr: `(* Click any function block, SFC step/transition, or State column to inspect its expression *)`,
     live: [["Active Module", state.module === "charge" ? "EM_TANK_CHARGE" : (state.module === "header" ? "EM_XFER_HDR" : "EM_2STAGE_VLV"), "v-info"]]
   };

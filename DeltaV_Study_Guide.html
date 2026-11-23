@@ -399,7 +399,7 @@
 <h3>Mission &amp; Study System</h3>
 <p><strong>Your Goal:</strong> Walk up to <em>any</em> Emerson DeltaV Control Studio workstation in <em>any</em> plant, open any Equipment Module (<code>EM</code>), Control Module (<code>CM</code>), or Unit Phase / Phase Logic (which ISA-88 calls an <code>EPH</code>) in Off-Line or On-Line mode, and read what every block, wire, mode, status, and interlock is doing within seconds.</p>
 <ul>
-  <li><strong>1. Verified Control Studio Visuals + Study Aids:</strong> Every DeltaV block name, pin, mode, expression rule, wire style, and table in this textbook is cross-checked directly against official Emerson DeltaV manuals (<em>Function Block Reference</em>, <em>DeltaV Configuration</em>, and Courses <em>7009</em>, <em>7016</em>, and <em>7017</em>; see <code>DELTAV_VERIFIED_FACTS.md</code>). In <strong>Visual Explorer</strong>, green/amber/red highlights and dotted gray expression-reference lines are clearly labeled <em>study aids</em> layered on top of authentic Control Studio geometry.</li>
+  <li><strong>1. Verified Control Studio Visuals + Study Aids:</strong> Every DeltaV block name, pin, mode, expression rule, wire style, and table in this textbook is cross-checked directly against official Emerson DeltaV manuals (<em>Function Block Reference</em>, <em>DeltaV Configuration</em>, and Courses <em>7009</em>, <em>7016</em>, and <em>7017</em>; see <code>DELTAV_VERIFIED_FACTS.md</code>). In <strong>Visual Explorer</strong>, green/amber/red highlights and <strong>purple dashed</strong> expression-reference lines are clearly labeled <em>learning aids</em> layered on top of authentic Control Studio geometry (keeping gray dotted/dashed lines reserved strictly for real DeltaV feedback wires).</li>
   <li><strong>2. Run the Step-by-Step Workshops in Visual Explorer:</strong> Type <code>run</code> in your terminal to open <strong>Visual Explorer</strong> offline in your browser, and <code>run ex</code> to open <strong>Expression Forge</strong>. Follow every numbered click in the teal <strong>Hands-On Workshop</strong> boxes and read the <em>What You Are Supposed to Learn</em> takeaway at the bottom of each lab.</li>
 </ul>
 
@@ -748,7 +748,7 @@
     <ul>
       <li><strong>Left Side = Inputs Coming INTO the Diagram:</strong> The hollow square pin sits on the <strong>right edge</strong> (<code>[ Parameter □ ] ───►</code>), feeding live values from other modules (<code>CM_TANK_WT/AI1/OUT</code>) or module parameters (<code>^/RECIPE_WT.CV</code>) <em>into</em> the function blocks.</li>
       <li><strong>Right Side = Outputs LEAVING the Diagram:</strong> The hollow square pin sits on the <strong>left edge</strong> (<code>───► [ □ Parameter ]</code>), sending calculated results <em>out</em> of the function blocks to module parameters read by the SFC (<code>^/PERM_READY.CV</code>, <code>^/VALVE_SHUT_OK.CV</code>) or out to child Control Modules (<code>CM_FEED_XV/DC1/MODE.TARGET</code>).</li>
-      <li><strong>Dotted Gray Lines vs. Solid Green / Black Arrows:</strong> Both connect to the <em>exact same</em> Parameter Reference boxes! <strong>Solid arrows</strong> are real hardwired FBD connections to actual block pins (such as <code>XFR1/IN_2</code>, <code>CALC1/IN2</code>, <code>ACT2/IN_D</code>, or <code>CND1/OUT_D</code>): in real Control Studio On-Line, non-zero wires appear <strong>bold black</strong> and zero/False wires appear <strong>thin black</strong> (Visual Explorer tints active bold wires <strong>green</strong> and tripped wires <strong>red</strong> as a study aid). <strong>Faint dotted gray lines</strong> (no arrowhead) into <code>CND</code> or out of <code>ACT</code> are <strong>Visual Explorer instructional pointers only</strong>—real Control Studio draws no wire there because <code>CND</code> has zero input pins and <code>ACT</code> has zero output pins!</li>
+      <li><strong>Purple Dashed Lines vs. Solid Green / Black Arrows:</strong> Both connect to the <em>exact same</em> Parameter Reference boxes! <strong>Solid arrows</strong> are real hardwired FBD connections to actual block pins (such as <code>XFR1/IN_2</code>, <code>CALC1/IN2</code>, <code>ACT2/IN_D</code>, or <code>CND1/OUT_D</code>): in real Control Studio On-Line, non-zero wires appear <strong>bold black</strong> and zero/False wires appear <strong>thin black</strong> (Visual Explorer tints active bold wires <strong>green</strong> and tripped wires <strong>red</strong> as a study aid). <strong>Purple dashed lines</strong> (no arrowhead) into <code>CND</code> or out of <code>ACT</code> are <strong>Visual Explorer learning-only pointers</strong>—real Control Studio draws no wire there because <code>CND</code> has zero input pins and <code>ACT</code> has zero output pins, while neutral <strong>gray dotted/dashed lines</strong> remain reserved strictly for real DeltaV feedback wires!</li>
     </ul>
   </li>
   <li><strong>Solid vs. Bold vs. Dashed Wires (<em>CONFIG</em> p. 368 — Critical!):</strong> In DeltaV, solid vs. dashed does <strong>NOT</strong> mean analog vs. discrete! All normal forward wires are solid; On-Line, a wire turns <strong>Bold</strong> when carrying a <strong>non-zero</strong> value, and a wire is drawn <strong>Dashed</strong> <em>only</em> when it is a <strong>feedback wire</strong> (source block executes after destination block → arrives next scan).</li>
@@ -996,14 +996,14 @@
   <svg viewBox="0 0 690 210" width="100%" height="196" xmlns="http://www.w3.org/2000/svg">
     <rect width="690" height="210" fill="url(#g_p1)" rx="4"/>
     <!-- Strip A -->
-    <text x="16" y="17" fill="#1e3a8a" font-size="8.4" font-weight="700">STRIP A: PRE-START PERMISSIVES (CND1 has NO input pins — dotted lines show expression refs)</text>
+    <text x="16" y="17" fill="#1e3a8a" font-size="8.4" font-weight="700">STRIP A: PRE-START PERMISSIVES (CND1 has NO input pins — purple dashed lines = learning-only expr refs)</text>
     <rect x="16" y="26" width="194" height="22" fill="#f1f5f9" stroke="#64748b"/>
     <text x="22" y="40" font-size="7.8" font-weight="700" font-family="Consolas, monospace">CM_FEED_XV/DC1/MODE.ACTUAL = CAS</text>
     <rect x="16" y="54" width="194" height="22" fill="#f1f5f9" stroke="#64748b"/>
     <text x="22" y="68" font-size="7.8" font-weight="700" font-family="Consolas, monospace">TARGET_WT &gt; 0 &amp; OUT.ST &gt;= GOOD</text>
 
-    <line x1="210" y1="37" x2="265" y2="37" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="2,3"/>
-    <line x1="210" y1="65" x2="265" y2="65" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="2,3"/>
+    <line x1="210" y1="37" x2="265" y2="37" stroke="#9333ea" stroke-width="1.6" stroke-dasharray="4,3"/>
+    <line x1="210" y1="65" x2="265" y2="65" stroke="#9333ea" stroke-width="1.6" stroke-dasharray="4,3"/>
 
     <rect x="265" y="22" width="165" height="64" rx="2" fill="#ffffff" stroke="#475569" stroke-width="1.5"/>
     <rect x="266" y="23" width="163" height="16" fill="#dbeafe"/>
@@ -1026,8 +1026,8 @@
     <rect x="16" y="154" width="194" height="22" fill="#f1f5f9" stroke="#64748b"/>
     <text x="22" y="168" font-size="7.8" font-weight="700" font-family="Consolas, monospace">^/HI_HI_LVL.CV = 1</text>
 
-    <line x1="210" y1="135" x2="245" y2="135" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="2,3"/>
-    <line x1="210" y1="165" x2="245" y2="165" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="2,3"/>
+    <line x1="210" y1="135" x2="245" y2="135" stroke="#9333ea" stroke-width="1.6" stroke-dasharray="4,3"/>
+    <line x1="210" y1="165" x2="245" y2="165" stroke="#9333ea" stroke-width="1.6" stroke-dasharray="4,3"/>
 
     <rect x="245" y="120" width="132" height="68" rx="2" fill="#ffffff" stroke="#475569" stroke-width="1.5"/>
     <rect x="246" y="121" width="130" height="16" fill="#dbeafe"/>
@@ -1047,7 +1047,7 @@
     <rect x="520" y="171" width="20" height="14" rx="2" fill="#e2e8f0"/>
     <text x="530" y="181" text-anchor="middle" font-size="8" font-weight="700" font-family="Consolas, monospace">#3</text>
 
-    <line x1="544" y1="154" x2="565" y2="154" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="2,3"/>
+    <line x1="544" y1="154" x2="565" y2="154" stroke="#9333ea" stroke-width="1.6" stroke-dasharray="4,3"/>
     <rect x="565" y="136" width="111" height="36" fill="#fee2e2" stroke="#dc2626"/>
     <text x="571" y="150" font-size="7.5" font-weight="700" fill="#991b1b" font-family="Consolas, monospace">CAS_SP := CLOSE</text>
     <text x="571" y="163" font-size="7.5" font-weight="700" fill="#991b1b" font-family="Consolas, monospace">FAIL_REQ := 1</text>
@@ -1090,7 +1090,7 @@
     <rect x="419" y="81" width="19" height="13" rx="2" fill="#e2e8f0"/>
     <text x="428" y="90" text-anchor="middle" font-size="7.5" font-weight="700" font-family="Consolas, monospace">#2</text>
 
-    <line x1="442" y1="54" x2="474" y2="54" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="2,3"/>
+    <line x1="442" y1="54" x2="474" y2="54" stroke="#9333ea" stroke-width="1.6" stroke-dasharray="4,3"/>
 
     <rect x="474" y="24" width="112" height="74" rx="2" fill="#ffffff" stroke="#475569" stroke-width="1.5"/>
     <rect x="475" y="25" width="110" height="15" fill="#dbeafe"/>
@@ -1113,9 +1113,9 @@
     <rect x="14" y="196" width="194" height="24" fill="#f1f5f9" stroke="#64748b"/>
     <text x="20" y="211" font-size="7.6" font-weight="700" font-family="Consolas, monospace">CM_FEED_XV/CAS_SP.CV</text>
 
-    <line x1="208" y1="152" x2="275" y2="152" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="2,3"/>
-    <path d="M 240 152 L 240 222 L 275 222" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="2,3"/>
-    <line x1="208" y1="208" x2="275" y2="208" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="2,3"/>
+    <line x1="208" y1="152" x2="275" y2="152" stroke="#9333ea" stroke-width="1.6" stroke-dasharray="4,3"/>
+    <path d="M 240 152 L 240 222 L 275 222" fill="none" stroke="#9333ea" stroke-width="1.6" stroke-dasharray="4,3"/>
+    <line x1="208" y1="208" x2="275" y2="208" stroke="#9333ea" stroke-width="1.6" stroke-dasharray="4,3"/>
 
     <rect x="275" y="134" width="165" height="48" rx="2" fill="#ffffff" stroke="#475569" stroke-width="1.5"/>
     <rect x="276" y="135" width="163" height="14" fill="#dbeafe"/>
@@ -1307,8 +1307,8 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
     <rect x="14" y="104" width="182" height="24" fill="#f1f5f9" stroke="#64748b"/>
     <text x="20" y="119" font-size="7.7" font-weight="700" font-family="Consolas, monospace">CM_HDR_PT/AI1/OUT.CV (bar)</text>
 
-    <line x1="196" y1="34" x2="245" y2="34" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="2,3"/>
-    <line x1="196" y1="116" x2="245" y2="116" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="2,3"/>
+    <line x1="196" y1="34" x2="245" y2="34" stroke="#9333ea" stroke-width="1.6" stroke-dasharray="4,3"/>
+    <line x1="196" y1="116" x2="245" y2="116" stroke="#9333ea" stroke-width="1.6" stroke-dasharray="4,3"/>
 
     <rect x="245" y="14" width="155" height="54" rx="2" fill="#ffffff" stroke="#475569" stroke-width="1.5"/>
     <rect x="246" y="15" width="153" height="14" fill="#dbeafe"/>
@@ -1322,7 +1322,7 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
     <text x="514" y="25" text-anchor="middle" fill="#1e3a8a" font-size="8.1" font-weight="700" font-family="Consolas, monospace">ACT_PMP_GATE (#2, IN_D)</text>
     <text x="514" y="48" text-anchor="middle" fill="#334155" font-size="7.8">CAS_SP := 'mtr2-sp:START'</text>
 
-    <line x1="587" y1="40" x2="606" y2="40" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="2,3"/>
+    <line x1="587" y1="40" x2="606" y2="40" stroke="#9333ea" stroke-width="1.6" stroke-dasharray="4,3"/>
     <rect x="606" y="28" width="72" height="24" fill="#dcfce7" stroke="#16a34a"/>
     <text x="611" y="43" font-size="7.5" font-weight="700" fill="#14532d" font-family="Consolas, monospace">PMP CAS_SP</text>
 
@@ -1339,7 +1339,7 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
     <text x="514" y="103" text-anchor="middle" fill="#1e3a8a" font-size="8.1" font-weight="700" font-family="Consolas, monospace">ACT_SAFE_CLOSE (#4, IN_D)</text>
     <text x="514" y="126" text-anchor="middle" fill="#334155" font-size="7.8">A_COMMAND := CLOSED</text>
 
-    <line x1="587" y1="118" x2="606" y2="118" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="2,3"/>
+    <line x1="587" y1="118" x2="606" y2="118" stroke="#9333ea" stroke-width="1.6" stroke-dasharray="4,3"/>
     <rect x="606" y="106" width="72" height="24" fill="#fee2e2" stroke="#dc2626"/>
     <text x="610" y="121" font-size="7.3" font-weight="700" fill="#991b1b" font-family="Consolas, monospace">A_COMMAND</text>
   </svg>
