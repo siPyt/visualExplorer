@@ -110,6 +110,10 @@ HOW THIS WORKSPACE OPERATES (SYNCED ACROSS MACHINES)
          SP Track / Reset Required unattended auto-restart warning (FBR p. 433).
        - Expanded Expression Forge (ex.html) from 17 -> 27 self-tested drills +
          3 live 3WT-0001 tags & 2 live presets in Mode 4 On-Line Tree.
+       - Updated Workshops 2, 3, 11 & 12 in Study Guide PDF to include hands-on
+         labs for Unwired Boxes X-Ray, LO vs. OOS & DC safety pins, Split-Range
+         TRK_VAL=50% contrast, 3WT-0001-NEUT AT/OPR_CMD_MASK/A_TIME checks, and
+         all new Expression Forge drills.
 
 ================================================================================
 2. WHERE WE ARE RIGHT NOW
