@@ -683,7 +683,8 @@
   <div class="sim-group">
     <span class="sim-label">CM_TANK_WT</span>
     <button class="sim-btn" id="btnScaleSt" title="Toggle scale signal health (.ST)">.ST: GOOD</button>
-    <input type="range" id="wtSlider" class="wt-slider" min="100" max="650" step="5" value="100" />
+    <input type="range" id="wtSlider" class="wt-slider" min="100" max="650" step="5" value="100" title="Drag to change tank gross weight (100–650 kg)" />
+    <span id="wtSliderLabel" class="sim-label" style="color:#38bdf8; min-width:44px; text-transform:none;">100 kg</span>
     <button class="sim-btn" id="btnFillCutoff" title="Jump tank weight to preclose cutoff">Fill to Cutoff</button>
   </div>
 
@@ -2247,16 +2248,16 @@ function renderPattern1(vp, d) {
   tareBox.appendChild(el("text", { x: subX + 12, y: 334, "font-size": 11.5, "font-weight": 800, fill: "#0f172a" }, "PHASE HOLD / RESTART & GOLDEN TARE WATCH"));
 
   const rows = [
-    ["START_WT.CV (Tare):", `${state.startWt.toFixed(1)} kg ${state.tareLocked ? "[LOCKED]" : "[READY]"}`],
-    ["CM_TANK_WT/AI1/OUT.CV:", `${state.currentWt.toFixed(1)} kg (${state.scaleSt})`],
-    ["DELIVERED_WT (Net):", `${d.deliveredWt.toFixed(1)} kg`],
-    ["TARGET_WT.CV:", `${d.targetWt.toFixed(1)} kg`],
-    ["REMAINING_WT.CV:", `${d.remainingWt.toFixed(1)} kg (Lead: ${state.precloseLead} kg)`],
-    ["CM_FEED_XV/CAS_SP.CV:", d.feedCmdText]
+    ["START_WT.CV (Tare):", `${state.startWt.toFixed(1)} kg ${state.tareLocked ? "[LOCKED]" : "[READY]"}`, "#0f172a"],
+    ["CM_TANK_WT/AI1/OUT.CV:", `${state.currentWt.toFixed(1)} kg (${state.scaleSt})`, state.scaleSt === "BAD" ? "#dc2626" : "#0f172a"],
+    ["DELIVERED_WT (Net):", `${d.deliveredWt.toFixed(1)} kg`, "#0f172a"],
+    ["TARGET_WT.CV:", `${d.targetWt.toFixed(1)} kg`, "#0f172a"],
+    ["REMAINING_WT.CV:", `${d.remainingWt.toFixed(1)} kg (Lead: ${state.precloseLead} kg)`, "#0f172a"],
+    ["CM_FEED_XV/CAS_SP.CV:", d.feedCmdText, d.feedCmdOpen ? "#15803d" : "#0f172a"]
   ];
-  rows.forEach(([k, v], i) => {
+  rows.forEach(([k, v, col], i) => {
     tareBox.appendChild(el("text", { x: subX + 14, y: 368 + i * 24, "font-size": 11, fill: "#475569", "font-weight": 600 }, k));
-    tareBox.appendChild(el("text", { x: subX + subW - 14, y: 368 + i * 24, "text-anchor": "end", "font-size": 11.5, "font-weight": 800, fill: "#0f172a", "font-family": "ui-monospace, monospace" }, v));
+    tareBox.appendChild(el("text", { x: subX + subW - 14, y: 368 + i * 24, "text-anchor": "end", "font-size": 11.5, "font-weight": 800, fill: col, "font-family": "ui-monospace, monospace" }, v));
   });
   tareBox.appendChild(el("text", { x: subX + 14, y: 520, "font-size": 10.5, fill: "#1e3a8a", "font-weight": 700 }, "Try it: Advance to S10, move Weight slider, press HOLD,"));
   tareBox.appendChild(el("text", { x: subX + 14, y: 536, "font-size": 10.5, fill: "#1e3a8a", "font-weight": 700 }, "then press RESTART — START_WT.CV will NOT re-tare!"));
@@ -6008,6 +6009,7 @@ function render() {
     document.getElementById("btnSource").textContent = state.useRecipe ? "SP: Recipe (500 kg)" : "SP: Local (250 kg)";
     document.getElementById("selValveMode").value = state.valveMode;
     document.getElementById("wtSlider").value = state.currentWt;
+    document.getElementById("wtSliderLabel").textContent = `${state.currentWt.toFixed(0)} kg`;
 
     const banner = document.getElementById("diagBanner");
     banner.className = "diag-banner" + (state.noticeLevel !== "info" ? " " + state.noticeLevel : "");
@@ -6601,7 +6603,15 @@ document.getElementById("selValveMode").addEventListener("change", (e) => {
   render();
 });
 document.getElementById("btnScaleSt").addEventListener("click", () => {
-  state.scaleSt = state.scaleSt === "GOOD" ? "BAD" : "GOOD"; state.notice = ""; render();
+  state.scaleSt = state.scaleSt === "GOOD" ? "BAD" : "GOOD";
+  if (state.scaleSt === "GOOD" && state.emState === "HELD") {
+    state.notice = `CM_TANK_WT/AI1/OUT.ST restored to GOOD — Phase is still HELD. Click Restart to resume without re-taring START_WT.CV (${state.startWt.toFixed(1)} kg)!`;
+    state.noticeLevel = "info";
+  } else {
+    state.notice = "";
+    state.noticeLevel = "info";
+  }
+  render();
 });
 document.getElementById("btnHiHi").addEventListener("click", () => {
   state.hiHi = !state.hiHi; state.notice = ""; render();
