@@ -585,13 +585,16 @@
       <li><code>'//CM_TANK_WT/AI1/OUT.ST'</code> = the health score (<code>0..63 = BAD</code> [Red <code>✕</code>], <code>64..127 = UNC</code> [Blue <code>?</code>], <code>128..191 = GOOD</code>, <code>192..255 = GoodCascade</code>). Always test healthy status with <strong><code>&gt;= GOOD</code></strong> so both Good ranges pass!</li>
     </ul>
   </li>
-  <li><strong>What Is a Named Set (<code>'vlvnc-sp:OPEN'</code>)?</strong>
-    Instead of forcing engineers to remember whether <code>1</code> means Open or Closed, DeltaV stores discrete states in human-readable <strong>Named Sets</strong> written inside single quotes as <code>'SetName:StateName'</code>:
+  <li><strong>What Is a Named Set (<code>'vlvnc-sp:OPEN'</code>) — Out-of-the-Box vs. Custom Sets?</strong>
+    Instead of forcing engineers to remember whether integer <code>0</code> or <code>1</code> means Open or Closed, DeltaV stores discrete states (<code>0..255</code>) in human-readable <strong>Named Sets</strong> written inside single quotes as <code>'SetName:StateName'</code> (<em>FBR</em> pp. 78–79; <em>7009</em> pp. 244–245):
     <ul>
-      <li>Valve command set: <code>'vlvnc-sp:OPEN'</code> and <code>'vlvnc-sp:CLOSE'</code> (<code>sp</code> = setpoint/command going OUT to the valve).</li>
-      <li>Valve readback set: <code>'vlvnc-pv:OPEN'</code> and <code>'vlvnc-pv:CLOSED'</code> (<code>pv</code> = physical limit-switch proof coming BACK from the field).</li>
-      <li>Motor set: <code>'mtr2-sp:START'</code> / <code>'mtr2-sp:STOP'</code> and readback <code>'mtr2-pv:RUNNING'</code> / <code>'mtr2-pv:STOPPED'</code>.</li>
-      <li>EM command set: <code>'em_charge:CHARGE'</code> and mandatory <code>'em_charge:Idle'</code> (always integer <code>255</code>).</li>
+      <li><strong>Does <code>vlvnc-sp</code> come out of the box? YES!</strong> DeltaV ships with preconfigured default Named Sets in <strong><code>DeltaV Explorer → Setup → Named Sets</code></strong>. Break down the name: <code>vlv</code> = Valve, <code>nc</code> = Normally Closed (<code>0 = CLOSE</code> Passive, <code>1 = OPEN</code> Active), <code>-sp</code> = Setpoint command going OUT (paired with <code>-pv</code> = Process Value limit-switch readback coming BACK):<br/>
+        • <em>Valve write &amp; readback:</em> <code>'//CM_FEED_XV/CAS_SP.CV' := 'vlvnc-sp:OPEN';</code> &nbsp;|&nbsp; <code>'//CM_FEED_XV/PV.CV' = 'vlvnc-pv:OPEN'</code><br/>
+        • <em>Motor write &amp; readback (<code>mtr2-sp</code>: <code>0 = STOP</code>, <code>1 = START</code>):</em> <code>'//CM_AGIT_MTR/CAS_SP.CV' := 'mtr2-sp:START';</code> &nbsp;|&nbsp; <code>'//CM_AGIT_MTR/PV.CV' = 'mtr2-pv:RUNNING'</code></li>
+      <li><strong>Is <code>vlvnc-sp</code> ALWAYS used? NO!</strong> Plants frequently create their own custom Named Sets in <strong><code>DeltaV Explorer → Setup → Named Sets → Right-click → New Named Set</code></strong> for 3-state valves, Normally Open valves, site standards, and every EM's own <code>A_COMMAND</code> set (mandatory <code>255 = Idle</code>):<br/>
+        • <em>Custom EM command example:</em> <code>'//EM_TANK_CHARGE/A_COMMAND.CV' := 'em_charge:CHARGE';</code><br/>
+        • <em>Custom 2-stage valve example:</em> <code>'//EM_2STAGE_VLV/A_COMMAND.CV' := 'EM-vlvnc-2stage:Bulk';</code></li>
+      <li><strong>How to Check Which Exact Named Set Any Plant Module Uses (Zero Guessing!):</strong> In Control Studio, open the module → turn on <code>View → ☑ Parameter View</code> → right-click <code>CAS_SP</code> (or click <code>DC1</code> and right-click <code>SP_D</code>) → <strong><code>Properties</code></strong> → read the exact <strong>Named Set</strong> name! <strong>Two traps (<em>FBR</em> pp. 78–79):</strong> (1) Named Sets are strictly <strong>case-sensitive</strong> (<code>'vlvnc-sp:OPEN'</code> ≠ <code>'VLVNC-SP:open'</code>); (2) never name custom states with reserved system words (<code>NO</code>, <code>YES</code>, <code>MAN</code>, <code>AUTO</code>, <code>CAS</code>, <code>RCas</code>, <code>ROut</code>, <code>OOS</code>, <code>IMan</code>, <code>LO</code>).</li>
     </ul>
   </li>
   <li><strong>How to Read ANY DeltaV Parameter Path Left-to-Right:</strong>
@@ -637,9 +640,6 @@
      CHAPTER 1: THE THREE EQUIPMENT TIERS & SCAN HEARTBEAT
      ===================================================================== -->
 <h2 class="page-break">Chapter 1: The Three Equipment Tiers &amp; The Module Scan Heartbeat</h2>
-  <strong>What you just learned in Chapter 0:</strong> How to recognize the 4 Control Studio screen panes and how to read a full DeltaV expression piece-by-piece (<code>//</code>, <code>^/</code>, <code>.CV</code>, <code>.ST</code>, Named Sets, <code>=</code> vs. <code>:=</code>).<br/>
-  <strong>What this chapter teaches you:</strong> How a DeltaV plant divides real work across <strong>three stacked module layers</strong> (Unit Phase → Equipment Module → Control Module) and the exact <strong>1-second heartbeat</strong> (Scan Rate + Execution Order) that makes every block run on time. <em>Big anchor to hold onto:</em> every single signal in this book flows down this exact 3-layer chain!
-</div>
 
 <h3>1.1 Why DeltaV Splits Control Into Three Layers (Unit Phase → EM → CM)</h3>
 <div class="why-box">
@@ -677,15 +677,13 @@
       <td><strong><code>CM</code></strong><br/>Control Module</td>
       <td><strong>Single-Device Controller</strong></td>
       <td>Owns <strong>one</strong> physical field instrument or actuator:<br/>
-        • <code>CM_FEED_XV</code> (supply block valve + limit switches): EM writes <code>'//CM_FEED_XV/CAS_SP.CV' := 'vlvnc-sp:OPEN';</code> (wired inside <code>CM_FEED_XV</code> from <code>CAS_SP → DC1/CAS_IN_D</code>) and reads <code>'//CM_FEED_XV/PV.CV' = 'vlvnc-pv:OPEN'</code> (wired inside <code>CM_FEED_XV</code> from <code>DC1/PV_D → PV</code>).<br/>
+        • <code>CM_FEED_XV</code> (supply block valve + limit switches): EM writes <code>'//CM_FEED_XV/CAS_SP.CV' := 'vlvnc-sp:OPEN';</code> (inside <code>CM_FEED_XV</code>, a real FBD wire connects module box <code>CAS_SP</code> into block pin <code>DC1/CAS_IN_D</code>) and reads <code>'//CM_FEED_XV/PV.CV' = 'vlvnc-pv:OPEN'</code> (inside <code>CM_FEED_XV</code>, a real FBD wire connects block pin <code>DC1/PV_D</code> out to module box <code>PV</code>).<br/>
         • <code>CM_TANK_WT</code> (vessel load-cell scale <code>AI1</code>): EM reads gross weight <code>'//CM_TANK_WT/AI1/OUT.CV'</code> and sensor health <code>'//CM_TANK_WT/AI1/OUT.ST' &gt;= GOOD</code>.<br/>
         • <code>CM_AGIT_MTR</code> (agitator motor starter <code>DC1</code>): EM writes <code>'//CM_AGIT_MTR/CAS_SP.CV' := 'mtr2-sp:START';</code> and reads <code>'//CM_AGIT_MTR/PV.CV' = 'mtr2-pv:RUNNING'</code>.</td>
     </tr>
   </tbody>
 </table>
 
-  Look back at the three rows above using your <strong>Chapter 0 decoder</strong>: notice how every single cross-module command starts with <code>'//</code> (leave my module and go to another module), uses <code>:=</code> + <code>;</code> when <em>writing</em> a Named Set command like <code>'//CM_FEED_XV/CAS_SP.CV' := 'vlvnc-sp:OPEN';</code>, and uses single <code>=</code> (no semicolon!) when <em>asking a True/False question</em> like <code>'//CM_FEED_XV/PV.CV' = 'vlvnc-pv:OPEN'</code>. That same grammar will stay 100% consistent across all 12 chapters!
-</div>
 
 <div class="diagram-box">
   <svg viewBox="0 0 690 212" width="100%" height="198" xmlns="http://www.w3.org/2000/svg">
@@ -787,19 +785,19 @@
     <tr>
       <td><strong>5</strong></td>
       <td><strong>Child CM</strong><br/><code>CM_FEED_XV</code><br/>(<code>DC1</code> Block)</td>
-      <td>Real FBD wire: <code>CAS_SP</code> → <code>DC1/CAS_IN_D</code>.<br/>Inside <code>DC1</code> (when <code>MODE.ACTUAL = CAS</code>): copies <code>CAS_IN_D</code> → <code>DC1/SP_D</code> → <code>DC1/OUT_D</code> → I/O channel.</td>
-      <td>Because <code>CM_FEED_XV/DC1/MODE.ACTUAL</code> is <code>CAS</code> (and no safety pin is forcing <code>LO</code>), <code>DC1</code> energizes the physical solenoid output card. Air flows to the actuator and the valve strokes physically open!</td>
+      <td><strong>1. Real FBD wire inside <code>CM_FEED_XV</code>:</strong> Module input box <code>CAS_SP</code> is wired directly into block input pin <code>DC1/CAS_IN_D</code>, delivering <code>'vlvnc-sp:OPEN'</code> into <code>DC1</code>.<br/><strong>2. Internal copy inside <code>DC1</code>:</strong> Because <code>MODE.ACTUAL = CAS</code> (and no safety pin is forcing <code>LO</code>), <code>DC1</code> copies <code>CAS_IN_D</code> into its active setpoint <code>DC1/SP_D</code>, and then copies <code>DC1/SP_D</code> to its output pin <code>DC1/OUT_D</code>.<br/><strong>3. Out to field hardware:</strong> <code>DC1/OUT_D</code> drives the physical Discrete Output (DO) I/O card channel.</td>
+      <td>Energizing the DO I/O card powers the valve's physical solenoid coil. Instrument air flows to the actuator and the valve strokes physically open!</td>
     </tr>
     <tr>
       <td><strong>6</strong></td>
-      <td><strong>Field → Child CM</strong><br/><code>CM_FEED_XV</code><br/>(Limit Switch Proof)</td>
-      <td>Open limit switch → DI channel → <code>DC1/FV_D</code> → <code>DC1/PV_D</code> → real FBD wire → module-level output <code>CM_FEED_XV/PV</code>.</td>
-      <td>Physical valve movement triggers the open limit switch. <code>EM_TANK_CHARGE</code> reads this proof back as <code>'//CM_FEED_XV/PV.CV' = 'vlvnc-pv:OPEN'</code> (and after closing in <code>S20_TRIM_CLOSE</code>, verifies <code>'//CM_FEED_XV/PV.CV' = 'vlvnc-pv:CLOSED'</code>).</td>
+      <td><strong>Field Back to Child CM</strong><br/><code>CM_FEED_XV</code><br/>(Limit Switch Proof)</td>
+      <td><strong>1. Field switch into I/O card:</strong> Reaching the open stop closes the valve's physical open limit switch, sending a signal into the Discrete Input (DI) I/O card channel.<br/><strong>2. Inside <code>DC1</code>:</strong> <code>DC1</code> reads that DI channel into <code>DC1/FV_D</code> (Field Value) and publishes confirmed position on <code>DC1/PV_D</code> (<code>'vlvnc-pv:OPEN'</code>).<br/><strong>3. Real FBD wire to module output:</strong> A real wire connects <code>DC1/PV_D</code> out to the module-level output box <code>CM_FEED_XV/PV</code>.</td>
+      <td><code>EM_TANK_CHARGE</code> reads that physical proof back with <code>'//CM_FEED_XV/PV.CV' = 'vlvnc-pv:OPEN'</code> (and after closing in <code>S20_TRIM_CLOSE</code>, verifies <code>'//CM_FEED_XV/PV.CV' = 'vlvnc-pv:CLOSED'</code>).</td>
     </tr>
     <tr>
       <td><strong>7</strong></td>
-      <td><strong>EM Termination → Unit Phase</strong></td>
-      <td>SFC reaches <code>═╧═</code> Termination → DeltaV sets <code>'^/A_PV.CV' := 'em_charge:CHARGE'</code>.<br/>Unit Phase Transition: <code>'//EM_TANK_CHARGE/A_PV.CV' = 'em_charge:CHARGE'</code> → <code>TRUE</code>!</td>
+      <td><strong>EM Termination Back to Unit Phase</strong></td>
+      <td>When SFC <code>COMMAND_00001</code> reaches its bottom <code>═╧═</code> Termination bar without error, DeltaV automatically sets <code>'^/A_PV.CV' := 'em_charge:CHARGE';</code>.<br/>Upstairs, the Unit Phase transition <code>'//EM_TANK_CHARGE/A_PV.CV' = 'em_charge:CHARGE'</code> evaluates to <code>TRUE</code>!</td>
       <td>Only after the valve closes, settles 5 seconds, and the agitator starts does <code>A_PV</code> update to <code>CHARGE</code>. The Unit Phase sees <code>A_PV = CHARGE</code>, releases <code>EM_TANK_CHARGE</code>, and moves on to the next recipe step!</td>
     </tr>
   </tbody>
@@ -1012,9 +1010,6 @@
      CHAPTER 2: 1 OUTER ALGORITHM vs. 4 INNER PATTERNS
      ===================================================================== -->
 <h2 class="page-break">Chapter 2: Separating "1 Outer Algorithm" from "4 Inner Patterns"</h2>
-  <strong>What you just learned in Chapter 1:</strong> The 3-tier hierarchy (Unit Phase → EM → CM) and why Execution Order + dashed Feedback Wires determine whether a tank stops at 500 kg or overshoots.<br/>
-  <strong>What this chapter teaches you:</strong> Now we open the lid of the middle tier—an <strong>Equipment Module (<code>EM</code>)</strong>—and answer the #1 question every new DeltaV engineer asks: <em>"When I open an EM, why are there SFC step charts, FBD wire sheets, and unwired parameter boxes all living inside the same module?"</em> We separate DeltaV's <strong>1 Official Outer Algorithm</strong> from our <strong>4 Inner Patterns</strong> mental model, and show you the exact full <code>EM → CM → DC1</code> syntax chain in one unified picture!
-</div>
 
 <h3>2.1 Clearing Up the Biggest Point of Confusion: Most of an EM Does NOT Step!</h3>
 <p>When engineers first read descriptions of an Equipment Module—<em>"In Step 10 open the valve, in Step 20 trim and close, in Step 30 start the agitator"</em>—it sounds as if the entire Equipment Module is a sequence of SFC steps. <strong>It is not.</strong></p>
@@ -1852,9 +1847,6 @@
      CHAPTER 3: MODES, DUAL-DATA WIRES (.CV + .ST), LATCHING ACTs & PATHS
      ===================================================================== -->
 <h2 class="page-break">Chapter 3: Modes (DC AUTO vs. CAS), Status (&gt;= GOOD), ACT/CND &amp; Syntax</h2>
-  <strong>What you just learned in Chapter 2:</strong> How an Equipment Module is organized inside (Command-Driven vs. State-Driven, the 4 Inner Patterns, and how <code>EM_TANK_CHARGE</code> talks to <code>CM_FEED_XV/DC1</code>).<br/>
-  <strong>What this chapter teaches you:</strong> The <strong>four safety and syntax rules</strong> that decide whether an EM command actually moves a physical valve or gets silently ignored: (1) <strong>Operating Modes</strong> (why a <code>DC</code> block only obeys <code>AUTO</code> or <code>CAS</code>), (2) <strong>Signal Status</strong> (why <code>.ST &gt;= GOOD</code> catches broken wires), (3) <strong><code>CND</code> &amp; <code>ACT</code> blocks</strong> (how continuous interlocks fire), and (4) the complete <strong>DeltaV Expression &amp; Path Grammar</strong> reference.
-</div>
 
 <h3>3.1 Operating Modes — And the Critical DC Block Rule (AUTO &amp; CAS Only!)</h3>
 <div class="why-box">
@@ -2523,9 +2515,6 @@ NET_WT <span class="kw">:=</span> <span class="str">'IN2.CV'</span> - <span clas
      CHAPTER 4: COMPLETE PIN-BY-PIN WALKTHROUGH OF EM_TANK_CHARGE
      ===================================================================== -->
 <h2 class="page-break">Chapter 4: Complete Pin-by-Pin Schematics of EM_TANK_CHARGE</h2>
-  <strong>What you just learned in Chapters 1–3:</strong> Every rule in the toolbox—tiers, scan order, the 4 Patterns, <code>DC1/MODE</code> (<code>CAS</code> vs. <code>AUTO</code> vs. <code>LO</code>), <code>.ST &gt;= GOOD</code>, <code>CND</code>/<code>ACT</code> blocks, and exact expression syntax.<br/>
-  <strong>What this chapter teaches you:</strong> Now we put <strong>every single rule together on four real Control Studio sheets</strong> for <code>EM_TANK_CHARGE</code>! Don't rush these four schematics—trace each sheet slowly with your finger (and open the matching tabs in <strong>Visual Explorer</strong>) so you can literally see how Sheet 1 (SFC), Sheet 2 (Interlocks), Sheet 3 (Math/<code>XFR</code>), and Sheet 4 (<code>CM_FEED_XV/DC1</code>) talk to one another on every 1-second scan.
-</div>
 <p>Here are all four Control Studio views of <code>EM_TANK_CHARGE</code> drawn at the pin level with verified Emerson block geometry so you can study every connection offline or side-by-side with <strong>Visual Explorer</strong>.</p>
 
 <h3>4.1 Sheet 1 — Pattern 1: COMMAND_00001 (CHARGE) SFC Window</h3>
@@ -2932,9 +2921,6 @@ NET_WT <span class="kw">:=</span> <span class="str">'IN2.CV'</span> - <span clas
      CHAPTER 5: HOLD, RESTART, ABORT & THE GOLDEN TARE RULE
      ===================================================================== -->
 <h2 class="page-break">Chapter 5: Phase Hold, Restart, Abort &amp; The Golden Tare Math</h2>
-  <strong>What you just learned in Chapter 4:</strong> How <code>EM_TANK_CHARGE</code> runs a clean, happy-path 500 kg batch from start to finish across all four sheets.<br/>
-  <strong>What this chapter teaches you:</strong> Real chemical plants rarely run smoothly from start to finish! Here we climb back up to the <strong>Unit Phase</strong> tier to see what happens when a scale wire breaks or an operator hits <strong>HOLD</strong> halfway through a 500 kg fill—and the single <strong>Golden Tare rule</strong> (locking <code>^/START_WT.CV</code> only once per batch) that stops a restarted batch from double-charging and overflowing a reactor!
-</div>
 
 <h3>5.1 Where Hold/Restart Live in DeltaV — And How Bad Restart Logic Overfills Tanks</h3>
 <div class="why-box">
@@ -3174,9 +3160,6 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
      CHAPTER 6: SYSTEMATIC 60-SECOND ON-LINE TRIAGE
      ===================================================================== -->
 <h2 class="page-break">Chapter 6: The 60-Second Control Room Triage Playbook</h2>
-  <strong>What you just learned in Chapters 1–5:</strong> You now understand the entire batch/discrete machine—from the Unit Phase down through every block and wire of <code>EM_TANK_CHARGE</code> and <code>CM_FEED_XV</code>.<br/>
-  <strong>What this chapter teaches you:</strong> How to turn all of that knowledge into <strong>calm, repeatable muscle memory at 2:00 AM</strong>. Instead of clicking randomly around Control Studio while operations waits on the radio, you will learn a fixed <strong>5-Checkpoint Triage Sequence</strong> plus a 10-symptom diagnostic table that pins down almost any stuck EM or valve in under 60 seconds.
-</div>
 
 <p><strong>AI Mental Model Built on Official Control Studio Tools:</strong> When an operator calls you over because an Equipment Module or Phase is stuck mid-batch, follow this exact five-checkpoint discipline instead of clicking around randomly:</p>
 <ol>
@@ -3357,9 +3340,6 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
      CHAPTER 7: STATE-DRIVEN EQUIPMENT MODULES (EM_XFER_HDR)
      ===================================================================== -->
 <h2 class="page-break">Chapter 7: State-Driven Equipment Modules — EM_XFER_HDR &amp; EM_2STAGE_VLV</h2>
-  <strong>What you just learned in Chapters 1–6:</strong> Everything about <strong>Command-Driven EMs</strong> (which run multi-step SFC sequences like <code>COMMAND_00001</code>).<br/>
-  <strong>What this chapter teaches you:</strong> Now you meet the <strong>other half of real plant EMs—State-Driven EMs</strong> (like transfer headers <code>EM_XFER_HDR</code> and two-stage valves <code>EM_2STAGE_VLV</code>). You will see why DeltaV replaces the SFC chart completely with a clean <code>Items × States</code> table, how the exact same 4 Patterns fold into that table, and why bare paths inside State Tables intentionally omit <code>//</code> and quotes!
-</div>
 
 <div class="callout warn">
   <div class="callout-title">Critical Myth-Buster: ZERO Graphical SFC Steps or Transitions in a State-Driven EM!</div>
@@ -3700,9 +3680,6 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
      CHAPTER 8: ANALOG CONTROL MODULES, PID LOOPS & BACK-CALCULATION
      ===================================================================== -->
 <h2 class="page-break">Chapter 8: Analog Control Modules, PID Loops &amp; Back-Calculation (<code>FIC_101</code>)</h2>
-  <strong>What you just learned in Chapters 1–7:</strong> Discrete on/off control (<code>DC</code> valves, motors, Command-Driven EMs, and State-Driven EMs).<br/>
-  <strong>What this chapter teaches you:</strong> Now we cross into <strong>Continuous Analog Control</strong>—throttling valves smoothly from <code>0%</code> to <code>100%</code> with <code>AI → PID → AO</code> loops like <code>FIC_101</code>. <em>Big anchor to hold onto:</em> every single mystery in DeltaV PID loops (bumpless transfer, anti-reset windup, mode shedding, and cascade handoffs) is powered by <strong>one backward wire</strong>: <code>AO1/BKCAL_OUT → PID1/BKCAL_IN</code>!
-</div>
 <p>In continuous (non-batch) plants, <strong>80%+ of the Control Studio sheets you open will be Analog Regulatory Control Modules</strong>—flow, pressure, level, and temperature loops built around <strong><code>AI → PID → AO</code></strong>. Unlike discrete <code>DC</code> valves (which snap <code>OPEN</code> or <code>CLOSE</code>), analog loops throttle continuously from <code>0%</code> to <code>100%</code> and rely on a backward feedback wire—<strong><code>BKCAL_OUT → BKCAL_IN</code></strong>—to prevent windup and keep mode transitions 100% bumpless.</p>
 
 <h3>8.1 Anatomy of a Standard Regulatory Loop (<code>AI1 → PID1 → AO1</code>)</h3>
@@ -4061,9 +4038,6 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
      CHAPTER 9: CASCADE CONTROL & CTLSL OVERRIDE CONTROL
      ===================================================================== -->
 <h2 class="page-break">Chapter 9: Cascade Control &amp; <code>CTLSL</code> Override Control (<code>CASCADE_201</code>)</h2>
-  <strong>What you just learned in Chapter 8:</strong> How a single <code>AI1 → PID1 → AO1</code> loop uses <code>BKCAL_OUT → BKCAL_IN</code> to prevent windup and stay bumpless.<br/>
-  <strong>What this chapter teaches you:</strong> What happens when <strong>two PIDs work together on one valve</strong>—either stacked head-to-tail in a <strong>Master → Slave Cascade</strong> (<code>PID_TIC → PID_FIC → AO_VLV</code>) or competing side-by-side through a <strong>Control Selector (<code>CTLSL</code>)</strong> so a high-pressure override can smoothly grab the valve away from normal temperature control without ever causing a bump!
-</div>
 
 <h3>9.1 Master → Slave Cascade &amp; The Double <code>BKCAL</code> Chain (<code>TIC_201 → FIC_201 → AO_VLV</code>)</h3>
 <div class="why-box">
@@ -4318,9 +4292,6 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
      CHAPTER 10: INTERLOCKS, OUTPUT TRACKING, INPUT SELECTORS & COMPOSITES
      ===================================================================== -->
 <h2 class="page-break">Chapter 10: Safety Interlocks, Output Tracking, <code>ISEL</code> &amp; Composite Blocks</h2>
-  <strong>What you just learned in Chapters 8–9:</strong> Normal throttling control (single <code>PID</code>, Cascade, and <code>CTLSL</code> override).<br/>
-  <strong>What this chapter teaches you:</strong> How DeltaV engineers build <strong>bulletproof safety and fault-tolerance layers</strong> around analog and discrete loops: forcing a PID safely to <code>LO</code> via <strong>Output Tracking</strong> (<code>TRK_IN_D</code> / <code>TRK_VAL</code>), surviving a broken transmitter with <strong>2-out-of-3 Input Selection (<code>ISEL</code>)</strong>, and packing complex reusable logic cleanly inside <strong>Composite Function Blocks</strong>.
-</div>
 
 <h3>10.1 Analog Output Tracking (<code>TRK_IN_D</code> / <code>TRK_VAL</code> → <code>LO</code>) vs. Discrete Interlocks</h3>
 <p>Every continuous plant needs hard, unambiguous ways for safety logic to override normal PID or valve control:</p>
@@ -4537,9 +4508,6 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
      CHAPTER 11: REAL-PLANT PCSD CASE STUDY (3WT-0001-NEUT)
      ===================================================================== -->
 <h2 class="page-break">Chapter 11: Real-Plant Case Study — Decoding a PCSD 32-Device EM (<code>3WT-0001-NEUT</code>)</h2>
-  <strong>What you just learned in Chapters 1–10:</strong> Every core DeltaV concept—discrete EMs, State-Driven EMs, analog PIDs, Cascade, <code>BKCAL</code>, <code>TRK_IN_D</code>, and Composite blocks—on clean training modules.<br/>
-  <strong>What this chapter teaches you:</strong> Now we step directly onto a <strong>live production workstation</strong> and decode a real Emerson <strong>PCSD 32-Device Equipment Module (<code>3WT-0001-NEUT</code>)</strong> and its companion split-range pH loop (<code>3WT-0001-AIC002</code> with <code>SPLTR1</code>). You will prove to yourself that even a giant, intimidating 56-object factory module obeys the exact same rules you already mastered!
-</div>
 <p>When you walk up to a real plant workstation and open <strong><code>N1EAST/BUFFER_PREP/PW_NEUT/3WT-0001-NEUT</code></strong> (Process Waste Neutralization, controller <code>3N1-CTR-03</code>), it can look overwhelming at first glance: 56 objects, 32 device blocks, 40 tuning parameters, 11 commands, and <strong>zero wires on the Main FBD Diagram!</strong> Once you learn the two secrets of Emerson's standard <strong>PCSD 32-Device Command-Driven EM template (<code>_EM_CMD32_140</code>)</strong>, the entire module snaps into crisp focus in under 30 seconds.</p>
 
 <h3>11.1 Secret #1: Mentally Delete the Unused PCSD Template Clutter!</h3>
@@ -4936,9 +4904,6 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
      CHAPTER 12: CONTROL STUDIO LIVE SAFETY — HMI-TO-LOGIC TRIAGE & MODULE TRAPS
      ===================================================================== -->
 <h2 class="page-break">Chapter 12: Control Studio Live Safety — HMI-to-Logic Triage, Partial Downloads &amp; Module Traps</h2>
-  <strong>What you just learned in Chapters 1–11:</strong> How to read and diagnose virtually any batch, discrete, analog, or PCSD module in Control Studio.<br/>
-  <strong>What this chapter teaches you:</strong> Your final capstone before flying solo on a live plant: <strong>how not to get burned when working On-Line!</strong> You will learn how DeltaV Live status icons hide each other in a strict 4-tier priority order, how to trace any HMI badge straight to its Control Studio parameter (<code>MSTATUS</code>, <code>BLOCK_ERR</code>, <code>SIMULATE</code>), and the silent <strong>Partial Download &amp; Initial-Value traps</strong> that catch even veteran engineers.
-</div>
 <p style="margin-bottom:6px;">Our focus stays 100% on <strong>reading, editing, and troubleshooting Control Studio logic</strong>. Two practical blind spots sit right on the boundary of every live Control Studio sheet: (1) translating an operator's <strong>DeltaV Live</strong> status icon straight to the exact Control Studio parameter causing it, and (2) avoiding silent logic/setpoint traps when downloading or executing modules online.</p>
 
 <h3 style="margin-top:8px;">12.1 Translating DeltaV Live GEM Icons Straight to Control Studio Parameters (<em>Live Training</em> pp. 46, 51, 63)</h3>
