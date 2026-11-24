@@ -34,3 +34,8 @@ Follow these scope, knowledge, and teaching rules strictly in every response.
 
 5. **Authentic Schematics & Working Tools:**
    - When I ask for visuals or interactive tools, use authentic DeltaV Control Studio block, pin, table, and wire conventions rather than generic boxes, and deliver working standalone files directly rather than just describing them.
+
+6. **Always Write Full Parameter Paths, Complete Expressions & Concrete Examples (Zero Shorthand):**
+   - Never use lazy shorthand or drop syntax characters (single quotes `'...'`, path prefixes `'//'` / `'^/'` / `'/'`, field extensions `.CV` / `.ST` / `.TARGET` / `.ACTUAL`, operators `:=` vs. `=`, or semicolons `;`) when teaching or explaining DeltaV logic—always write parameters and expressions **all the way out** so I can track exact module, block, parameter, and field names without guessing.
+   - Always pair every explanation with **concrete, character-for-character examples** and explicitly distinguish **where** the syntax is typed (for example: Structured Text Action `'//CM_FEED_XV/MODE.TARGET' := CAS;` vs. `CND`/Transition `'//CM_FEED_XV/MODE.ACTUAL' = CAS` vs. Subordinate nested CM `'^/CM_FEED_XV/DC1/MODE.TARGET' := CAS;` vs. State-Driven `Items | States` table bare path `CM_FEED_XV/MODE.TARGET` with cell value `= Cascade/`).
+   - Whenever pieces of one control flow interact (such as an EM, a DeltaV Live faceplate, a module-level `Internal Reference`, and a child CM's `DC1` block), show them **together in one unified end-to-end flow** rather than scattered across separate descriptions.

@@ -1,9 +1,10 @@
 ================================================================================
 DELTAV CONTROL STUDIO MASTERY — PROGRESS & MISSION TRACKER
-Last Updated: 2026-11-24 (Edition v4.0 — Deep-Dive Teacher Edition Study Guide
-                          [All 12 Chapters enriched with Why-It-Exists, Scan-by-Scan
-                          Stories, Slow-Motion Syntax Breakdowns, Control Studio Click
-                          Paths & Worked Chapter Checks] + EM_TANK_CHARGE live kg readout)
+Last Updated: 2026-11-24 (Edition v5.0 — Master-Class Textbook [99 pp]: Zero-Shorthand
+                          Full Parameter Paths & Expressions across all 12 Chapters +
+                          Unified End-to-End Flows + 20+ Worked 2:00 AM Plant Cases +
+                          Expanded Field Guide & Appendix C + 7-page reference.pdf +
+                          Prime Directive Rule 6 locked in 'pd')
 Repository:   https://github.com/siPyt/visualExplorer.git
 Prime Rule:   Governed by 'pd' (Prime Directive) — Control Studio EM/CM/EPH logic
               focus, DeltaV Live HMI standard, native DeltaV only, Official vs.
@@ -49,13 +50,14 @@ HOW THIS WORKSPACE OPERATES (SYNCED ACROSS MACHINES)
      split-range 0% acid dump, A_COMMAND=Undefined vs A_PV, State-Driven Int Ref)
    - Mode 4: On-Line Tree (6 live presets + 9 live sliders/selectors incl. 3WT-0001)
 
-3. Textbook & Lab Manual (DeltaV_Study_Guide.html -> DeltaV_Study_Guide.pdf, v4.0):
-   Full in-depth Deep-Dive Teacher Edition native Control Studio handbook (71 pages):
-   Chapters 1–12 — every chapter includes Why-It-Exists intuition, Scan-by-Scan
-   Story walkthroughs, Slow-Motion syntax/diagram breakdowns, Control Studio
-   Click-by-Click guides, and Quick Chapter Checks with Worked Answers — plus
-   7-Block FBR Field Guide, 14 Visual Explorer Workshops, and 21-Question Exam.
-   Rebuild anytime via: .\build-pdf.ps1
+3. Textbook & Lab Manual (DeltaV_Study_Guide.html -> DeltaV_Study_Guide.pdf, v5.0):
+   Full 99-page Master-Class native Control Studio textbook: Chapters 1–12 built
+   under Prime Directive Rule 6 (zero shorthand — full verified paths & complete
+   expressions everywhere, unified end-to-end signal-flow tables, Figure 2.1b
+   EM-to-CM-to-DC1 unified schematic, 20+ worked 2:00 AM troubleshooting cases,
+   12 worked Chapter Checks, expanded 7-Block + Syntax Matrix Field Guide,
+   14 Visual Explorer Workshops, 25-Question Mastery Exam, and Appendix C modern
+   DeltaV Field I/O reference). Rebuild anytime via: .\build-pdf.ps1
    Companion Quick-Recall Sheet: reference.html -> reference.pdf (7-page
    Chapter-by-Chapter Memorization Reference, linked directly from Visual Explorer
    and Expression Forge top bars!).

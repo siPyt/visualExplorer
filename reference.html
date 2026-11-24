@@ -186,7 +186,7 @@
 <body>
 
 <div class="doc-header">
-  <div class="eyebrow">Emerson DeltaV Control Studio • Companion to Study Guide v4.0</div>
+  <div class="eyebrow">Emerson DeltaV Control Studio • Companion to Study Guide v5.0</div>
   <h1>Chapter-by-Chapter Memorization Reference</h1>
   <p class="subtitle">Every core concept, pin, polarity, mode rule, syntax trap, and Control Studio click path you need to commit to memory across Chapters 1–12.</p>
 </div>
@@ -313,7 +313,7 @@
       <tr>
         <td><strong>DC Block Mode Rule (NO <code>MAN</code>!)</strong><br/><span class="pill pill-off">Official DeltaV</span></td>
         <td>Discrete <strong><code>DC</code></strong> blocks (valves/motors) support <strong>ONLY <code>AUTO</code> and <code>CAS</code></strong> as selectable target modes (<em>FBR</em> p. 427): <strong><code>AUTO</code> = operator faceplate control</strong> (ignores EM <code>CAS_IN_D</code>!); <strong><code>CAS</code> = obeys upstream EM</strong>. (<code>MAN</code> only exists on <code>PID</code>/<code>AO</code>/<code>DO</code>!)</td>
-        <td>Always write <code>MODE.TARGET</code>, always check <strong><code>MODE.ACTUAL = CAS</code></strong>!</td>
+        <td>ST Write: <code>'//CM_FEED_XV/DC1/MODE.TARGET' := CAS;</code> (short: <code>'//CM_FEED_XV/MODE.TARGET' := CAS;</code>). Check: <code>'//CM_FEED_XV/DC1/MODE.ACTUAL' = CAS</code>!</td>
       </tr>
       <tr>
         <td><strong><code>LO</code> vs. <code>OOS</code></strong><br/><span class="pill pill-off">Official DeltaV</span></td>
