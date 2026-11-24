@@ -1,10 +1,13 @@
 ================================================================================
 DELTAV CONTROL STUDIO MASTERY — PROGRESS & MISSION TRACKER
-Last Updated: 2026-11-24 (Edition v5.0 — Master-Class Textbook [99 pp]: Zero-Shorthand
-                          Full Parameter Paths & Expressions across all 12 Chapters +
-                          Unified End-to-End Flows + 20+ Worked 2:00 AM Plant Cases +
-                          Expanded Field Guide & Appendix C + 7-page reference.pdf +
-                          Prime Directive Rule 6 locked in 'pd')
+Last Updated: 2026-11-24 (Edition v6.0 — Complete Engineering Textbook [115 pp]: Chapter 0
+                          Starter Kit + Blank-Canvas Build Walkthrough + 5-Skid Decision
+                          Guide + 12s DC1 Stroke Trace + ST Programming & Bug Clinic +
+                          SFC Branch/Timer Mechanics + ISA-88 Phase Trace + 3 Live-Call
+                          Investigations + PID P/I/D Math & BKCAL Windup Proof + Cascade
+                          & Tracking Numerical Traces + 6-Step PCSD Cold-Read + 7-Point
+                          SPLTR1 V-Curve + Download Pre-Flight + 36 Worked Mastery Drill
+                          Problems across Ch. 1–12 + 7-page reference.pdf + PD Rule 6)
 Repository:   https://github.com/siPyt/visualExplorer.git
 Prime Rule:   Governed by 'pd' (Prime Directive) — Control Studio EM/CM/EPH logic
               focus, DeltaV Live HMI standard, native DeltaV only, Official vs.
@@ -50,14 +53,17 @@ HOW THIS WORKSPACE OPERATES (SYNCED ACROSS MACHINES)
      split-range 0% acid dump, A_COMMAND=Undefined vs A_PV, State-Driven Int Ref)
    - Mode 4: On-Line Tree (6 live presets + 9 live sliders/selectors incl. 3WT-0001)
 
-3. Textbook & Lab Manual (DeltaV_Study_Guide.html -> DeltaV_Study_Guide.pdf, v5.0):
-   Full 99-page Master-Class native Control Studio textbook: Chapters 1–12 built
-   under Prime Directive Rule 6 (zero shorthand — full verified paths & complete
-   expressions everywhere, unified end-to-end signal-flow tables, Figure 2.1b
-   EM-to-CM-to-DC1 unified schematic, 20+ worked 2:00 AM troubleshooting cases,
-   12 worked Chapter Checks, expanded 7-Block + Syntax Matrix Field Guide,
-   14 Visual Explorer Workshops, 25-Question Mastery Exam, and Appendix C modern
-   DeltaV Field I/O reference). Rebuild anytime via: .\build-pdf.ps1
+3. Textbook & Lab Manual (DeltaV_Study_Guide.html -> DeltaV_Study_Guide.pdf, v6.0):
+   Full 115-page zero-fluff engineering textbook: Chapter 0 Starter Kit (Figure 0.1
+   4-Pane Control Studio screen + 6 Building Blocks) + Chapters 1–12 built under
+   Prime Directive Rule 6 (blank-canvas build walkthrough, 12s DC1 stroke trace,
+   Structured Text programming & 6-bug clinic, SFC branch/timer mechanics, ISA-88
+   Phase trace, 3 full live-call triage walkthroughs, State-Driven scan engine,
+   AI1 scaling + PID P/I/D math + 60s BKCAL windup proof, Cascade & Output Tracking
+   numerical traces, 6-step PCSD cold-read, 7-point SPLTR1 V-curve, Live Download
+   pre-flight checklist, 36 worked Mastery Drill problems across Ch. 1–12, 14 Visual
+   Explorer Workshops, Field Guide, 25-Question Mastery Exam & Appendix C).
+   Rebuild anytime via: .\build-pdf.ps1
    Companion Quick-Recall Sheet: reference.html -> reference.pdf (7-page
    Chapter-by-Chapter Memorization Reference, linked directly from Visual Explorer
    and Expression Forge top bars!).
@@ -195,11 +201,12 @@ HOW THIS WORKSPACE OPERATES (SYNCED ACROSS MACHINES)
 - Prime Directive file (pd) is active and governs all future work (Control Studio
   EM/CM/EPH logic focus, DeltaV Live standard, native DeltaV only, Official vs.
   Mental Model labeling, exact click paths; ask before adding extras).
-- Edition v3.5 is built, self-tested (check_ve.js 100%: JS syntax, DOM IDs, all
-  27 Expression Forge drills, 0 stray backticks in HTML, PDF rebuilt cleanly),
-  and visually QA-verified across all 8 Visual Explorer modules (24 views).
-- Local changes since commit '2b3185a after Prime Directive': index.html (Module 8),
-  DeltaV_Study_Guide.html, DeltaV_Study_Guide.pdf, WHERE_WE_ARE.txt.
+- Edition v6.0 is built, cross-synced across all 4 files (index.html, ex.html,
+  DeltaV_Study_Guide.html/.pdf, reference.html/.pdf), self-tested (check_ve.js &
+  audit_sync.js 100%, 0 stray backticks/markdown, 0 bridge fluff), and visually QA-verified.
+- Local uncommitted changes since commit '2b3185a after Prime Directive': pd,
+  index.html, ex.html, DeltaV_Study_Guide.html, DeltaV_Study_Guide.pdf,
+  reference.html, reference.pdf, WHERE_WE_ARE.txt.
 - Local reference scratchpads/folders: explain_further.txt (all items up through
   line 41 answered!), PW_Neutralization/, additionalPDFs/, and 30001.png.
 
