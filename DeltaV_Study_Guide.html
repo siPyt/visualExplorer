@@ -172,6 +172,80 @@
     color: var(--slate-900);
   }
 
+  /* Deep-Dive Teacher Edition Boxes (v4.0) */
+  .why-box, .story-box, .anatomy-box, .click-box, .check-box {
+    border-radius: 6px;
+    padding: 9px 13px;
+    margin: 10px 0;
+    font-size: 9.3pt;
+    line-height: 1.48;
+  }
+  .why-box {
+    background: #fefce8;
+    border: 1px solid #fde047;
+    border-left: 4px solid #ca8a04;
+    break-inside: avoid;
+  }
+  .story-box {
+    background: #f0f9ff;
+    border: 1px solid #bae6fd;
+    border-left: 4px solid #0284c7;
+  }
+  .anatomy-box {
+    background: #faf5ff;
+    border: 1px solid #e9d5ff;
+    border-left: 4px solid #7c3aed;
+    break-inside: avoid;
+  }
+  .click-box {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-left: 4px solid #15803d;
+    break-inside: avoid;
+  }
+  .check-box {
+    background: #f8fafc;
+    border: 1.5px solid #94a3b8;
+    border-left: 4px solid #1e293b;
+    break-inside: avoid;
+  }
+  .box-head {
+    font-weight: 800;
+    font-size: 9.5pt;
+    color: var(--slate-900);
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .box-tag {
+    font-size: 7.4pt;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 1.5px 6px;
+    border-radius: 4px;
+    color: #ffffff;
+  }
+  .tag-why { background: #a16207; }
+  .tag-story { background: #0369a1; }
+  .tag-anatomy { background: #6d28d9; }
+  .tag-click { background: #15803d; }
+  .tag-check { background: #334155; }
+  .worked-ans {
+    margin-top: 6px;
+    padding: 6px 9px;
+    background: #ffffff;
+    border-left: 3px solid #15803d;
+    border-radius: 0 4px 4px 0;
+    font-size: 9pt;
+  }
+  @media screen {
+    .why-box, .story-box, .anatomy-box, .click-box, .check-box { font-size: 14.8px; padding: 12px 16px; }
+    .box-head { font-size: 15.5px; }
+    .worked-ans { font-size: 14.2px; }
+  }
+
   /* Hands-On Workshop Lab Box */
   .workshop {
     border: 2px solid var(--teal);
@@ -389,7 +463,7 @@
   <h1>Reading &amp; Troubleshooting DeltaV Control Studio</h1>
   <p class="subtitle">Complete in-depth native DeltaV lessons, pin-by-pin Control Studio schematics, real-plant engineering nuances, and step-by-step interactive workshops paired with <strong>Visual Explorer</strong>.</p>
   <div class="meta-strip">
-    <span class="meta-pill">Edition: v3.5 (Verified vs. Official Emerson Docs + Real Plant PCSD EM, Split-Range pH &amp; DC Safety Lab)</span>
+    <span class="meta-pill">Edition: v4.0 (Deep-Dive Teacher Edition — Plain-English Stories, Syntax Breakdowns, Click Paths &amp; Worked Checks)</span>
     <span class="meta-pill">Control Studio Logic Mastery (EM • CM • EPH)</span>
     <span class="meta-pill">8 Modules: EM_TANK_CHARGE • EM_XFER_HDR • EM_2STAGE_VLV • FIC_101 • CASCADE_201 • 3WT-0001-NEUT • 3WT-0001-AIC002 • CM_PMP_101</span>
     <span class="meta-pill">Launch Lab App: type "run" in terminal</span>
@@ -399,8 +473,14 @@
 <h3>Mission &amp; Study System</h3>
 <p><strong>Your Goal:</strong> Walk up to <em>any</em> Emerson DeltaV Control Studio workstation in <em>any</em> plant, open any Equipment Module (<code>EM</code>), Control Module (<code>CM</code>), or Unit Phase / Phase Logic (which ISA-88 calls an <code>EPH</code>) in Off-Line or On-Line mode, and read what every block, wire, mode, status, and interlock is doing within seconds.</p>
 <ul>
-  <li><strong>1. Verified Control Studio Visuals + Study Aids:</strong> Every DeltaV block name, pin, mode, expression rule, wire style, and table in this textbook is cross-checked directly against official Emerson DeltaV manuals (<em>Function Block Reference</em>, <em>DeltaV Configuration</em>, and Courses <em>7009</em>, <em>7016</em>, and <em>7017</em>; see <code>DELTAV_VERIFIED_FACTS.md</code>). In <strong>Visual Explorer</strong>, green/amber/red highlights and <strong>purple dashed</strong> expression-reference lines are clearly labeled <em>learning aids</em> layered on top of authentic Control Studio geometry (keeping gray dotted/dashed lines reserved strictly for real DeltaV feedback wires).</li>
-  <li><strong>2. Run the Step-by-Step Workshops in Visual Explorer:</strong> Type <code>run</code> in your terminal to open <strong>Visual Explorer</strong> offline in your browser, and <code>run ex</code> to open <strong>Expression Forge</strong>. Follow every numbered click in the teal <strong>Hands-On Workshop</strong> boxes and read the <em>What You Are Supposed to Learn</em> takeaway at the bottom of each lab.</li>
+  <li><strong>1. Slow, Plain-English Teaching Before Any Syntax:</strong> Every chapter uses five color-coded study boxes so you never get hit by walls of unexplained acronyms:
+    <span class="box-tag tag-why">Why It Exists</span> plant intuition,
+    <span class="box-tag tag-story">Scan-by-Scan Story</span> slow-motion walkthroughs of one real event,
+    <span class="box-tag tag-anatomy">Slow-Motion Breakdown</span> symbol-by-symbol syntax &amp; diagram decoding,
+    <span class="box-tag tag-click">Control Studio Clicks</span> exact menus/panes to inspect or build it, and
+    <span class="box-tag tag-check">Chapter Check</span> quick applied self-checks with worked answers right inside every chapter.</li>
+  <li><strong>2. Official DeltaV vs. AI Mental Model (Always Labeled):</strong> Every DeltaV block name, pin, mode, expression rule, wire style, and table in this textbook is cross-checked against official Emerson DeltaV manuals (<em>Function Block Reference</em>, <em>DeltaV Configuration</em>, and Courses <em>7009</em>, <em>7016</em>, and <em>7017</em>; see <code>DELTAV_VERIFIED_FACTS.md</code>). Teaching lenses (like grouping EM jobs into "4 Patterns" or visual color highlights) are explicitly labeled as <em>AI Mental Models / Study Aids</em> so you never confuse them with official DeltaV software terms.</li>
+  <li><strong>3. Run the Step-by-Step Workshops in Visual Explorer:</strong> Type <code>run</code> in your terminal to open <strong>Visual Explorer</strong> offline in your browser, and <code>run ex</code> to open <strong>Expression Forge</strong>. Follow every numbered click in the teal <strong>Hands-On Workshop</strong> boxes and read the <em>What You Are Supposed to Learn</em> takeaway at the bottom of each lab.</li>
 </ul>
 
 <div class="roadmap">
@@ -436,7 +516,17 @@
 <h2>Chapter 1: The Three Equipment Tiers &amp; The Module Scan Heartbeat</h2>
 
 <h3>1.1 Why DeltaV Splits Control Into Three Layers (Unit Phase → EM → CM)</h3>
-<p>If you tried to put batch recipe steps, tank coordination math, safety interlocks, valve limit-switch timers, and raw 4–20 mA sensor scaling inside one giant diagram, every module in the plant would look like an unreadable spiderweb. DeltaV prevents that by dividing responsibility strictly across three tiers:</p>
+<div class="why-box">
+  <div class="box-head"><span class="box-tag tag-why">Why It Exists</span> Start Here in Plain English — Before Touching Any DeltaV Syntax!</div>
+  Imagine you are making a batch of paint in a mixing tank. Three completely different kinds of decisions have to happen at the same time:
+  <ol style="margin:4px 0 4px;">
+    <li><strong>"What does today's recipe want?"</strong> (Add 500 kg of solvent, then heat to 60 °C, then dump to storage.)</li>
+    <li><strong>"How do we safely coordinate the tank's equipment to add 500 kg?"</strong> (Check the scale is healthy, record the starting tank weight, open the feed valve, close it 15 kg early so in-flight liquid doesn't overfill the tank, confirm the limit switch says closed, then start the agitator.)</li>
+    <li><strong>"How does ONE single physical valve open and prove it opened?"</strong> (Energize the solenoid coil, watch the open/close limit switches, and raise an alarm if the valve sticks.)</li>
+  </ol>
+  If an engineer stuffed all three jobs onto one Control Studio drawing, changing a valve's limit-switch timer would mean opening the batch recipe, and reusing that same valve in a cleaning cycle would be a nightmare. <strong>Official DeltaV</strong> solves this cleanly by giving each job its own module tier: <strong>Unit Phase</strong> (recipe job), <strong>Equipment Module (<code>EM</code>)</strong> (team coordinator), and <strong>Control Module (<code>CM</code>)</strong> (single physical device). <em>(AI Mental Model: think "Recipe Boss → Team Coordinator → Single-Device Worker.")</em>
+</div>
+<p>Here is how those three official DeltaV tiers map onto our running plant example—a Solvent Mix Tank:</p>
 
 <table>
   <thead>
@@ -531,6 +621,26 @@
 <h3>1.2 Module Scan Rate, #1 → #2 → #3 Execution Order &amp; Dashed Feedback Wires</h3>
 <p>Every DeltaV module is assigned a <strong>Scan Rate</strong> (for Equipment Modules, typically <strong>500 ms</strong> or <strong>1 second</strong>). Once every heartbeat, the controller wakes up the module, reads incoming parameter references, executes its function blocks, and publishes outgoing writes.</p>
 
+<div class="story-box">
+  <div class="box-head"><span class="box-tag tag-story">Scan-by-Scan Story</span> Tracing One 1-Second Heartbeat Inside <code>EM_TANK_CHARGE</code></div>
+  Suppose solvent is pouring into the tank at <strong>10 kg/second</strong>, the module scans once every <strong>1.0 second</strong>, and the gross tank weight just reached <strong>585 kg</strong> (starting from a 100 kg heel, targeting 500 kg net → only <strong>15 kg remaining</strong>, time to close the valve!). Watch what happens inside the controller during a single millisecond slice of Scan #48:
+  <ul style="margin:4px 0 0;">
+    <li><strong>Moment 1 — Block <code>#1</code> (<code>XFR1</code> Transfer Switch) solves:</strong> Looks at <code>USE_RECIPE = True</code>, so it outputs the active target weight <code>500.0 kg</code> onto its <code>OUT</code> pin.</li>
+    <li><strong>Moment 2 — Block <code>#2</code> (<code>CALC1</code> Math Block) solves (microseconds later, SAME scan!):</strong> Reads <code>500.0 kg</code> from <code>XFR1</code>, reads live scale weight <code>585.0 kg</code> from <code>CM_TANK_WT</code>, subtracts the locked tare <code>100.0 kg</code> (<code>Net = 485.0 kg</code>), and outputs <code>Remaining = 500 - 485 = 15.0 kg</code>.</li>
+    <li><strong>Moment 3 — Block <code>#3</code> (<code>CND3</code> Cutoff Condition) solves (SAME scan!):</strong> Sees <code>15.0 &lt;= 15.0 kg</code> → flips <code>CUTOFF_REACHED = True</code> right now in Scan #48!</li>
+    <li><strong>Now imagine an engineer accidentally numbered <code>CALC1</code> as <code>#3</code> and <code>CND3</code> as <code>#2</code>:</strong> At Scan #48, <code>CND3 (#2)</code> runs <em>before</em> <code>CALC1 (#3)</code> has updated—so <code>CND3</code> sees last scan's stale <code>25.0 kg</code> and stays <code>False</code>! Control Studio warns you visually by drawing the wire between them as a <strong>dashed feedback wire</strong>. Because <code>CND3</code> won't see <code>15.0 kg</code> until Scan #49 (one full second later), an extra <strong>10 kg</strong> of solvent pours into the tank before the valve even starts closing!</li>
+  </ul>
+</div>
+
+<div class="click-box">
+  <div class="box-head"><span class="box-tag tag-click">Control Studio Clicks</span> How to Check Scan Rate, Execution Order &amp; On-Line Mode in Real DeltaV</div>
+  <ol style="margin:3px 0 0;">
+    <li><strong>Check a Module's Scan Rate:</strong> Open the module in Control Studio → click <strong><code>Main → Module → Properties</code></strong> → read the <strong>Scan Rate</strong> field (e.g., <code>1 sec</code> or <code>500 msec</code>).</li>
+    <li><strong>See &amp; Change Block Execution Order:</strong> Look at the small <code>#1</code>, <code>#2</code>, <code>#3</code> badge at the bottom-right corner of every function block in <strong>Diagram View</strong>. To change order (Off-Line), click <strong><code>Edit → Execution Order</code></strong> (or right-click the diagram background → <strong><code>Execution Order</code></strong>) and click blocks in the exact order you want them to solve.</li>
+    <li><strong>Switch Between Blueprint &amp; Live Values:</strong> Click the <strong><code>On-Line</code></strong> toolbar icon (or <strong><code>View → On-Line</code></strong>) to watch live white value boxes and bold non-zero wires update every scan.</li>
+  </ol>
+</div>
+
 <div class="callout danger">
   <div class="callout-title">Real-Plant Engineering Trap: Screen Position Means NOTHING — Watch for Dashed Feedback Wires!</div>
   In Control Studio Function Block Diagrams, placing a block higher or farther left on the screen does <strong>not</strong> make it execute first. DeltaV solves FBD blocks strictly according to the <strong>Execution Order badge (<code>#1</code>, <code>#2</code>, <code>#3</code>)</strong> in the bottom-right corner of each block:
@@ -564,6 +674,14 @@
   </div>
 </div>
 
+<div class="check-box">
+  <div class="box-head"><span class="box-tag tag-check">Chapter 1 Check</span> Pause &amp; Test Yourself Before Moving On</div>
+  <strong>Question:</strong> On an FBD sheet running at a 1-second scan rate, Block A sits on the left and wires rightward into Block B—yet Control Studio draws the wire between them as a <em>dashed</em> line. Why, and what real-plant symptom does it cause?
+  <div class="worked-ans">
+    <strong>Worked Answer:</strong> Screen position means nothing in DeltaV—Block A has a <strong>higher Execution Order number</strong> than Block B (for example, Block A is <code>#4</code> and Block B is <code>#2</code>). Because Block B solves <em>before</em> Block A each scan, Block B reads A's value from the <strong>previous scan</strong> (a 1-second delay). Control Studio marks that 1-scan delay with a dashed feedback wire.
+  </div>
+</div>
+
 <!-- =====================================================================
      CHAPTER 2: 1 OUTER ALGORITHM vs. 4 INNER PATTERNS
      ===================================================================== -->
@@ -571,7 +689,7 @@
 
 <h3>2.1 Clearing Up the Biggest Point of Confusion: Most of an EM Does NOT Step!</h3>
 <p>When engineers first read descriptions of an Equipment Module—<em>"In Step 10 open the valve, in Step 20 trim and close, in Step 30 start the agitator"</em>—it sounds as if the entire Equipment Module is a sequence of SFC steps. <strong>It is not.</strong></p>
-<p>Almost every Equipment Module is built out of <strong>four cooperating functional jobs ("Patterns")</strong>, and <strong>only Pattern 1 steps through time</strong>. Patterns 2, 3, and 4 have zero steps—they run continuously on every single Scan like permanent hardwiring:</p>
+<p><strong>Official DeltaV vs. AI Mental Model:</strong> In <em>Official DeltaV</em>, you choose <strong>1 Algorithm</strong> when creating an EM (Section 2.2). To help you read any unfamiliar EM fast without getting overwhelmed, we use an <em>AI Mental Model</em> that divides the work inside an EM into <strong>4 cooperating jobs ("Patterns")</strong>—and <strong>only Pattern 1 steps through time</strong>. Patterns 2, 3, and 4 have zero steps; they run continuously on every single Scan like permanent hardwiring:</p>
 
 <table>
   <thead>
@@ -605,7 +723,18 @@
   </tbody>
 </table>
 
-<p><strong>Mental Picture:</strong> Think of <strong>Pattern 1</strong> as the orchestra conductor turning pages of sheet music, while <strong>Patterns 2, 3, and 4</strong> are the circuit breakers, mixer board, and speaker cables that stay energized the entire concert.</p>
+<p><strong>Mental Picture (AI Study Aid):</strong> Think of <strong>Pattern 1</strong> as the orchestra conductor turning pages of sheet music, while <strong>Patterns 2, 3, and 4</strong> are the circuit breakers, mixer board, and speaker cables that stay energized the entire concert.</p>
+
+<div class="story-box">
+  <div class="box-head"><span class="box-tag tag-story">Scan-by-Scan Story</span> Why Patterns 2, 3 &amp; 4 MUST Run While Pattern 1 Just Sits Waiting!</div>
+  Suppose <code>EM_TANK_CHARGE</code> has been sitting in <strong>Step <code>S10_CHARGE_OPEN</code></strong> for 20 seconds while solvent fills the tank. Notice what each Pattern is doing during <strong>Second 21</strong>:
+  <ul style="margin:4px 0 0;">
+    <li><strong>Pattern 1 (The SFC) is NOT moving:</strong> It is parked on <code>S10_CHARGE_OPEN</code>, politely waiting for Transition <code>T20_PRECLOSE</code> to turn <code>True</code>.</li>
+    <li><strong>Pattern 3 (Continuous FBD) IS working right now:</strong> Every second, <code>CALC1</code> recalculates <code>Remaining = Target − (Gross − Tare)</code> and hands that fresh number to <code>CND3</code>—otherwise <code>T20_PRECLOSE</code> would <em>never</em> know when to close the valve!</li>
+    <li><strong>Pattern 4 (Continuous FBD) IS working right now:</strong> Watching the valve's physical limit-switch readback (<code>PV</code>) against its command (<code>CAS_SP</code>) so a stuck valve trips an alarm within 10 seconds.</li>
+    <li><strong>Pattern 2 (Continuous FBD) IS working right now:</strong> Watching <code>HI_HI_LVL</code> and scale health (<code>.ST</code>). If the tank's High-High level switch trips at Second 21, <strong>Pattern 2 does NOT wait for Pattern 1 to finish Step 10</strong>—<code>CND2 → ACT1</code> slams the feed valve closed in that exact same scan!</li>
+  </ul>
+</div>
 
 <h3>2.2 "4 Core Algorithms" vs. "4 Patterns" — The House Floor Plan vs. The Rooms Inside</h3>
 <ul>
@@ -1043,12 +1172,38 @@
   </div>
 </div>
 
+<div class="click-box">
+  <div class="box-head"><span class="box-tag tag-click">Control Studio Clicks</span> How to Identify Any Module's Algorithm &amp; Unwired Boxes in 15 Seconds</div>
+  <ol style="margin:3px 0 0;">
+    <li><strong>Check the Outer Algorithm:</strong> In Control Studio's left-hand <strong>Hierarchy View</strong>, look under the module name: do you see <code>COMMAND_00001</code> SFC charts (Command-Driven), a <strong>State Table</strong> / <code>Items × States</code> grid (State-Driven), or only FBD blocks (FBD)? You can also confirm in <strong><code>Main → Module → Properties</code></strong>.</li>
+    <li><strong>Decode Any Unwired Box:</strong> Ensure the bottom pane is visible via <strong><code>View → ☑ Parameter View</code></strong> → click the unwired box on the <strong>Diagram View</strong> → read its <strong><code>Parameter type</code></strong> (<code>Internal Reference</code>, <code>External Reference</code>, <code>Parameter Shortcut</code>, or data type) and check which side the tiny hollow <code>□</code> sits on (Right edge = Input coming IN; Left edge = Output going OUT).</li>
+  </ol>
+</div>
+
+<div class="check-box">
+  <div class="box-head"><span class="box-tag tag-check">Chapter 2 Check</span> Pause &amp; Test Yourself Before Moving On</div>
+  <strong>Question:</strong> You open a Control Module (<code>CM_FEED_XV</code>) in Control Studio and see a rectangular box labeled <code>MODE</code> parked on the left side with <strong>zero wires</strong> connected to it, and its hollow square <code>□</code> sits on the right edge. A coworker says, <em>"Delete it, nothing is wired to it!"</em> Why would deleting it break the plant?
+  <div class="worked-ans">
+    <strong>Worked Answer:</strong> It is an <strong><code>Internal Reference</code></strong> pointing invisibly to <code>DC1/MODE</code> (which has no wireable pin on <code>DC1</code>). Deleting it destroys the module-level front door (<code>CM_FEED_XV/MODE</code>), immediately breaking any <strong>State-Driven EM table</strong> (which only allows module-level paths, <em>7016</em> p. 140), generic <strong>DeltaV Live GEM faceplates</strong>, and module-level Cold Restart restoration!
+  </div>
+</div>
+
 <!-- =====================================================================
      CHAPTER 3: MODES, DUAL-DATA WIRES (.CV + .ST), LATCHING ACTs & PATHS
      ===================================================================== -->
 <h2 class="page-break">Chapter 3: Modes (DC AUTO vs. CAS), Status (&gt;= GOOD), ACT/CND &amp; Syntax</h2>
 
 <h3>3.1 Operating Modes — And the Critical DC Block Rule (AUTO &amp; CAS Only!)</h3>
+<div class="why-box">
+  <div class="box-head"><span class="box-tag tag-why">Why It Exists</span> Plain-English Mental Model: "Who Holds the Steering Wheel Right Now?"</div>
+  Every valve, motor, and controller in a plant needs one unambiguous answer to a single safety question: <strong>who is allowed to command this device right now?</strong> Without operating modes, an operator trying to close a leaking valve on the HMI would get into a tug-of-war with an Equipment Module trying to open it!
+  <br/>In <strong>Official DeltaV</strong>, a block's <strong>Mode</strong> is the traffic cop deciding whose command wins:
+  <strong><code>CAS</code></strong> = follow the upstream automated boss (the EM or primary PID);
+  <strong><code>AUTO</code> / <code>MAN</code></strong> = ignore the upstream boss and obey the human operator;
+  <strong><code>LO</code></strong> = emergency safety shield overrides <em>everyone</em>;
+  <strong><code>OOS</code></strong> = software lockout for maintenance (block stops solving completely).
+  <br/><strong>Why discrete <code>DC</code> blocks don't have <code>MAN</code>:</strong> On an analog valve (<code>PID</code>/<code>AO</code>), there are <em>two</em> ways an operator can run it—type a flow setpoint (<code>AUTO</code>) or type raw % valve opening (<code>MAN</code>). On a simple open/close valve or start/stop motor (<code>DC</code>), there is no % throttling—only a discrete state (<code>OPEN/CLOSE</code> or <code>START/STOP</code>). So DeltaV gives <code>DC</code> blocks just two selectable target modes: <strong><code>AUTO</code> = operator</strong>, and <strong><code>CAS</code> = upstream EM</strong>!
+</div>
 <p>In general across DeltaV function blocks (<em>FBR</em> pp. 30–35), the platform defines eight modes: <code>OOS</code> (Out of Service), <code>IMan</code> (Initialization Manual), <code>LO</code> (Local Override), <code>Man</code> (Manual), <code>Auto</code> (Automatic), <code>Cas</code> (Cascade), <code>RCas</code>, and <code>ROut</code>. (<code>IMan</code> and <code>LO</code> are automatic override states, never selectable targets.) <strong>However, not every block supports <code>MAN</code>!</strong></p>
 
 <div class="callout danger">
@@ -1283,6 +1438,39 @@
   <div class="path-part" style="background:#dcfce7; border-color:#86efac;"><div class="token">CAS</div><div class="desc">Mode Keyword<br/>(OS, MAN, AUTO, CAS, LO)</div></div>
 </div>
 
+<div class="story-box">
+  <div class="box-head"><span class="box-tag tag-story">Scan-by-Scan Story</span> Slow-Motion Replay of the 2:00 AM Auto-Restart Trap (<code>CM_PMP_101</code>)</div>
+  Watch a pump running at 2:00 AM (<code>MODE.ACTUAL = AUTO</code>, <code>SP_D = START</code>, <code>OUT_D = START</code>) when a downstream valve slams shut and drops <code>INTERLOCK_D</code> from <code>1 → 0</code>:
+  <ul style="margin:4px 0 0;">
+    <li><strong>T = 0.0 s (Trip Scan):</strong> <code>DC1</code> sees <code>INTERLOCK_D = 0</code> → immediately drops <code>MODE.ACTUAL</code> to purple <strong><code>LO</code></strong> and forces <code>OUT_D = STOP (Passive)</code>. <strong>Key question:</strong> What happened to <code>SP_D</code> (the stored setpoint inside <code>DC1</code>)?
+      <br/>• If <code>SP Track</code> is <strong>UNCHECKED</strong>, <code>SP_D</code> stays sitting at <strong><code>START</code></strong> like a loaded spring!
+      <br/>• If <code>SP Track</code> is <strong>CHECKED</strong>, <code>DC1</code> copies <code>OUT_D (STOP)</code> right into <code>SP_D</code>, disarming the spring.</li>
+    <li><strong>T = 5 minutes (Interlock Clears: <code>INTERLOCK_D</code> returns <code>0 → 1</code>):</strong>
+      <br/>• <strong>Both Unchecked:</strong> <code>MODE.ACTUAL</code> snaps back to <code>AUTO</code>, sees the loaded spring <code>SP_D = START</code>, and <strong>instantly restarts the pump with zero warning!</strong>
+      <br/>• <strong><code>Reset Required</code> ONLY (no <code>SP Track</code>):</strong> Stays safely in <code>DC_STATE = Locked (LO)</code> until an operator clicks <code>RESET_D</code>—<em>but the instant they click <code>RESET_D</code>, the loaded spring <code>SP_D = START</code> still fires and starts the pump!</em> (<em>FBR</em> p. 421)
+      <br/>• <strong>BOTH Checked (Gold Standard):</strong> Stays <code>Locked (LO)</code> until <code>RESET_D</code> is pulsed, AND when unlocked, <code>SP_D</code> is already <code>STOP</code>—so the pump stays dead stopped until an operator deliberately commands <code>START</code>!</li>
+  </ul>
+</div>
+
+<div class="anatomy-box">
+  <div class="box-head"><span class="box-tag tag-anatomy">Slow-Motion Breakdown</span> Decoding Every Single Symbol in DeltaV Structured Text</div>
+  Never skim past punctuation in a DeltaV expression—every single character has a strict job:
+  <ul style="margin:4px 0 0;">
+    <li><strong>Single quotes <code>'...'</code> around paths &amp; named sets:</strong> Tell DeltaV <em>"this is a parameter address or a Named Set state, not a math variable"</em> (e.g., <code>'//CM_FEED_XV/CAS_SP.CV'</code> and <code>'vlvnc-sp:OPEN'</code>).</li>
+    <li><strong><code>//</code> vs. <code>^/</code> vs. <code>/</code> at the start of a path:</strong> <code>//</code> = jump out to <strong>another module</strong> in the plant (<code>//CM_FEED_XV/...</code>); <code>^/</code> = go <strong>up one level</strong> to this module's own parameters (<code>^/TARGET_WT.CV</code>); <code>/</code> = start at this module's root.</li>
+    <li><strong><code>.CV</code> vs. <code>.ST</code> vs. <code>.TARGET</code> vs. <code>.ACTUAL</code>:</strong> Every DeltaV signal is a two-part package: <code>.CV</code> = the <em>number/state</em>, and <code>.ST</code> = the <em>health score</em> (<code>0..63 = BAD</code>, <code>64..127 = UNC</code>, <code>128..191 = GOOD</code>, <code>192..255 = GoodCascade</code>). For modes, <code>.TARGET</code> = what was <em>requested</em>, and <code>.ACTUAL</code> = what the block is <em>actually doing right now</em>.</li>
+    <li><strong><code>=</code> vs. <code>:=</code> (Huge Difference!):</strong> Single <code>=</code> asks a <strong>Yes/No question</strong> (used in <code>CND</code> blocks and SFC Transitions: <em>"Is mode equal to CAS?"</em>). Colon-equals <code>:=</code> gives a <strong>write command</strong> (used in <code>ACT</code> blocks, <code>CALC</code> blocks, and SFC Actions: <em>"Write OPEN into CAS_SP now!"</em>).</li>
+    <li><strong>Unquoted keywords (<code>CAS</code>, <code>AUTO</code>, <code>OS</code>, <code>GOOD</code>, <code>BAD</code>):</strong> Built-in DeltaV constants—never put quotes around them!</li>
+  </ul>
+</div>
+
+<div class="click-box">
+  <div class="box-head"><span class="box-tag tag-click">Control Studio Clicks</span> How to Inspect <code>DC1</code> Safety Options &amp; Live <code>CND</code> Expressions</div>
+  <ol style="margin:3px 0 0;">
+    <li><strong>Inspect <code>SP Track</code> &amp; <code>Reset Required</code> on a Motor/Valve:</strong> Open the device CM in Control Studio → click <strong><code>DC1</code></strong> in <strong>Diagram View</strong> → scroll the bottom <strong>Parameter View</strong> → double-click <strong><code>DEVICE_OPTS</code></strong> (and check <code>SHUTDOWN_D</code>, <code>INTERLOCK_D</code>, <code>PERMISSIVE_D</code>, <code>TRK_IN_D</code>, and <code>DC_STATE</code> live when On-Line).</li>
+    <li><strong>See Which Sub-Clause of a <code>CND</code> Block Is Blocking You:</strong> Put Control Studio <strong>On-Line</strong> → double-click <strong><code>CND1</code></strong> (or right-click → <strong><code>Edit Expression</code></strong>) to open the live On-Line <strong>Expression</strong> tree showing a green <code>✓</code> or red <code>✗</code> next to every single line!</li>
+  </ol>
+</div>
 <div class="code-box"><span class="cmt">(* Verified DeltaV Structured Text Rules — CONFIG pp. 61–83 &amp; 7016 pp. 37–39 *)</span>
 <span class="cmt">(* 1. Path prefixes: '//MOD/...' external, '/PARAM' module-rel, '^/PARAM' up 1 level, '/+/PARAM' phase-rel *)</span>
 <span class="cmt">(* 2. Named-set constants are SINGLE-QUOTED 'SetName:State', e.g. 'vlvnc-sp:OPEN' *)</span>
@@ -1372,6 +1560,14 @@
   </div>
 </div>
 
+<div class="check-box">
+  <div class="box-head"><span class="box-tag tag-check">Chapter 3 Check</span> Pause &amp; Test Yourself Before Moving On</div>
+  <strong>Question:</strong> Two questions from a live control room: (A) An engineer wrote <code>'//CM_TANK_WT/AI1/OUT.ST' = GOOD</code> inside a permissive—why can that fail on a healthy block? (B) A running motor's <code>PERMISSIVE_D</code> drops from <code>1</code> to <code>0</code>—does the motor trip off?
+  <div class="worked-ans">
+    <strong>Worked Answer:</strong> (A) Healthy cascade status values live in <code>192..255</code> (<code>GoodCascade</code>), which are <em>greater than</em> <code>GOOD</code> (<code>128..191</code>). Always write <strong><code>&gt;= GOOD</code></strong> so both <code>GoodNonCascade</code> and <code>GoodCascade</code> pass! (B) <strong>No!</strong> <code>PERMISSIVE_D</code> is a <strong>start-only</strong> gate (<em>FBR</em> p. 419)—it only forces <code>LO</code> while the device is <em>Passive</em>. Only <code>INTERLOCK_D = 0</code> or <code>SHUTDOWN_D = 1</code> trips an already-running motor.
+  </div>
+</div>
+
 <!-- =====================================================================
      CHAPTER 4: COMPLETE PIN-BY-PIN WALKTHROUGH OF EM_TANK_CHARGE
      ===================================================================== -->
@@ -1432,6 +1628,17 @@
     <text x="142" y="251" fill="#0f172a" font-size="8.2" font-weight="700" font-family="Consolas, monospace">Termination (═╧═) → Sets EM A_PV := 'em_charge:CHARGE'</text>
   </svg>
   <div class="diagram-caption">Figure 4.1: COMMAND_00001 SFC Sheet — Notice [P] (1st scan only), [N] (retains written value after step), and Termination bar.</div>
+</div>
+
+<div class="story-box">
+  <div class="box-head"><span class="box-tag tag-story">Scan-by-Scan Story</span> Walking Through All 4 Steps of <code>COMMAND_00001</code> in Slow Motion</div>
+  Read Figure 4.1 from top to bottom as a real 60-second solvent charge:
+  <ol style="margin:4px 0 0;">
+    <li><strong><code>S0_IDLE</code> (Double-Bordered Initial Step):</strong> The EM sits safely parked here waiting for a charge. On the <em>very first scan</em> (<code>[P]</code> Pulse), it asks the feed valve to go to <code>CAS</code> mode so it will obey the EM. On <em>every scan</em> (<code>[N]</code> Non-stored), it commands the feed valve <code>CLOSE</code> and agitator <code>STOP</code>. Below it sits Transition <code>T10_START_OK</code>, asking: <em>"Is Pattern 2's <code>^/PERM_READY.CV</code> equal to TRUE?"</em></li>
+    <li><strong><code>S10_CHARGE_OPEN</code> (The Active Fill):</strong> The instant <code>T10</code> turns <code>True</code>, the SFC enters <code>S10</code>. On <strong>Scan 1 ONLY (<code>[P]</code>)</strong>, it takes a photograph of the scale weight and locks it into <code>START_WT.CV</code> (the "Golden Tare" — why <code>[P]</code> is mandatory! If it were <code>[N]</code>, <code>START_WT.CV</code> would overwrite itself every scan and net delivered weight would stay <code>0 kg</code> forever!). Meanwhile, <code>[N]</code> writes <code>'vlvnc-sp:OPEN'</code> to <code>CM_FEED_XV/CAS_SP.CV</code>. Now the SFC sits patiently in <code>S10</code> until Pattern 3's <code>CND3</code> flips <code>^/CUTOFF_REACHED.CV = TRUE</code> at <code>T20_PRECLOSE</code>.</li>
+    <li><strong><code>S20_TRIM_CLOSE</code> (Close &amp; Prove Shut):</strong> Writes <code>'vlvnc-sp:CLOSE'</code>. Why doesn't it start the agitator immediately? Because a pneumatic block valve takes 1–3 seconds to stroke shut and splashing liquid needs to settle! Transition <code>T30_SHUT_OK</code> waits until <strong>BOTH</strong> the valve's physical limit switch proves closed (<code>^/VALVE_SHUT_OK.CV = TRUE</code>) <strong>AND</strong> the step's built-in timer reaches 5 seconds (<code>'S20_TRIM_CLOSE/TIME.CV' &gt;= 5</code>).</li>
+    <li><strong><code>S30_AGITATE</code> → Termination (<code>═╧═</code>):</strong> Commands the agitator <code>'mtr2-sp:START'</code> and hits the Termination bar at the bottom. In DeltaV, reaching Termination without error automatically updates standard EM parameter <code>A_PV</code> from <code>Idle</code> to <code>CHARGE</code>—telling the Unit Phase upstairs, <em>"Job done!"</em></li>
+  </ol>
 </div>
 
 <div class="callout">
@@ -1504,6 +1711,15 @@
     <text x="571" y="163" font-size="7.5" font-weight="700" fill="#991b1b" font-family="Consolas, monospace">FAIL_REQ := 1</text>
   </svg>
   <div class="diagram-caption">Figure 4.2: Pattern 2 FBD Sheet — Authentic rectangular parameter boxes, CND (OUT_D only), and ACT (IN_D only).</div>
+</div>
+
+<div class="why-box">
+  <div class="box-head"><span class="box-tag tag-why">Why It Exists</span> Why Pattern 2 Has TWO Separate Strips (Bouncer vs. Emergency Brake)</div>
+  A common beginner mistake is mixing up <strong>Permissives</strong> and <strong>Interlocks</strong>. Look at Figure 4.2—they have two completely different jobs:
+  <ul style="margin:4px 0 0;">
+    <li><strong>Strip A — Pre-Start Permissive (<code>CND1</code> = "The Front-Door Bouncer"):</strong> Checks 4 conditions before a charge is allowed to begin (valve in <code>CAS</code>, target weight &gt; 0, scale status <code>&gt;= GOOD</code>, High-High clear). Its single output pin <code>OUT_D</code> drives <code>^/PERM_READY.CV</code>, which ONLY unlocks Transition <code>T10_START_OK</code>. Once you are already inside <code>S10</code>, <code>T10</code> is behind you!</li>
+    <li><strong>Strip B — Active Interlock Trip (<code>CND2 → ACT1</code> = "The Emergency Brake"):</strong> Because <code>T10</code> is already behind you once solvent is pouring, Strip B watches <code>OUT.ST &lt;= BAD OR HI_HI_LVL = 1</code> on <em>every single scan</em>. The instant a sensor fails mid-charge, <code>CND2/OUT_D</code> turns <code>True</code>, fires <code>ACT1/IN_D</code> in the <strong>same millisecond</strong>, and <code>ACT1</code> directly writes <code>'vlvnc-sp:CLOSE'</code> and <code>FAIL_REQ := 1</code> (sending the Phase to <code>HOLD</code>)—zero waiting on the SFC!</li>
+  </ul>
 </div>
 
 <h3 class="page-break">4.3 Sheet 3 &amp; Sheet 4 — Pattern 3 (XFR + CALC .ST) &amp; Pattern 4 (CAS_SP / PV / TIME_DURATION)</h3>
@@ -1589,6 +1805,31 @@
   <div class="diagram-caption">Figure 4.3: Pattern 3 (XFR1 → CALC1 → CND3) and Pattern 4 (CAS_SP / PV &amp; CND5 TIME_DURATION = 10s).</div>
 </div>
 
+<div class="anatomy-box">
+  <div class="box-head"><span class="box-tag tag-anatomy">Slow-Motion Breakdown</span> Tracing Every Pin in Pattern 3 &amp; Pattern 4 (Figure 4.3)</div>
+  <ul style="margin:3px 0 0;">
+    <li><strong><code>XFR1 (#1)</code> — The 2-Input Target Selector:</strong> <code>IN_1</code> = Local manual weight (<code>250 kg</code>), <code>IN_2</code> = Batch Recipe weight (<code>500 kg</code>), <code>SELECTOR</code> = <code>USE_RECIPE</code> (<code>0 → IN_1</code>, <code>1 → IN_2</code>). Output <code>OUT</code> passes the chosen target weight directly into <code>CALC1/IN1</code>.</li>
+    <li><strong><code>CALC1 (#2)</code> — Net &amp; Remaining Mass + Status Copy:</strong>
+      <br/>• <code>IN1</code> = Target Weight (<code>500 kg</code> from <code>XFR1/OUT</code>)
+      <br/>• <code>IN2</code> = Live Gross Scale Weight (<code>CM_TANK_WT/AI1/OUT</code>, carrying both <code>.CV</code> and <code>.ST</code>)
+      <br/>• <code>IN3</code> = Locked Starting Tare (<code>^/START_WT.CV</code>)
+      <br/>• Math line 1: <code>NET_WT := 'IN2.CV' - 'IN3.CV';</code> (how many kg have actually entered the tank!)
+      <br/>• Math line 2: <code>'OUT1.CV' := 'IN1.CV' - NET_WT;</code> (how many kg are still left to pour!)
+      <br/>• <strong>Safety line 3:</strong> <code>'OUT1.ST' := 'IN2.ST';</code> — Remember Chapter 3! Without this explicit line, <code>CALC1/OUT1.ST</code> would falsely report <code>GOOD</code> even when the scale wire breaks!</li>
+    <li><strong><code>CND3 (#3)</code> — Early Preclose Trigger:</strong> Tests <code>('^/REMAINING_WT.CV' &lt;= '^/PRECLOSE_LEAD.CV') AND ('^/REMAINING_WT.ST' &gt;= GOOD)</code>. When remaining weight drops to <code>15.0 kg</code> or less (and status is healthy!), <code>OUT_D</code> flips <code>True</code> to satisfy SFC Transition <code>T20_PRECLOSE</code>.</li>
+    <li><strong><code>CND4 (#1)</code> &amp; <code>CND5 (#2)</code> in Pattern 4 — Command vs. Physical Proof:</strong> Sending <code>CAS_SP := 'vlvnc-sp:CLOSE'</code> only energizes/de-energizes the solenoid—it does <em>not</em> prove the valve physically moved! <code>CND4</code> checks the real limit switch readback (<code>PV.CV = 'vlvnc-pv:CLOSED'</code>), while <code>CND5</code> uses its built-in <strong><code>TIME_DURATION = 10s</code></strong> parameter so a normal 2-second valve stroke never causes a nuisance alarm, but a valve stuck open for 10 full seconds trips <code>VALVE_MISMATCH_ALM</code>!</li>
+  </ul>
+</div>
+
+<div class="click-box">
+  <div class="box-head"><span class="box-tag tag-click">Control Studio Clicks</span> Inspecting an SFC Step &amp; FBD Math Block in Real Control Studio</div>
+  <ol style="margin:3px 0 0;">
+    <li><strong>Open the SFC Command Chart:</strong> In Control Studio's left-hand <strong>Hierarchy View</strong>, expand the EM → click <strong><code>COMMAND_00001</code></strong> to view its SFC in <strong>Diagram View</strong>.</li>
+    <li><strong>Read a Step's Actions &amp; Qualifiers:</strong> Click any step (e.g., <code>S10_CHARGE_OPEN</code>) to see its <code>[P]</code> and <code>[N]</code> actions in the right-hand <strong>Action View</strong> (or double-click an action to edit/inspect its Structured Text).</li>
+    <li><strong>Inspect <code>CALC1</code> Expressions:</strong> Click the module's main FBD sheet in <strong>Hierarchy View</strong> → double-click <strong><code>CALC1</code></strong> (or right-click → <strong><code>Edit Expression</code></strong>) to confirm whether <code>'OUT1.ST' := 'IN2.ST';</code> is present!</li>
+  </ol>
+</div>
+
 <!-- WORKSHOP 4 -->
 <div class="workshop">
   <div class="workshop-head">
@@ -1612,13 +1853,26 @@
   </div>
 </div>
 
+<div class="check-box">
+  <div class="box-head"><span class="box-tag tag-check">Chapter 4 Check</span> Pause &amp; Test Yourself Before Moving On</div>
+  <strong>Question:</strong> Suppose an engineer accidentally sets the tare line in <code>S10_CHARGE_OPEN</code> to qualifier <strong><code>[N]</code></strong> instead of <strong><code>[P]</code></strong>: <code>[N] '^/START_WT.CV' := '//CM_TANK_WT/AI1/OUT.CV';</code>. What happens during the charge?
+  <div class="worked-ans">
+    <strong>Worked Answer:</strong> <strong>Catastrophic tank overfill!</strong> Because <code>[N]</code> runs on <em>every single scan</em> while <code>S10</code> is active, <code>START_WT.CV</code> continuously chases the rising scale weight (<code>120 → 130 → 200 → 500...</code>). That makes <code>NET_WT = Gross − START_WT = 0.0 kg</code> forever, so <code>REMAINING_WT</code> stays stuck at <code>500.0 kg</code> and <code>T20_PRECLOSE</code> never triggers until the High-High level interlock trips! Always use <code>[P]</code> (Pulse — 1st scan only) for tare snapshots!
+  </div>
+</div>
+
 <!-- =====================================================================
      CHAPTER 5: HOLD, RESTART, ABORT & THE GOLDEN TARE RULE
      ===================================================================== -->
 <h2 class="page-break">Chapter 5: Phase Hold, Restart, Abort &amp; The Golden Tare Math</h2>
 
 <h3>5.1 Where Hold/Restart Live in DeltaV — And How Bad Restart Logic Overfills Tanks</h3>
-<p><strong>Important Architecture Fact (<em>7016</em> pp. 70, 202):</strong> In DeltaV Batch, <strong>Hold, Restart, Stop, and Abort are Unit Phase composite states</strong>—not standard Equipment Module states! A Unit Phase contains separate SFCs for <code>RUN_LOGIC</code>, <code>HOLD_LOGIC</code>, <code>RESTART_LOGIC</code>, <code>STOP_LOGIC</code>, and <code>ABORT_LOGIC</code>, plus <code>FAIL_MONITOR</code> (any non-zero failure automatically sends the Phase to <strong>Holding</strong>). When <code>HOLD_LOGIC</code> pauses or re-commands <code>EM_TANK_CHARGE</code>, your tare math must survive that interruption intact!</p>
+<div class="why-box">
+  <div class="box-head"><span class="box-tag tag-why">Why It Exists</span> Plain-English Mental Model: Why Hold &amp; Restart Live Upstairs in the Unit Phase</div>
+  Think of a real batch plant at 2:00 AM: you are halfway through charging 500 kg of solvent into a reactor when a scale wire comes loose (<code>.ST = BAD</code>) or an operator spots a dripping flange and hits <strong>HOLD</strong>. You do <em>not</em> want to throw away the half-filled batch and start over—you want to <strong>pause safely, fix the problem, and finish only the remaining half!</strong>
+  <br/>In <strong>Official DeltaV</strong> (<em>Course 7016</em> pp. 70, 202), an Equipment Module only knows how to execute commands (<code>A_COMMAND</code>). The <strong>Unit Phase</strong> upstairs owns the ISA-88 batch state machine with separate SFCs for every abnormal path: <code>RUN_LOGIC</code> (normal batch), <code>HOLD_LOGIC</code> (pause safely), <code>RESTART_LOGIC</code> (resume after fault clears), <code>STOP_LOGIC</code> (controlled shutdown), <code>ABORT_LOGIC</code> (emergency stop), and <code>FAIL_MONITOR</code> (continuously watches failure conditions—any non-zero failure automatically sends the Phase to <strong>Holding</strong>!).
+</div>
+<p><strong>Important Architecture Fact (<em>7016</em> pp. 70, 202):</strong> Because <code>HOLD_LOGIC</code> pauses <code>EM_TANK_CHARGE</code> and <code>RESTART_LOGIC</code> resumes it later, your tare math must survive that interruption intact!</p>
 <p>In almost every batch plant, <code>CM_TANK_WT</code> measures <strong>total gross vessel weight</strong> (vessel heel + previous ingredients). If the tank starts with a <code>100.0 kg</code> heel and the recipe adds <code>500.0 kg</code>, stopping at <code>500.0 kg</code> gross would short-charge the batch by 100 kg:</p>
 
 <div class="code-box"><span class="cmt">(* Executed ONCE via [P] Pulse on S10_CHARGE_OPEN — NEVER inside RESTART_LOGIC! *)</span>
@@ -1633,6 +1887,24 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
   <li><strong>Correct DeltaV Design (Tare Preserved):</strong> <code>START_WT.CV</code> stays at <code>100 kg</code>. On Restart, <code>NET_WT = 300 - 100 = 200 kg</code>, so the EM adds only the remaining <code>300 kg</code> and stops cleanly at <strong><code>600 kg</code></strong>.</li>
   <li><strong>Broken Design (Re-Taring During Restart):</strong> Overwrites <code>START_WT.CV := 300 kg</code>! Now <code>NET_WT</code> resets to <code>0 kg</code>, so the EM pumps a <em>brand-new</em> <code>500 kg</code> on top of <code>300 kg</code>—slamming the vessel to <strong><code>800 kg</code> (200 kg overfill!)</strong>.</li>
 </ul>
+
+<div class="story-box">
+  <div class="box-head"><span class="box-tag tag-story">Scan-by-Scan Story</span> Following Every Number Through Workshop 5 (120 kg Heel → Mid-Charge Fault → Safe Restart)</div>
+  Before you click a single button in Workshop 5 below, trace the exact numbers in plain English so you know <em>why</em> every number on the watch card changes:
+  <ol style="margin:4px 0 0;">
+    <li><strong>Before Start (<code>S0_IDLE</code>):</strong> Tank has a <strong><code>120.0 kg</code></strong> heel sitting on the scale. Target addition is <strong><code>500.0 kg</code></strong> net (so final gross weight must be <code>120 + 500 = 620.0 kg</code>).</li>
+    <li><strong>Start Charge (Enter <code>S10_CHARGE_OPEN</code>):</strong> The <code>[P]</code> Pulse action locks <strong><code>START_WT.CV = 120.0 kg [LOCKED]</code></strong> and opens <code>CM_FEED_XV</code>.</li>
+    <li><strong>Mid-Charge (Scale reaches <code>320.0 kg</code>):</strong> Now <code>DELIVERED_WT = 320.0 − 120.0 = 200.0 kg</code> poured so far, and <code>REMAINING_WT = 500.0 − 200.0 = 300.0 kg</code> left to pour.</li>
+    <li><strong>Transmitter Fault (<code>.ST</code> flips <code>GOOD → BAD</code>):</strong> Pattern 2's <code>CND2 (#2)</code> sees <code>OUT.ST &lt;= BAD</code> → fires <code>ACT1 (#3)</code> → immediately writes <code>'vlvnc-sp:CLOSE'</code> and sets <code>FAIL_REQ := 1</code>. The Unit Phase snaps to <strong><code>HELD</code></strong>! <em>Notice:</em> Even though the valve closed, <code>START_WT.CV</code> stayed locked at <strong><code>120.0 kg</code></strong>.</li>
+    <li><strong>Blocked Restart While Fault Still Active:</strong> Clicking <code>Restart</code> while <code>.ST = BAD</code> is blocked by <code>CND1</code> (<code>OUT.ST &gt;= GOOD</code> is False)—preventing you from pumping blind with a broken scale!</li>
+    <li><strong>Fault Cleared (<code>.ST: BAD → GOOD</code>) &amp; Safe Restart:</strong> Now <code>CND1</code> turns True, <code>Restart</code> re-opens <code>CM_FEED_XV</code>, and because <code>START_WT.CV</code> was <strong>never re-tared</strong>, it is still <code>120.0 kg</code>, <code>DELIVERED_WT</code> is still <code>200.0 kg</code>, and <code>REMAINING_WT</code> is still exact at <code>300.0 kg</code>!</li>
+  </ol>
+</div>
+
+<div class="click-box">
+  <div class="box-head"><span class="box-tag tag-click">Control Studio Clicks</span> How to Audit a Plant Phase for the "Re-Tare on Restart" Bug in 10 Seconds</div>
+  In <strong>DeltaV Explorer</strong>, expand <strong><code>Library → Phase Classes</code></strong> (or your Unit's Phase instance) and open the Phase in <strong>Control Studio</strong>. In the left-hand <strong>Hierarchy View</strong>, click <strong><code>RESTART_LOGIC</code></strong> and inspect every step's actions: verify that <strong>NO step inside <code>RESTART_LOGIC</code> overwrites <code>START_WT.CV</code> or resets a flow totalizer to zero!</strong> Initialization belongs strictly inside the initial start step of <code>RUN_LOGIC</code> (or a <code>[P]</code> action guarded by a one-time latch).
+</div>
 
 <table>
   <thead>
@@ -1668,12 +1940,20 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
   </div>
 </div>
 
+<div class="check-box">
+  <div class="box-head"><span class="box-tag tag-check">Chapter 5 Check</span> Pause &amp; Test Yourself Before Moving On</div>
+  <strong>Question:</strong> A tank starts at <code>150 kg</code> heel with a recipe target of <code>400 kg</code> net solvent addition. At <code>350 kg</code> gross, an operator puts the Phase in <code>HOLD</code>, fixes a strainer, and hits <code>RESTART</code>. Unfortunately, the engineer put <code>START_WT.CV := CM_TANK_WT/AI1/OUT.CV</code> inside <code>RESTART_LOGIC</code>. What final gross weight will the tank reach, and by how many kg will it overfill?
+  <div class="worked-ans">
+    <strong>Worked Answer:</strong> The correct final gross weight should be <code>150 + 400 = 550 kg</code>. Because <code>RESTART_LOGIC</code> re-tared <code>START_WT.CV</code> to <code>350 kg</code>, the EM pours a brand-new <code>400 kg</code> on top of <code>350 kg</code>—driving the vessel to <strong><code>750 kg</code> gross</strong> (an overfill of <strong><code>200 kg</code></strong>—the exact amount already delivered before Hold!).
+  </div>
+</div>
+
 <!-- =====================================================================
      CHAPTER 6: SYSTEMATIC 60-SECOND ON-LINE TRIAGE
      ===================================================================== -->
 <h2 class="page-break">Chapter 6: The 60-Second Control Room Triage Playbook</h2>
 
-<p>When an operator calls you over because an Equipment Module or Phase is stuck mid-batch, follow this exact four-checkpoint discipline instead of clicking around randomly:</p>
+<p><strong>AI Mental Model Built on Official Control Studio Tools:</strong> When an operator calls you over because an Equipment Module or Phase is stuck mid-batch, follow this exact five-checkpoint discipline instead of clicking around randomly:</p>
 <ol>
   <li><strong>Checkpoint 1 — Pattern 1 Active Step &amp; Transition Drill-Down:</strong> Open the SFC first. Identify the green-bordered active step, check its elapsed seconds, and open the <code>False</code> transition's On-Line <strong>Expression tree</strong> (green <code>✓</code> vs. red <code>✗</code>, <em>CONFIG</em> p. 371) right below it.</li>
   <li><strong>Checkpoint 2 — Active Interlocks &amp; Mode Overrides (Pattern 2 &amp; DC1):</strong> Check <code>CND2 / ACT1</code> for Bad status (<code>.ST &lt;= BAD</code>, Red <code>✕</code>) or process trips, and check whether <code>DC1/MODE.ACTUAL</code> dropped out of <code>CAS</code> into <code>AUTO</code> (operator) or <code>LO</code> (local interlock override).</li>
@@ -1681,6 +1961,26 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
   <li><strong>Checkpoint 4 — Analog Value Movement &amp; CALC Status (Pattern 3):</strong> Confirm sensor <code>.CV</code> is moving physically and check <code>AI1/OUT.ST</code> directly (remember a <code>CALC</code> block won't show Red <code>✕</code> unless the author coded <code>'OUT1.ST' := 'IN2.ST'</code>!). On analog PID loops (Ch. 8–9), if <code>PID/MODE.ACTUAL = IMan</code>, follow the gray dotted <code>BKCAL_IN</code> wire <em>downstream</em> to find which <code>AO</code> or Slave <code>PID</code> left <code>CAS</code>!</li>
   <li><strong>Checkpoint 5 — Real-Plant PCSD Fast-Track (Ch. 11):</strong> If you open a 32-device PCSD EM (<code>_EM_CMD32_140</code>), ignore greyed-out <code>&lt;Ignored&gt;</code> device stubs and disabled commands, jump straight past boilerplate <code>S0000–S0020</code> to <strong><code>S0100</code></strong> for the real process logic, and check <strong><code>MONITOR</code></strong> to see whether a trip came from <code>SENTINEL_MONITOR</code> (a failed device) or <code>HOLD_MONITOR</code> (a process condition like a timer timeout)!</li>
 </ol>
+
+<div class="story-box">
+  <div class="box-head"><span class="box-tag tag-story">Scan-by-Scan Story</span> A Real 45-Second 2:00 AM Call: "Tank Charge Has Been Stuck in Step 20 for 2 Minutes!"</div>
+  Watch how the 5 Checkpoints find the exact root cause in under a minute without guessing:
+  <ul style="margin:4px 0 0;">
+    <li><strong>Second 0–10 (Checkpoint 1 — Pattern 1 SFC):</strong> Open <code>EM_TANK_CHARGE</code> On-Line → click <code>COMMAND_00001</code>. Green border is on <strong><code>S20_TRIM_CLOSE</code></strong> (elapsed timer reads <code>124 s</code>!). Double-click transition <strong><code>T30_SHUT_OK</code></strong> right below it: <code>'S20_TRIM_CLOSE/TIME.CV' &gt;= 5</code> has a green <code>✓</code>, but <strong><code>'^/VALVE_SHUT_OK.CV' = TRUE</code> has a red <code>✗</code>!</strong></li>
+    <li><strong>Second 10–25 (Checkpoint 3 — Pattern 4 Command vs. Proof):</strong> Jump to the FBD sheet and find what drives <code>VALVE_SHUT_OK</code> → it's <code>CND4</code> checking <code>CM_FEED_XV/PV.CV = 'vlvnc-pv:CLOSED'</code>. Compare outbound vs. inbound: <code>CM_FEED_XV/CAS_SP.CV</code> reads <strong><code>CLOSE</code></strong>, yet <code>CM_FEED_XV/PV.CV</code> still reads <strong><code>OPEN</code></strong>!</li>
+    <li><strong>Second 25–45 (Checkpoint 2 — Open the Child CM <code>CM_FEED_XV</code>):</strong> Open <code>CM_FEED_XV</code> On-Line and look at <code>DC1</code>:
+      <br/>• If <code>DC1/MODE.ACTUAL = AUTO</code> → an operator took the valve to <code>AUTO</code> and left it open! (Software fix: switch <code>DC1</code> back to <code>CAS</code>.)
+      <br/>• If <code>DC1/MODE.ACTUAL = CAS</code> and <strong><code>DC1/FAIL_ACTIVE = True</code></strong> → DeltaV <em>did</em> command the valve closed, and the field limit switch never confirmed! (Field fix: send an operator/instrument tech to check air supply or a jammed valve stem!)</li>
+  </ul>
+</div>
+
+<div class="click-box">
+  <div class="box-head"><span class="box-tag tag-click">Control Studio Clicks</span> The Exact 4-Click Triage Sequence in Live Control Studio</div>
+  <strong>Click 1:</strong> Open the stuck EM and click the <strong><code>On-Line</code></strong> toolbar icon. &nbsp;
+  <strong>Click 2:</strong> In <strong>Hierarchy View</strong>, click the active SFC (e.g., <code>COMMAND_00001</code>) and double-click the <code>False</code> transition directly below the green-bordered step to see its green <code>✓</code> / red <code>✗</code> tree. &nbsp;
+  <strong>Click 3:</strong> Click the module's FBD sheet in <strong>Hierarchy View</strong> to check <code>CND</code>/<code>ACT</code> blocks and <code>.ST</code> Red <code>✕</code> icons. &nbsp;
+  <strong>Click 4:</strong> Open the blamed child CM (<code>CM_FEED_XV</code>) in Control Studio On-Line → click <code>DC1</code> → inspect <code>MODE.ACTUAL</code>, <code>CAS_IN_D</code>, <code>PV_D</code>, and <code>FAIL_ACTIVE</code> in <strong>Parameter View</strong>!
+</div>
 
 <!-- WORKSHOP 6 -->
 <div class="workshop">
@@ -1710,6 +2010,14 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
   </div>
 </div>
 
+<div class="check-box">
+  <div class="box-head"><span class="box-tag tag-check">Chapter 6 Check</span> Pause &amp; Test Yourself Before Moving On</div>
+  <strong>Question:</strong> On a stuck step, you see <code>CM_FEED_XV/CAS_SP.CV = CLOSE</code> and <code>CM_FEED_XV/PV.CV = OPEN</code>. You open <code>CM_FEED_XV</code> and see <code>DC1/MODE.ACTUAL = AUTO</code> and <code>DC1/FAIL_ACTIVE = False</code>. Is the valve physically jammed in the field, or is something else happening?
+  <div class="worked-ans">
+    <strong>Worked Answer:</strong> <strong>Not jammed — operator mode!</strong> Because <code>DC1</code> is in <strong><code>AUTO</code></strong>, it is ignoring the EM's <code>CAS_IN_D = CLOSE</code> command and happily obeying the operator's <code>SP_D = OPEN</code> (which matches <code>PV_D = OPEN</code>, so <code>FAIL_ACTIVE</code> stays <code>False</code>!). Returning <code>DC1</code> to <code>CAS</code> lets the EM close the valve immediately.
+  </div>
+</div>
+
 <!-- =====================================================================
      CHAPTER 7: STATE-DRIVEN EQUIPMENT MODULES (EM_XFER_HDR)
      ===================================================================== -->
@@ -1721,6 +2029,11 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
 </div>
 
 <h3>7.1 How a Real State-Driven EM Is Configured in Control Studio (Items × States Table)</h3>
+<div class="why-box">
+  <div class="box-head"><span class="box-tag tag-why">Why It Exists</span> Plain-English Intuition: Why Build a Spreadsheet Instead of an SFC?</div>
+  Think about a pipe manifold that routes solvent to either Tank A, Tank B, or the CIP drain using 3 valves and 1 pump. There is <em>no</em> multi-minute sequence of timed steps—you simply want all devices to snap into one clean lineup (<code>ROUTE_TANK_A</code> = XV101 Open, XV102 Closed, XV103 Closed, Pump Running) and tell the Phase upstairs <em>"lineup confirmed!"</em> once every limit switch agrees.
+  <br/>If you built that with SFCs, you would write 4 separate SFC charts plus dozens of readback <code>CND</code> blocks. <strong>Official DeltaV's State-Driven EM</strong> turns the entire job into <strong>one spreadsheet (<code>Items × States</code>)</strong>: pick a column via <code>A_COMMAND</code>, DeltaV automatically writes every checked row in that column, checks every row's Readback path for you, and flips <code>A_PV</code> from <code>Idle</code> to that state name the instant every device confirms!
+</div>
 <p>Consider a solvent transfer header (<code>EM_XFER_HDR</code>) sitting upstream of Tank A and Tank B with four child Control Modules: <code>CM_HDR_XV101</code> (Tank A inlet valve), <code>CM_HDR_XV102</code> (Tank B inlet valve), <code>CM_HDR_XV103</code> (CIP drain valve), and <code>CM_XFER_PMP</code> (transfer pump), plus line pressure transmitter <code>CM_HDR_PT</code>.</p>
 <p>Verified directly from Emerson Course <em>7016</em> (p. 140) and <em>7009</em> (pp. 437, 462): <strong>both Command-Driven and State-Driven EMs are driven by <code>A_COMMAND</code></strong> (a Named Set with a mandatory <code>255 = Idle</code> entry), <strong><code>A_TARGET</code></strong>, and <strong><code>A_PV</code></strong>. When you open a State-Driven EM in Control Studio, there are <strong>no SFC charts</strong>—instead, you configure an <strong><code>Items | States</code> table</strong> using module-level Write and Readback paths:</p>
 
@@ -1796,6 +2109,21 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
     <text x="610" y="121" font-size="7.3" font-weight="700" fill="#991b1b" font-family="Consolas, monospace">A_COMMAND</text>
   </svg>
   <div class="diagram-caption">Figure 7.1: EM_XFER_HDR Custom FBD Safety Sheet — Anti-cross-mix pump gate (#1 → #2) and overpressure override (#3 → #4).</div>
+</div>
+
+<div class="story-box">
+  <div class="box-head"><span class="box-tag tag-story">Scan-by-Scan Story</span> What Happens When Tank B's Valve Jams Open During a Tank A Transfer?</div>
+  Suppose <code>EM_XFER_HDR</code> is actively pumping solvent into Tank A (<code>A_COMMAND = ROUTE_TANK_A</code>, <code>A_PV = ROUTE_TANK_A</code>). Suddenly, Tank B's inlet valve (<code>CM_HDR_XV102</code>) leaks open and its limit switch flips to <code>OPEN</code>:
+  <ul style="margin:4px 0 0;">
+    <li><strong>In the State Table (Native DeltaV):</strong> Row <code>XV102_SP</code> expects Readback <code>PV.CV = CLOSED</code>, but sees <code>OPEN</code>! Because not all rows match anymore, <strong><code>A_PV</code> immediately drops from <code>ROUTE_TANK_A</code> to <code>Idle (255)</code></strong>—instantly alerting the Phase upstairs that alignment is broken.</li>
+    <li><strong>On the Custom FBD Sheet (Same Scan!):</strong> <code>CND_PATH_OK (#1)</code> turns <code>False</code> → <code>ACT_PMP_GATE (#2)</code> stops writing <code>START</code> and forces <code>CM_XFER_PMP/CAS_SP.CV := 'mtr2-sp:STOP'</code> so you never cross-contaminate Tank B!</li>
+    <li><strong>8 Seconds Later:</strong> <code>CND_ALIGN_ALM</code> (with <code>TIME_DURATION = 8s</code>) sees <code>A_PV != A_COMMAND</code> for 8 continuous seconds and fires <code>ALIGN_ALM = True</code>!</li>
+  </ul>
+</div>
+
+<div class="click-box">
+  <div class="box-head"><span class="box-tag tag-click">Control Studio Clicks</span> Navigating a State-Driven EM in Real Control Studio (<em>Course 7016</em> p. 140)</div>
+  Open the State-Driven EM in <strong>Control Studio</strong> → look in <strong>Hierarchy View</strong>: instead of <code>COMMAND_00001</code> SFC charts, you see the <strong>State Table</strong> (clicking it opens the <strong>Items Area</strong> on the left listing Write/Readback module-level paths, and the <strong>State Values Table</strong> on the right listing each Named Set column) plus the module's normal <strong>Diagram View (FBD sheet)</strong> where custom Pattern 2 watchdogs and interlocks live.
 </div>
 
 <!-- WORKSHOP 7 -->
@@ -1963,6 +2291,14 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
   </div>
 </div>
 
+<div class="check-box">
+  <div class="box-head"><span class="box-tag tag-check">Chapter 7 Check</span> Pause &amp; Test Yourself Before Moving On</div>
+  <strong>Question:</strong> In <code>EM_2STAGE_VLV</code>, why does the <code>Auto Mode (4)</code> column write <code>= Auto/</code> to <code>BULK_MODE</code> and <code>DRIBBLE_MODE</code> while leaving <code>BULK_CMD</code> and <code>DRIBBLE_CMD</code> as <strong><code>(not written)</code></strong>?
+  <div class="worked-ans">
+    <strong>Worked Answer:</strong> Leaving a State Table cell unchecked (<code>(not written)</code>) tells DeltaV <strong>neither to write a new setpoint nor to require a readback match on that row</strong>. That lets the EM hand both valves back to operator control (<code>AUTO</code>) <em>without</em> slamming an open dribble valve shut—and still confirm <code>A_PV = Auto Mode</code>!
+  </div>
+</div>
+
 <div class="callout">
   <div class="callout-title">7.5 Honesty Note: What the Emerson Manuals Verify vs. Plant-Observed PCSD Internals</div>
   Every core DeltaV rule taught above is verified in our 12 official Emerson PDFs (see <code>DELTAV_VERIFIED_FACTS.md</code>). For total transparency, four minor details are <em>not</em> specified in those generic manuals: (1) the generic Course 7009 docs list an optional <code>MONITOR</code> item inside a Command-Driven EM without detailing its internals—however, on live PCSD plant modules like <code>3WT-0001-NEUT</code> (see <strong>Chapter 11</strong>), we verified directly that <code>MONITOR</code> houses <code>SENTINEL_MONITOR</code>, <code>HOLD_MONITOR</code>, <code>FAIL_EXPRESSION</code>, <code>CANCEL_WAIT</code>, and <code>OAR</code>; (2) exact On-Line watch string formatting for <code>MODE</code> (the state table displays <code>= Cascade/</code>); (3) the undocumented rule governing when the tiny calculator icon appears next to an active SFC transition; and (4) minor color/font differences across DeltaV versions.
@@ -2030,6 +2366,21 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
   <div class="diagram-caption">Figure 8.1: Standard Analog Loop (FIC_101) — Notice why AO1/BKCAL_OUT → PID1/BKCAL_IN is drawn as a gray dotted feedback wire in real DeltaV: AO1 (#3) executes AFTER PID1 (#2), so back-calculation arrives on the next scan!</div>
 </div>
 
+<div class="why-box">
+  <div class="box-head"><span class="box-tag tag-why">Why It Exists</span> Plain-English Job of Each Block in <code>AI1 → PID1 → AO1</code></div>
+  Never let analog acronyms intimidate you—every standard regulatory loop is just three plain-English jobs wired left-to-right:
+  <ul style="margin:3px 0 0;">
+    <li><strong><code>AI1 (#1)</code> — The Translator Coming IN:</strong> Reads the raw 4–20 mA field signal from the flow transmitter, scales it into human units (<code>0–150 gpm</code>), smooths noisy bounce (<code>PV_FTIME = 1.5s</code>), and stamps health status (<code>.ST</code>).</li>
+    <li><strong><code>PID1 (#2)</code> — The Automatic Cruise Control:</strong> Compares what flow you <em>want</em> (<code>SP = 80 gpm</code>) against what flow you <em>have</em> (<code>PV = 75 gpm</code>), and calculates a valve opening command (<code>OUT = 57%</code>). <em>Reverse-Acting</em> means "if PV drops below SP, drive OUT higher to open the valve."</li>
+    <li><strong><code>AO1 (#3)</code> — The Translator Going OUT:</strong> Receives <code>57%</code> on <code>CAS_IN</code> and converts it into a 4–20 mA signal to position the physical control valve—while sending status &amp; actual valve position <em>backwards</em> on <code>BKCAL_OUT</code>!</li>
+  </ul>
+</div>
+
+<div class="click-box">
+  <div class="box-head"><span class="box-tag tag-click">Control Studio Clicks</span> Inspecting a Live PID Loop in Control Studio</div>
+  Open <code>FIC_101</code> in <strong>Control Studio On-Line</strong> → click <strong><code>PID1</code></strong> in <strong>Diagram View</strong> → scroll the bottom <strong>Parameter View</strong> to inspect <code>MODE</code> (Target vs. Actual), <code>SP</code>, <code>PV</code>, <code>OUT</code>, <code>BKCAL_IN</code>, and double-click <strong><code>CONTROL_OPTS</code></strong> or <strong><code>STATUS_OPTS</code></strong> (note: changing option checkboxes requires setting <code>PID1</code> to <strong><code>OOS</code></strong> first!).
+</div>
+
 <div class="callout">
   <div class="callout-title">Real-Plant Analog Loop Internals &amp; Field Traps (<em>PID Ref</em> pp. 2–3 • <em>Getting Started 2022</em> p. 62 • <em>Users Exchange Tips</em> pp. 17, 50–52)</div>
   <ul style="margin:2px 0 0;">
@@ -2080,6 +2431,16 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
   <li><strong><code>Bad: Out of Service</code>:</strong> <code>AO1</code> is in <code>OOS</code> or faulted → <code>PID1</code> holds in <code>IMan</code> until the downstream block is healthy again.</li>
 </ol>
 
+<div class="story-box">
+  <div class="box-head"><span class="box-tag tag-story">Scan-by-Scan Story</span> Watching <code>BKCAL</code> Prevent a Violent Valve Bump When an Operator Switches <code>AO1</code></div>
+  Suppose <code>FIC_101</code> is smoothly controlling flow at <code>80 gpm</code> with the valve at <code>57%</code>:
+  <ol style="margin:3px 0 0;">
+    <li><strong>Operator switches <code>AO1</code> to <code>MAN</code> and closes the valve to <code>42%</code>:</strong> On the very next scan, <code>AO1/BKCAL_OUT</code> sends <code>42% + GoodCascade: Not Invited</code> backwards along the gray dotted wire into <code>PID1/BKCAL_IN</code>.</li>
+    <li><strong><code>PID1</code> immediately drops to <code>IMan</code>:</strong> Even though the operator never touched <code>PID1</code> (its Target is still <code>AUTO</code>!), <code>PID1</code> automatically sets <code>PID1/OUT := 42%</code> and stops integrating.</li>
+    <li><strong>5 minutes later, operator returns <code>AO1</code> to <code>CAS</code>:</strong> <code>AO1/BKCAL_OUT</code> flips to <code>Non-Limited</code>. Because <code>PID1/OUT</code> was already silently tracking at <code>42%</code>, <code>PID1</code> wakes back up in <code>AUTO</code> starting from <strong><code>42.0%</code></strong>—zero sudden jump, zero water hammer!</li>
+  </ol>
+</div>
+
 <!-- WORKSHOP 9 -->
 <div class="workshop">
   <div class="workshop-head">
@@ -2103,12 +2464,25 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
   </div>
 </div>
 
+<div class="check-box">
+  <div class="box-head"><span class="box-tag tag-check">Chapter 8 Check</span> Pause &amp; Test Yourself Before Moving On</div>
+  <strong>Question:</strong> You open a flow loop (<code>FIC_101</code>) On-Line and see <code>PID1/MODE.TARGET = AUTO</code>, but <code>PID1/MODE.ACTUAL = IMan</code>. Where do you look first—upstream at <code>AI1</code> or downstream at <code>AO1</code>?
+  <div class="worked-ans">
+    <strong>Worked Answer:</strong> <strong>Downstream at <code>AO1</code>!</strong> An upstream <code>AI1</code> fault sheds a PID to <strong><code>MAN</code></strong> (not <code>IMan</code>). <strong><code>IMan</code></strong> almost always means the gray dotted <code>BKCAL_IN</code> wire is receiving <code>Not Invited</code> or <code>Bad</code> from downstream—meaning <code>AO1</code> (or a Slave <code>PID</code>) is in <code>MAN</code>, <code>AUTO</code>, or <code>OOS</code> instead of <code>CAS</code>!
+  </div>
+</div>
+
 <!-- =====================================================================
      CHAPTER 9: CASCADE CONTROL & CTLSL OVERRIDE CONTROL
      ===================================================================== -->
 <h2 class="page-break">Chapter 9: Cascade Control &amp; <code>CTLSL</code> Override Control (<code>CASCADE_201</code>)</h2>
 
 <h3>9.1 Master → Slave Cascade &amp; The Double <code>BKCAL</code> Chain (<code>TIC_201 → FIC_201 → AO_VLV</code>)</h3>
+<div class="why-box">
+  <div class="box-head"><span class="box-tag tag-why">Why It Exists</span> Plain-English Intuition: Why Use TWO PIDs When One Valve Controls the Steam?</div>
+  Imagine adjusting a hot shower while someone flushes a toilet downstairs—the water pressure suddenly drops! If you only stared at a slow thermometer inside a giant reactor (which takes 5 minutes to drop 1 °C), the reactor would already be ruined before a single Temperature PID realized steam pressure had sagged.
+  <br/>Putting a <strong>fast Slave Flow PID (<code>PID_FIC</code>)</strong> directly on the steam line solves this: the slow <strong>Master Temperature PID (<code>PID_TIC</code>)</strong> simply tells the Slave, <em>"Give me 74 gpm of steam!"</em> If steam header pressure suddenly dips, the fast Slave Flow PID sees flow drop from 74 to 62 gpm in <strong>1 second</strong> and opens the valve right away—before the reactor temperature ever moves by 0.1 °C!
+</div>
 <p>In a reactor or heat exchanger, temperature changes slowly (minutes), while steam header pressure can fluctuate in seconds. Rather than letting the slow Temperature PID directly wrestle the steam valve, engineers nest a <strong>fast Slave Flow PID (<code>PID_FIC</code>)</strong> inside a <strong>slow Master Temperature PID (<code>PID_TIC</code>)</strong>:</p>
 <ul>
   <li><strong>Forward Path (Left → Right):</strong> Master <code>PID_TIC (#2, AUTO)</code> outputs a desired <em>Steam Flow Setpoint (gpm)</em> into Slave <code>PID_FIC (#3, CAS)/CAS_IN</code>, which drives <code>AO_VLV (#4, CAS)/CAS_IN</code>. If steam supply pressure suddenly dips, the fast Slave <code>FIC</code> opens the valve in 2 seconds before reactor temperature ever budges!</li>
@@ -2164,6 +2538,15 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
   <li><strong>2:00 AM Plant Gotcha (<em>FBR</em> p. 187):</strong> <code>CTLSL</code> supports 4 modes (<code>OOS</code>, <code>IMan</code>, <code>Man</code>, <code>Auto</code>). <strong>If ANY connected <code>SEL_1</code>, <code>SEL_2</code>, or <code>SEL_3</code> input goes <code>Bad</code> while <code>CTLSL</code> is in <code>Auto</code>, <code>CTLSL</code> automatically sheds its actual mode to <code>Man</code></strong> (holding the valve steady until the sensor recovers, when it resumes <code>Auto</code>)!</li>
 </ul>
 
+<div class="story-box">
+  <div class="box-head"><span class="box-tag tag-story">Scan-by-Scan Story</span> Watching <code>CTLSL1</code> Hand the Valve From Flow Control to High-Pressure Protection</div>
+  Picture a pump happily delivering flow (<code>PID_FLOW</code> wants <code>72%</code> valve; discharge pressure is safe at <code>6.5 bar</code>, well below the <code>8.5 bar</code> limit):
+  <ol style="margin:3px 0 0;">
+    <li><strong>Normal Operation (<code>6.5 bar</code>):</strong> Because pressure is safe, <code>PID_HI_PRESS</code> would happily open the valve to <code>100%</code>—but <code>CTLSL1</code> is set to <strong><code>LOW</code>-select</strong>, so <code>PID_FLOW (72%)</code> wins! Crucially, <code>CTLSL1</code> sends <code>72% + LimHigh</code> backwards on <code>BKCAL_SEL2</code> so <code>PID_HI_PRESS</code> stays parked right near <code>72%</code> instead of winding up to <code>+500%</code>.</li>
+    <li><strong>Downstream Filter Plugs (Pressure climbs past <code>8.5 bar</code> → <code>9.5 bar</code>):</strong> Because <code>PID_HI_PRESS</code> wasn't wound up, it drops below <code>72%</code> (say to <code>43%</code>) immediately! On that exact scan, <code>CTLSL1</code> picks the lower value (<code>43%</code>) and pinches the valve back to save the pipe—while instantly sending <code>43% + LimHigh</code> backwards on <code>BKCAL_SEL1</code> to freeze <code>PID_FLOW</code>!</li>
+  </ol>
+</div>
+
 <!-- WORKSHOP 10 -->
 <div class="workshop">
   <div class="workshop-head">
@@ -2184,6 +2567,14 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
     <div class="workshop-takeaway">
       <strong>What You Are Supposed to Learn From This Workshop:</strong> Always trace gray dotted <code>BKCAL</code> wires <em>upstream</em> to understand why a Master PID is in <code>IMan</code>—and on any multi-PID override loop, look for <code>CTLSL</code>'s individual <code>BKCAL_SEL1..3</code> wires keeping every standby controller windup-free!
     </div>
+  </div>
+</div>
+
+<div class="check-box">
+  <div class="box-head"><span class="box-tag tag-check">Chapter 9 Check</span> Pause &amp; Test Yourself Before Moving On</div>
+  <strong>Question:</strong> Why can't you just use a <code>CALC</code> block with <code>OUT1 := MIN(IN1, IN2);</code> instead of DeltaV's <code>CTLSL</code> block to select between a Flow PID and a High-Pressure Override PID?
+  <div class="worked-ans">
+    <strong>Worked Answer:</strong> A <code>CALC</code> block has <strong>zero <code>BKCAL_SEL</code> back-calculation outputs!</strong> Without <code>BKCAL_SEL1</code> and <code>BKCAL_SEL2</code> clamping the non-selected PID, the standby Pressure PID would wind its integral all the way up to 100%+ while Flow is winning—so when pressure finally spikes above 8.5 bar, the Pressure PID would be too wound up to take over in time, risking a burst pipe!
   </div>
 </div>
 
@@ -2224,6 +2615,14 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
 <div class="callout warn">
   <div class="callout-title">Real-Plant Split-Range Trap: Why <code>TRK_VAL</code> Is Sometimes <code>50%</code> (NOT <code>0%</code>!)</div>
   On a normal single-valve loop (like <code>FIC_101</code>), <code>TRK_VAL = 0.0%</code> shuts the valve. On a <strong>split-range Acid/Base pH loop</strong> (like your real plant <code>3WT-0001-AIC002</code> in Chapter 11!), <code>OUT = 50%</code> is the dead-center off-point (Base <code>OUT1 = 0%</code>, Acid <code>OUT2 = 0%</code>), while <code>0%</code> drives 100% Acid and <code>100%</code> drives 100% Base! Always verify <code>_TRK_VAL = 50</code> on split-range PIDs—tracking to <code>0%</code> on a shutdown would dump full-speed Acid into the tank!
+</div>
+
+<div class="click-box">
+  <div class="box-head"><span class="box-tag tag-click">Control Studio Clicks</span> Inspecting Tracking Options &amp; Stepping Inside Composite Blocks</div>
+  <ol style="margin:3px 0 0;">
+    <li><strong>Verify PID Tracking Safety:</strong> Click <strong><code>PID1</code></strong> in <strong>Diagram View</strong> → scroll bottom <strong>Parameter View</strong> → double-click <strong><code>CONTROL_OPTS</code></strong> and check <strong><code>Track Enable</code></strong> (required for <code>TRK_IN_D</code> to work!) and <strong><code>Track in Manual</code></strong> (required if the safety trip must override an operator in <code>MAN</code>!). Also verify <strong><code>TRK_VAL</code></strong> (<code>0%</code> for single valve; <code>50%</code> for split-range Acid/Base!).</li>
+    <li><strong>Open a Composite Block Live:</strong> In <strong>Diagram View</strong>, right-click the Composite block and click <strong><code>Drill Down</code></strong> (or double-click it, or click the <code>+</code> next to it in <strong>Hierarchy View</strong>) to see its inner FBD/SFC running live On-Line!</li>
+  </ol>
 </div>
 
 <h3>10.2 Choosing the Right Selector Block: <code>XFR</code> vs. <code>ISEL</code> vs. <code>CTLSL</code></h3>
@@ -2276,6 +2675,14 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
   </div>
 </div>
 
+<div class="check-box">
+  <div class="box-head"><span class="box-tag tag-check">Chapter 10 Check</span> Pause &amp; Test Yourself Before Moving On</div>
+  <strong>Question:</strong> Match each plant job to the exact DeltaV selector block (<code>XFR</code>, <code>ISEL</code>, or <code>CTLSL</code>): (A) Choosing the middle reading of 3 redundant reactor temperature probes while ignoring any Bad sensor; (B) Switching smoothly between Recipe SP and Local SP with a Boolean flag; (C) Letting a High-Pressure PID override a Flow PID without windup.
+  <div class="worked-ans">
+    <strong>Worked Answer:</strong> (A) <strong><code>ISEL</code></strong> (<code>SELECT_TYPE = MID</code>, auto-ignores Bad sensors!); (B) <strong><code>XFR</code></strong> (2 analog inputs + Boolean <code>SELECTOR</code> + <code>BAL_TIME</code> ramp); (C) <strong><code>CTLSL</code></strong> (built-in <code>BKCAL_SEL1..3</code> anti-windup feedback wires!).
+  </div>
+</div>
+
 <!-- =====================================================================
      CHAPTER 11: REAL-PLANT PCSD CASE STUDY (3WT-0001-NEUT)
      ===================================================================== -->
@@ -2283,6 +2690,10 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
 <p>When you walk up to a real plant workstation and open <strong><code>N1EAST/BUFFER_PREP/PW_NEUT/3WT-0001-NEUT</code></strong> (Process Waste Neutralization, controller <code>3N1-CTR-03</code>), it can look overwhelming at first glance: 56 objects, 32 device blocks, 40 tuning parameters, 11 commands, and <strong>zero wires on the Main FBD Diagram!</strong> Once you learn the two secrets of Emerson's standard <strong>PCSD 32-Device Command-Driven EM template (<code>_EM_CMD32_140</code>)</strong>, the entire module snaps into crisp focus in under 30 seconds.</p>
 
 <h3>11.1 Secret #1: Mentally Delete the Unused PCSD Template Clutter!</h3>
+<div class="why-box">
+  <div class="box-head"><span class="box-tag tag-why">Why It Exists</span> Why Real Plants Stamp Out 32-Device Templates Instead of Building From Scratch</div>
+  When you open a real PCSD module like <code>3WT-0001-NEUT</code>, it feels overwhelming because 32 device blocks, 11 commands, 8 timers, and 60 parameters appear on day one—even when the process only uses 19 devices and 1 timer! Plants do this so <strong>every single EM across the entire site shares one identical skeleton</strong> (same <code>ACQ_REL</code> arbitration, same <code>MONITOR</code> fail-handling, same <code>S0000→S0020→S0100→S9900</code> SFC structure). Once you know how to ignore the unbound <code>&lt;Ignored&gt;</code> stubs, you can read <em>any</em> PCSD module in the plant in seconds!
+</div>
 <p>Real plants rarely build EMs from scratch—they instantiate a reusable 32-device library shell (<code>_EM_CMD32_140</code>) and simply leave the extra slots blank or <code>&lt;Ignored&gt;</code>. Look how small <code>3WT-0001-NEUT</code> actually becomes once you separate <strong>Active Plant Logic</strong> from <strong>Empty Template Stubs</strong>:</p>
 
 <table>
@@ -2416,6 +2827,16 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
   <div class="diagram-caption">Figure 11.1: Your Real Plant 3WT-0001-NEUT Process Map — All 19 bound shared devices, 8 active tuning parameters, 3 CND blocks, 90-minute TMR1, and MONITOR watchdog distilled onto one clean sheet.</div>
 </div>
 
+<div class="story-box">
+  <div class="box-head"><span class="box-tag tag-story">Scan-by-Scan Story</span> One Complete Wastewater Cycle Through <code>3WT-0001-NEUT</code> in Plain English</div>
+  Ignore the 56 objects for 30 seconds and follow one real batch of acidic plant wastewater from left to right across Figure 11.1:
+  <ol style="margin:3px 0 0;">
+    <li><strong><code>TRANSFER</code> (Move Raw Waste Into Neutralization Tank):</strong> Once Equalization Tank level <code>LI001</code> rises above <code>TP001 (50%)</code>, <code>S0100</code> opens <code>XV01</code> and runs pump <code>P01</code> until the Neutralization Tank reaches <code>TP002 (80%)</code> (or <code>CND1</code> sees EQ tank low at <code>TP006 = 15%</code>).</li>
+    <li><strong><code>TREAT</code> (Adjust pH Safely Inside Spec):</strong> <code>S0100</code> recirculates the Neutralization Tank via pump <code>P02</code> and releases split-range controller <code>AIC002</code> from purple <code>LO (50%)</code> into <code>RCAS</code> targeting <code>TP003 (8.0 pH)</code>. Acid/Base dosing runs while <code>TMR1</code> counts up toward its 90-minute Excessive Treatment watchdog—if 90 minutes pass without reaching stable pH (<code>CND2</code>), <code>HOLD_MONITOR</code> trips <code>COMMAND_00000 (HOLD)</code>!</li>
+    <li><strong><code>DISCHARGE</code> (Send Neutralized Water to Drain):</strong> Once pH is verified stable, <code>S0100</code> swings 3-way valve <code>XV05</code> to <code>DRAIN</code> and pumps out via <code>P02</code>. Meanwhile, <code>CND3</code> continuously watches outlet probe <code>AI001</code>—if pH ever drifts out of discharge limits mid-drain, <code>CND3</code> immediately trips <code>HOLD</code> to protect the plant drain!</li>
+  </ol>
+</div>
+
 <h3>11.4 Deep-Dive: Decoding the Hidden PCSD Mechanics on Your Screens</h3>
 <p>Looking closely at every screen inside <code>3WT-0001-NEUT</code> reveals six subtle real-plant behaviors that trip up almost everyone the first time they troubleshoot a PCSD Equipment Module:</p>
 
@@ -2511,6 +2932,26 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
   On a single-valve loop (<code>FIC_101</code>), fail-safe tracking is <code>TRK_VAL = 0%</code>. On a split-range Acid/Base loop, <strong><code>PID1/OUT = 0%</code> maps to <code>100% FULL ACID OPEN</code>!</strong> That is why <code>3WT-0001-AIC002</code> configures <strong><code>_TRK_VAL = 50%</code></strong> (landing dead-center inside the <code>49–51%</code> deadband so both dosing pumps stay <code>0%</code> OFF whenever the EM sits in <code>OFF</code> or <code>HOLD</code>!).
 </div>
 
+<div class="anatomy-box">
+  <div class="box-head"><span class="box-tag tag-anatomy">Slow-Motion Breakdown</span> Reading <code>SPLTR1</code> at 5 Exact <code>PID1/OUT</code> Points (<code>IN_ARRAY = [0, 49, 51, 100]</code>)</div>
+  Walk straight across the V-curve from <code>0%</code> to <code>100%</code> so the numbers lock into muscle memory:
+  <ul style="margin:3px 0 0;">
+    <li><strong><code>PID1 OUT = 0%</code> (Way too alkaline, e.g. pH 11):</strong> Acid (<code>OUT_1</code>) = <strong><code>100%</code></strong> | Base (<code>OUT_2</code>) = <code>0%</code>. <em>(This is why <code>TRK_VAL = 0%</code> dumps 100% Acid!)</em></li>
+    <li><strong><code>PID1 OUT = 24.5%</code> (Moderately alkaline):</strong> Acid = <strong><code>50%</code></strong> | Base = <code>0%</code>.</li>
+    <li><strong><code>PID1 OUT = 49%..51%</code> (Inside <code>TP008 = 2%</code> Deadband — Safe Center = <code>50%</code>):</strong> Acid = <strong><code>0%</code></strong> | Base = <strong><code>0%</code></strong>! Both pumps completely OFF.</li>
+    <li><strong><code>PID1 OUT = 75.5%</code> (Moderately acidic):</strong> Acid = <code>0%</code> | Base = <strong><code>50%</code></strong>.</li>
+    <li><strong><code>PID1 OUT = 100%</code> (Way too acidic, e.g. pH 4):</strong> Acid = <code>0%</code> | Base = <strong><code>100%</code></strong>.</li>
+  </ul>
+</div>
+
+<div class="click-box">
+  <div class="box-head"><span class="box-tag tag-click">Control Studio Clicks</span> Inspecting <code>SPLTR1</code> Curves &amp; PCSD <code>MONITOR</code> Watchdogs Live</div>
+  <ol style="margin:3px 0 0;">
+    <li><strong>Check Split-Range Breakpoints:</strong> Open <code>3WT-0001-AIC002</code> in Control Studio → click <strong><code>SPLTR1</code></strong> in <strong>Diagram View</strong> → in bottom <strong>Parameter View</strong>, inspect <code>IN_ARRAY</code>, <code>OUT_ARRAY</code>, <code>LOCKVAL</code>, and <code>BAL_TIME</code>. Then click <code>PID1</code> and confirm <code>TRK_VAL = 50</code>!</li>
+    <li><strong>Find Which PCSD Watchdog Tripped <code>HOLD</code>:</strong> Open <code>3WT-0001-NEUT</code> On-Line → right-click <strong><code>MONITOR</code></strong> → <strong><code>Drill Down</code></strong> → check <code>SENTINEL_MONITOR</code> (device failure on <code>SM_AT1/2</code>) vs. <code>HOLD_MONITOR</code> (process failure on <code>HM_AT1/2</code>, e.g. <code>TMR1</code> 90-min timeout).</li>
+  </ol>
+</div>
+
 <!-- WORKSHOP 13 -->
 <div class="workshop">
   <div class="workshop-head">
@@ -2532,6 +2973,14 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
   </div>
 </div>
 
+<div class="check-box">
+  <div class="box-head"><span class="box-tag tag-check">Chapter 11 Check</span> Pause &amp; Test Yourself Before Moving On</div>
+  <strong>Question:</strong> On a PCSD EM (<code>3WT-0001-NEUT</code>), you open <code>3WT-0001-AIC002</code> and someone suggests changing <code>PID1/TRK_VAL</code> from <code>50%</code> to <code>0%</code> "so both valves fail closed like <code>FIC_101</code>." Why must you stop them immediately?
+  <div class="worked-ans">
+    <strong>Worked Answer:</strong> On a split-range Acid/Base loop (<code>IN_ARRAY = [0, 49, 51, 100]</code>, <code>OUT_ARRAY = [100, 0, 0, 100]</code>), <strong><code>0%</code> is NOT closed — <code>0%</code> drives the Acid pump to <code>100%</code> wide open!</strong> The safe off-point where BOTH Acid and Base sit at <code>0%</code> is dead-center at <strong><code>50%</code></strong> inside the <code>49–51%</code> deadband!
+  </div>
+</div>
+
 <!-- =====================================================================
      CHAPTER 12: CONTROL STUDIO LIVE SAFETY — HMI-TO-LOGIC TRIAGE & MODULE TRAPS
      ===================================================================== -->
@@ -2539,6 +2988,10 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
 <p style="margin-bottom:6px;">Our focus stays 100% on <strong>reading, editing, and troubleshooting Control Studio logic</strong>. Two practical blind spots sit right on the boundary of every live Control Studio sheet: (1) translating an operator's <strong>DeltaV Live</strong> status icon straight to the exact Control Studio parameter causing it, and (2) avoiding silent logic/setpoint traps when downloading or executing modules online.</p>
 
 <h3 style="margin-top:8px;">12.1 Translating DeltaV Live GEM Icons Straight to Control Studio Parameters (<em>Live Training</em> pp. 46, 51, 63)</h3>
+<div class="why-box">
+  <div class="box-head"><span class="box-tag tag-why">Why It Exists</span> Why Icon Masking Catches Engineers Off Guard at 2:00 AM</div>
+  Because an operator screen has limited room on a tiny pump or valve graphic, DeltaV Live stacks status icons in priority order: <strong><code>Not Running</code> hides <code>Bad IO</code> and <code>Simulate Active</code></strong>, and <strong><code>Bad IO</code> hides <code>Simulate Active</code></strong>! That means a technician could clear a <code>Bad IO</code> fault only for a hidden <code>Simulate Active</code> badge to suddenly pop into view—always check <code>MSTATUS</code>, <code>BLOCK_ERR</code>, and <code>SIMULATE</code> directly in Control Studio!
+</div>
 <p style="margin-bottom:6px;">On modern <strong>DeltaV Live</strong> HMIs, reusable equipment graphics (<strong>GEMs</strong>) and faceplates (<strong>Contextual Displays</strong>) read your Control Studio parameters via <code>DLSYS[Gem.ModName + "/MODE.ACTUAL"]</code> and <code>DLSYS[Dsp.Tag + "/PID1/SP.CV"]</code>. When an operator reports a status icon on a High-Performance GEM, jump straight to the exact Control Studio parameter behind it—and watch which higher-priority icons <strong>mask</strong> lower ones:</p>
 <table style="margin:6px 0 8px;">
   <thead>
@@ -2623,6 +3076,24 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
   <li><strong>Dynamic Reference CPU-Killer Rule (<em>Tips</em> p. 40):</strong> Never build more than <strong>3 simultaneous Dynamic References</strong> in a single SFC step/action—resolving paths can tank Controller Free Time to ~0% (stagger larger sets in groups of 3!), and beware cross-controller dynamic refs if a remote controller drops comms.</li>
   <li><strong>Reading Module Alarms in Control Studio Logic (<code>ALARMS[1]</code>):</strong> Every module exposes <code>ALARMS[1]</code> as its highest-priority active alarm (numeric priority <code>4..15</code>, defaults <code>CRITICAL=15</code>, <code>WARNING=11</code>, <code>ADVISORY=7</code>, <code>LOG=3</code>). In expressions or On-Line watches: <code>CUALM</code> = current alarm, <code>LAALM</code> = latched alarm (same as <code>CV</code>), <code>NALM</code> = unacknowledged, <code>OPSUP</code> = suppressed, and writing <code>1</code> to <code>ALARMS.F_MACK</code> acknowledges all alarms on the module (auto-resets to <code>0</code>).</li>
 </ul>
+
+<div class="story-box">
+  <div class="box-head"><span class="box-tag tag-story">Scan-by-Scan Story</span> The Live Download That Silently Wiped an Operator's Setpoint</div>
+  Suppose an operator switched a running tank module to <strong><code>AUTO</code></strong> and bumped its live target setpoint from the database default <code>500 kg</code> to <strong><code>555 kg</code></strong>. You fix a tiny alarm-text typo in Control Studio and click <strong>Download</strong>:
+  <ul style="margin:3px 0 0;">
+    <li><strong>Step 1 (Upload Prompt):</strong> You click <strong>OK</strong> without checking any parameters — remember the <strong>Select None</strong> default! Zero operator values were uploaded to the database.</li>
+    <li><strong>Step 2 (Partial Download Behavior):</strong> If Module Properties is set to <em><code>Preserve critical block values</code></em> (instead of <em><code>Preserve user-defined and critical block values</code></em>), the controller keeps <code>AUTO</code> mode—<strong>but silently snaps live <code>SP</code> from <code>555 kg</code> back down to <code>500 kg</code>!</strong></li>
+    <li><strong>Safe Habit:</strong> Before any live download, verify <strong><code>Main → Module → Properties</code></strong> → Partial Download Behavior = <strong><code>Preserve user-defined and critical block values</code></strong>, and deliberately upload any online tuning changes you want saved!</li>
+  </ul>
+</div>
+
+<div class="check-box">
+  <div class="box-head"><span class="box-tag tag-check">Chapter 12 Check</span> Pause &amp; Test Yourself Before Moving On</div>
+  <strong>Question:</strong> An engineer checked <em>"Restore parameter value after restart"</em> on a module's <code>TARGET_WT</code> parameter, downloaded it, and tested a controller Cold Restart—yet <code>TARGET_WT</code> STILL snapped back to its default value! What single checkbox did they miss?
+  <div class="worked-ans">
+    <strong>Worked Answer:</strong> <strong>The module-level checkbox!</strong> DeltaV Cold Restart persistence requires <strong>BOTH</strong> checkboxes: (1) the parameter-level <em>Restore parameter value after restart</em> <strong>AND</strong> (2) the module-level <em>Restore parameter values after restart</em> inside <strong><code>Main → Module → Properties</code></strong>!
+  </div>
+</div>
 
 <!-- =====================================================================
      FUNCTION BLOCK DEEP-DIVE FIELD GUIDE (ALL ACTIVE BLOCKS)

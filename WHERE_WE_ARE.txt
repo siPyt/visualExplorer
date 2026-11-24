@@ -1,8 +1,9 @@
 ================================================================================
 DELTAV CONTROL STUDIO MASTERY — PROGRESS & MISSION TRACKER
-Last Updated: 2026-11-23 (Edition v3.5 — Module 8 CM_PMP_101 DC Safety Lab
-                          [SP Track x Reset Required Auto-Restart Trap + All 4 DC
-                          Safety Pins & RESET_D] + Study Guide Sec. 3.2 & Lab 3)
+Last Updated: 2026-11-24 (Edition v4.0 — Deep-Dive Teacher Edition Study Guide
+                          [All 12 Chapters enriched with Why-It-Exists, Scan-by-Scan
+                          Stories, Slow-Motion Syntax Breakdowns, Control Studio Click
+                          Paths & Worked Chapter Checks] + EM_TANK_CHARGE live kg readout)
 Repository:   https://github.com/siPyt/visualExplorer.git
 Prime Rule:   Governed by 'pd' (Prime Directive) — Control Studio EM/CM/EPH logic
               focus, DeltaV Live HMI standard, native DeltaV only, Official vs.
@@ -48,13 +49,16 @@ HOW THIS WORKSPACE OPERATES (SYNCED ACROSS MACHINES)
      split-range 0% acid dump, A_COMMAND=Undefined vs A_PV, State-Driven Int Ref)
    - Mode 4: On-Line Tree (6 live presets + 9 live sliders/selectors incl. 3WT-0001)
 
-3. Textbook & Lab Manual (DeltaV_Study_Guide.html -> DeltaV_Study_Guide.pdf, v3.5):
-   Full in-depth native Control Studio logic handbook: Chapters 1–12 (incl.
-   Section 2.5 Unwired Parameter Boxes, Section 3.2 DC LO vs. OOS + dedicated
-   Workshop 3B, Section 11.6 Split-Range SPLTR & 50% Tracking + Workshop 13,
-   and tight Ch. 12: HMI-to-Logic Triage & Download Traps), 7-Block FBR Field
-   Guide, 14 Visual Explorer Workshops, and 21-Question Mastery Exam.
+3. Textbook & Lab Manual (DeltaV_Study_Guide.html -> DeltaV_Study_Guide.pdf, v4.0):
+   Full in-depth Deep-Dive Teacher Edition native Control Studio handbook (71 pages):
+   Chapters 1–12 — every chapter includes Why-It-Exists intuition, Scan-by-Scan
+   Story walkthroughs, Slow-Motion syntax/diagram breakdowns, Control Studio
+   Click-by-Click guides, and Quick Chapter Checks with Worked Answers — plus
+   7-Block FBR Field Guide, 14 Visual Explorer Workshops, and 21-Question Exam.
    Rebuild anytime via: .\build-pdf.ps1
+   Companion Quick-Recall Sheet: reference.html -> reference.pdf (7-page
+   Chapter-by-Chapter Memorization Reference, linked directly from Visual Explorer
+   and Expression Forge top bars!).
 
 4. Verified Truth Source (DELTAV_VERIFIED_FACTS.md + pdf reference/ + additionalPDFs/):
    Every Control Studio & DeltaV Live fact cited by exact PDF + page number

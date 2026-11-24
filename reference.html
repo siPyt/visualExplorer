@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>DeltaV Control Studio — Chapter-by-Chapter Memorization Reference</title>
+<style>
+  @page {
+    size: letter;
+    margin: 0.45in 0.48in 0.48in 0.48in;
+  }
+
+  :root {
+    --navy: #0f2942;
+    --navy-mid: #1e3a8a;
+    --blue: #1d4ed8;
+    --slate-900: #0f172a;
+    --slate-700: #334155;
+    --slate-600: #475569;
+    --slate-200: #e2e8f0;
+    --slate-100: #f1f5f9;
+    --slate-50: #f8fafc;
+    --red: #b91c1c;
+    --green: #15803d;
+    --purple: #6d28d9;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, Arial, sans-serif;
+    color: var(--slate-900);
+    font-size: 8.8pt;
+    line-height: 1.42;
+    margin: 0;
+    padding: 0;
+    background: #ffffff;
+  }
+
+  @media screen {
+    html { background: #0f172a; }
+    body {
+      max-width: 1020px;
+      margin: 22px auto;
+      padding: 30px 38px;
+      font-size: 14.5px;
+      line-height: 1.55;
+      border-radius: 12px;
+      box-shadow: 0 12px 36px rgba(0,0,0,0.45);
+    }
+    code { font-size: 13px; }
+    table { font-size: 13.5px; }
+    .ch-head { font-size: 16px; }
+  }
+
+  .doc-header {
+    background: linear-gradient(135deg, #0b192c 0%, #1e3a8a 100%);
+    color: #ffffff;
+    padding: 16px 20px;
+    border-radius: 7px;
+    margin-bottom: 12px;
+  }
+  .doc-header .eyebrow {
+    font-size: 7.8pt;
+    letter-spacing: 1.1px;
+    text-transform: uppercase;
+    color: #93c5fd;
+    font-weight: 700;
+    margin-bottom: 3px;
+  }
+  .doc-header h1 {
+    margin: 0 0 5px 0;
+    font-size: 17pt;
+    font-weight: 800;
+    line-height: 1.15;
+  }
+  .doc-header .subtitle {
+    margin: 0;
+    font-size: 9pt;
+    color: #dbeafe;
+  }
+  .legend-bar {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 6px 11px;
+    margin-bottom: 12px;
+    font-size: 8.2pt;
+    color: var(--slate-700);
+  }
+
+  .ch-block {
+    margin-bottom: 12px;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  .ch-head {
+    background: var(--navy);
+    color: #ffffff;
+    padding: 5.5px 11px;
+    border-radius: 5px 5px 0 0;
+    font-size: 10pt;
+    font-weight: 800;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+  .ch-head .ch-sub {
+    font-size: 7.8pt;
+    font-weight: 600;
+    color: #bae6fd;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0;
+    font-size: 8.4pt;
+    border: 1px solid #cbd5e1;
+    border-top: none;
+  }
+  th {
+    background: #e2e8f0;
+    color: var(--navy);
+    text-align: left;
+    padding: 4.5px 7px;
+    font-weight: 800;
+    font-size: 8pt;
+    border-bottom: 1.5px solid #94a3b8;
+  }
+  td {
+    padding: 5px 7px;
+    border-bottom: 1px solid var(--slate-200);
+    vertical-align: top;
+  }
+  tr:nth-child(even) td { background: var(--slate-50); }
+  tr { break-inside: avoid; }
+
+  code {
+    font-family: Consolas, "Cascadia Code", "Courier New", monospace;
+    font-size: 8pt;
+    background: #eef2ff;
+    color: #0f172a;
+    padding: 0.5px 3.5px;
+    border-radius: 3px;
+    border: 1px solid #c7d2fe;
+  }
+
+  .pill {
+    display: inline-block;
+    font-size: 6.7pt;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.35px;
+    padding: 1px 5px;
+    border-radius: 3px;
+    margin-top: 3px;
+  }
+  .pill-off { background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; }
+  .pill-ai  { background: #f3e8ff; color: #6b21a8; border: 1px solid #d8b4fe; }
+
+  .trap { color: var(--red); font-weight: 700; }
+  .ok   { color: var(--green); font-weight: 700; }
+
+  .page-break {
+    page-break-before: always;
+    break-before: page;
+  }
+
+  .footer-note {
+    margin-top: 12px;
+    padding-top: 6px;
+    border-top: 1px solid #cbd5e1;
+    font-size: 7.8pt;
+    color: var(--slate-600);
+    display: flex;
+    justify-content: space-between;
+  }
+</style>
+</head>
+<body>
+
+<div class="doc-header">
+  <div class="eyebrow">Emerson DeltaV Control Studio • Companion to Study Guide v4.0</div>
+  <h1>Chapter-by-Chapter Memorization Reference</h1>
+  <p class="subtitle">Every core concept, pin, polarity, mode rule, syntax trap, and Control Studio click path you need to commit to memory across Chapters 1–12.</p>
+</div>
+
+<div class="legend-bar">
+  <span><strong>How to Use:</strong> Cover the middle column and quiz yourself on each row.</span>
+  <span><span class="pill pill-off">Official DeltaV</span> = Literal Emerson software block, parameter, mode, or editor</span>
+  <span><span class="pill pill-ai">AI Mental Model</span> = Teaching lens / study aid (not an official DeltaV menu name)</span>
+</div>
+
+<!-- CHAPTER 1 -->
+<div class="ch-block">
+  <div class="ch-head">
+    <span>Chapter 1: Three Equipment Tiers &amp; Module Scan Heartbeat</span>
+    <span class="ch-sub">Architecture &amp; Execution Order</span>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:23%;">Thing to Memorize</th>
+        <th style="width:57%;">What You Need to Memorize About It</th>
+        <th style="width:20%;">Click Path / Plant Rule</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>3 DeltaV Control Tiers</strong><br/><span class="pill pill-off">Official DeltaV</span></td>
+        <td><strong>Unit Phase</strong> (<em>ISA-88: EPH</em>) = owns batch recipe states (<code>RUN</code>, <code>HOLD</code>, <code>RESTART</code>, <code>STOP</code>, <code>ABORT</code>, <code>FAIL_MONITOR</code>). <strong>Equipment Module (<code>EM</code>)</strong> = coordinates a team of devices for one process job; almost never wires to physical I/O cards. <strong>Control Module (<code>CM</code>)</strong> = owns ONE physical field device (valve, pump, scale, loop).</td>
+        <td><em>AI Mental Model:</em> Recipe Boss → Team Coordinator → Single-Device Worker.</td>
+      </tr>
+      <tr>
+        <td><strong>Standard EM Handshake Parameters</strong><br/><span class="pill pill-off">Official DeltaV</span></td>
+        <td><code>A_COMMAND</code> = requested command/state (Named Set <strong>MUST include <code>255 = Idle</code></strong>). <code>A_TARGET</code> = command currently executing. <code>A_PV</code> = confirmed completed command/state (stays <code>Idle</code> until finished without error).</td>
+        <td>Top boundary between Unit Phase and EM (<em>7009</em> p. 462).</td>
+      </tr>
+      <tr>
+        <td><strong>EM ↔ CM Boundary</strong><br/><span class="pill pill-off">Official DeltaV</span></td>
+        <td>EM writes down to module-level <code>CAS_SP.CV</code> (wired inside CM to <code>DC1/CAS_IN_D</code>) and reads back physical proof on <code>PV.CV</code> (wired from <code>DC1/PV_D</code>) or analog <code>AI1/OUT.CV</code> &amp; <code>.ST</code>.</td>
+        <td>Never confuse outbound command (<code>CAS_SP</code>) with field proof (<code>PV</code>).</td>
+      </tr>
+      <tr>
+        <td><strong>Scan Rate &amp; Execution Order (<code>#1 → #2 → #3</code>)</strong><br/><span class="pill pill-off">Official DeltaV</span></td>
+        <td>EMs scan on a fixed heartbeat (typically <code>500 ms</code> or <code>1 s</code>). <span class="trap">Screen position means NOTHING</span>—FBD blocks solve strictly by their bottom-right badge (<code>#1</code>, <code>#2</code>, <code>#3</code>).</td>
+        <td><code>Main → Module → Properties</code> (Scan Rate); <code>Edit → Execution Order</code>.</td>
+      </tr>
+      <tr>
+        <td><strong>Dashed Feedback Wire Rule</strong><br/><span class="pill pill-off">Official DeltaV</span></td>
+        <td>In real DeltaV, a <strong>dashed/dotted wire</strong> does <em>NOT</em> mean discrete! It appears <strong>only</strong> when the source block executes <em>after</em> the destination block (e.g., <code>#3 → #2</code>)—meaning a <strong>1-scan delay</strong> (<em>CONFIG</em> p. 368).</td>
+        <td>On-Line, <strong>Bold wire</strong> = non-zero value; thin wire = zero/False.</td>
+      </tr>
+      <tr>
+        <td><strong><code>PRECLOSE_LEAD</code></strong><br/><span class="pill pill-off">Official DeltaV</span></td>
+        <td>Commands the feed valve closed early (e.g., <code>15 kg</code> before target) to compensate for pneumatic valve stroke time (1–3 s) + module scan latency so in-flight liquid doesn't overfill the tank.</td>
+        <td>Used in <code>CND3</code> (<code>REMAINING_WT &lt;= PRECLOSE_LEAD</code>).</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- CHAPTER 2 -->
+<div class="ch-block">
+  <div class="ch-head">
+    <span>Chapter 2: 1 Outer Algorithm vs. 4 Inner Patterns &amp; Unwired Boxes</span>
+    <span class="ch-sub">Reading Any Sheet Cold</span>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:23%;">Thing to Memorize</th>
+        <th style="width:57%;">What You Need to Memorize About It</th>
+        <th style="width:20%;">Click Path / Plant Rule</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>4 Core EM Algorithms</strong><br/><span class="pill pill-off">Official DeltaV</span></td>
+        <td>Pick ONE outer container when building an EM (dropdown shows 7 total incl. 3 phase hybrids): <strong>1. Command-Driven</strong> (multi-step <code>SFC</code> per command), <strong>2. State-Driven</strong> (<code>Items × States</code> table, <strong>ZERO SFCs!</strong>), <strong>3. FBD</strong> (continuous blocks only), <strong>4. SFC</strong> (single standalone sequence).</td>
+        <td>Check <code>Hierarchy View</code> or <code>Main → Module → Properties</code>.</td>
+      </tr>
+      <tr>
+        <td><strong>4 Inner Patterns</strong><br/><span class="pill pill-ai">AI Mental Model</span></td>
+        <td><strong>ONLY Pattern 1 steps through time!</strong> Patterns 2, 3, and 4 solve continuously every Scan: <strong>P1</strong> = Step/State Flow; <strong>P2</strong> = Permissives &amp; Interlocks; <strong>P3</strong> = Mode &amp; Setpoint Routing; <strong>P4</strong> = CM Command &amp; Feedback. Command EMs usually use all 4 (3 if discrete); State-Driven EMs fold P1+P3+P4 into one table (2–3 total).</td>
+        <td>Don't wait for an SFC step to understand an interlock—P2 solves every Scan!</td>
+      </tr>
+      <tr>
+        <td><strong>True FBD Pin Layouts</strong><br/><span class="pill pill-off">Official DeltaV</span></td>
+        <td><strong><code>CND</code></strong>: <code>OUT_D</code> ONLY (<strong>zero input pins!</strong>). <strong><code>ACT</code></strong>: <code>IN_D</code> ONLY (<strong>zero output pins!</strong>). <strong><code>XFR</code></strong>: <code>IN_1</code> (0), <code>IN_2</code> (1), <code>SELECTOR</code> → <code>OUT</code> (underscores! No <code>"BSEL"</code> block in DeltaV!). <strong><code>CALC</code></strong>: <code>IN1..16</code> → <code>OUT1..16</code> (<strong>no underscores!</strong>).</td>
+        <td><code>CND</code> reads refs in its expression; <code>ACT</code> writes <code>:=</code> every scan while <code>IN_D = True</code>.</td>
+      </tr>
+      <tr>
+        <td><strong>Subordinate vs. Standalone CMs</strong><br/><span class="pill pill-off">Official DeltaV</span></td>
+        <td><strong>Subordinate (Nested) CM</strong> lives inside the EM tree (path <code>'^/CM_NAME/...'</code>). <strong>Standalone / Shared CM</strong> sits alongside the EM in the Plant Area so multiple EMs can share it (path <code>'//CM_NAME/...'</code>).</td>
+        <td>Check <code>DeltaV Explorer → Control Strategies → [Area]</code>.</td>
+      </tr>
+      <tr>
+        <td><strong>5 Unwired Box Types &amp; Module Level</strong><br/><span class="pill pill-off">Official DeltaV</span></td>
+        <td>Unwired boxes are NOT unused! Know all 5: (1) <strong><code>Internal Reference</code></strong> (front-door tunnel like <code>MODE → PID1/MODE</code>—<strong>required by State-Driven tables &amp; GEM faceplates!</strong>), (2) <strong><code>External / Dynamic Ref</code></strong>, (3) <strong>Module Vars / TPs</strong>, (4) <strong><code>Parameter Shortcut ($)</code></strong> (e.g., <code>PID1$GAIN</code>—preserves Class link!), (5) <strong>Status Outputs</strong>.</td>
+        <td><code>View → ☑ Parameter View</code> → read <code>Connection type</code> &amp; <code>Parameter type</code>. Class rename fix: click <code>Default Name</code>!</td>
+      </tr>
+      <tr>
+        <td><strong>Hollow Square <code>□</code> Pin Side Compass</strong><br/><span class="pill pill-off">Official DeltaV</span></td>
+        <td>On an unwired box: <strong><code>□</code> on the RIGHT edge</strong> (<code>[ PARAM □ ]</code>) = Input/Setting coming <strong>INTO</strong> the module (cause). <strong><code>□</code> on the LEFT edge</strong> (<code>[ □ PARAM ]</code>) = Output/Result going <strong>OUT</strong> of the module (symptom).</td>
+        <td>Instant 1-second compass on zero-wire PCSD diagrams!</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- CHAPTER 3 -->
+<div class="ch-block">
+  <div class="ch-head">
+    <span>Chapter 3: Operating Modes, DC Safety Pins, Status (.ST) &amp; Syntax</span>
+    <span class="ch-sub">Most Tested Plant Rules!</span>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:23%;">Thing to Memorize</th>
+        <th style="width:57%;">What You Need to Memorize About It</th>
+        <th style="width:20%;">Click Path / Plant Rule</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>DC Block Mode Rule (NO <code>MAN</code>!)</strong><br/><span class="pill pill-off">Official DeltaV</span></td>
+        <td>Discrete <strong><code>DC</code></strong> blocks (valves/motors) support <strong>ONLY <code>AUTO</code> and <code>CAS</code></strong> as selectable target modes (<em>FBR</em> p. 427): <strong><code>AUTO</code> = operator faceplate control</strong> (ignores EM <code>CAS_IN_D</code>!); <strong><code>CAS</code> = obeys upstream EM</strong>. (<code>MAN</code> only exists on <code>PID</code>/<code>AO</code>/<code>DO</code>!)</td>
+        <td>Always write <code>MODE.TARGET</code>, always check <strong><code>MODE.ACTUAL = CAS</code></strong>!</td>
+      </tr>
+      <tr>
+        <td><strong><code>LO</code> vs. <code>OOS</code></strong><br/><span class="pill pill-off">Official DeltaV</span></td>
+        <td><strong><code>LO</code> (Local Override, Purple HMI border)</strong> = automatic safety shield (never a selectable target); block stays alive &amp; forces safe output. <strong><code>OOS</code> (Red <code>✕</code>, spelled <code>OS</code> in ST expressions!)</strong> = manual maintenance lockout; block stops solving and stamps <code>Bad: Out of Service</code>.</td>
+        <td>In Structured Text expressions, always spell Out of Service as <strong><code>OS</code></strong> (never <code>OOS</code>).</td>
+      </tr>
+      <tr>
+        <td><strong>All 4 <code>DC</code> Safety Pins + Polarity Split</strong><br/><span class="pill pill-off">Official DeltaV</span></td>
+        <td><span class="trap">MEMORIZE THE POLARITY FLIP (<em>FBR</em> pp. 419–427):</span><br/>• <strong>Active-HIGH (<code>= 1</code> triggers <code>LO</code>):</strong> <code>SHUTDOWN_D</code> (ALWAYS active, NOT optional → Passive) &amp; <code>TRK_IN_D</code> (local HOA hand switch → <code>OUT_D := FV_D</code>).<br/>• <strong>Fail-Safe LOW (<code>= 0</code> triggers <code>LO</code>):</strong> <code>INTERLOCK_D</code> (stops running device AND blocks start) &amp; <code>PERMISSIVE_D</code> (<strong>START-ONLY while Passive — NEVER trips a running motor!</strong>).<br/>• <strong>5th Cause of <code>LO</code>:</strong> <code>DC_STATE = Locked</code> waiting for <code>RESET_D</code> pulse.</td>
+        <td><code>Diagram View → click DC1 → Parameter View → double-click DEVICE_OPTS</code>.</td>
+      </tr>
+      <tr>
+        <td><strong><code>SP Track</code> × <code>Reset Required</code> Trap</strong><br/><span class="pill pill-off">Official DeltaV</span></td>
+        <td>• <strong>Both OFF:</strong> Clearing trip causes <span class="trap">instant unattended auto-restart!</span><br/>• <strong><code>Reset Req</code> ON only (<em>FBR</em> p. 421):</strong> Latches <code>Locked (LO)</code>, but pulsing <code>RESET_D</code> <span class="trap">still auto-restarts</span> because <code>SP_D</code> stayed <code>START</code>!<br/>• <strong><code>SP Track</code> ON only:</strong> Overwrites <code>SP_D := STOP</code> during <code>LO</code>; stays stopped on clear.<br/>• <strong><span class="ok">BOTH ON (Gold Standard):</span></strong> Stays <code>Locked (LO)</code> AND overwrites <code>SP_D := STOP</code> → pulsing <code>RESET_D</code> unlocks cleanly and stays stopped!</td>
+        <td>Test live in Visual Explorer Module 8: <code>CM_PMP_101</code>.</td>
+      </tr>
+      <tr>
+        <td><strong><code>.ST</code> Status Ranges &amp; <code>&gt;= GOOD</code> Rule</strong><br/><span class="pill pill-off">Official DeltaV</span></td>
+        <td>Status integers: <code>0..63 = BAD</code> (Red <code>✕</code>), <code>64..127 = UNC</code> (Blue <code>?</code>), <code>128..191 = GOOD</code> (GoodNonCascade), <code>192..255 = GoodCascade</code>. <span class="trap">NEVER write <code>.ST = GOOD</code></span> (fails on healthy cascade signals!)—always write <strong><code>.ST &gt;= GOOD</code></strong> and <strong><code>.ST &lt;= BAD</code></strong>!</td>
+        <td><em>CONFIG</em> p. 81. Also remember: <strong><code>CALC</code> outputs default to <code>GOOD</code></strong> unless you write <code>'OUT1.ST' := 'IN2.ST';</code>!</td>
+      </tr>
+      <tr>
+        <td><strong>DeltaV ST Syntax &amp; Path Rules</strong><br/><span class="pill pill-off">Official DeltaV</span></td>
+        <td>• Single quotes <code>'...'</code> wrap paths &amp; Named Sets (<code>'vlvnc-sp:OPEN'</code>).<br/>• Prefixes: <code>//MOD/...</code> (external), <code>^/PARAM</code> (up 1 level), <code>/PARAM</code> (module root), <code>/+/PARAM</code> (phase).<br/>• <code>=</code> asks a Yes/No question (<code>CND</code>/Transitions); <code>:=</code> writes a value (<code>ACT</code>/<code>CALC</code>/SFC Actions).<br/>• Mode/Status keywords (<code>OS</code>, <code>MAN</code>, <code>AUTO</code>, <code>CAS</code>, <code>LO</code>, <code>GOOD</code>, <code>BAD</code>, <code>UNC</code>) are <strong>UNQUOTED</strong>.</td>
+        <td>Never write <code>.ACT</code>—always write <code>.ACTUAL</code>. In <code>DC1</code>: <code>STATE_MASKS</code> empty=0, check=1, light-gray=don't care.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- CHAPTER 4 -->
+<div class="ch-block">
+  <div class="ch-head">
+    <span>Chapter 4: Pin-by-Pin Command-Driven EM (<code>EM_TANK_CHARGE</code>)</span>
+    <span class="ch-sub">SFC + Continuous FBD Partnership</span>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:23%;">Thing to Memorize</th>
+        <th style="width:57%;">What You Need to Memorize About It</th>
+        <th style="width:20%;">Click Path / Plant Rule</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>SFC Qualifiers <code>[P]</code> vs. <code>[N]</code></strong><br/><span class="pill pill-off">Official DeltaV</span></td>
+        <td><strong><code>[P]</code> (Pulse)</strong> = runs on <strong>1st scan of the step ONLY</strong> (mandatory for <code>START_WT.CV</code> tare snapshot! Using <code>[N]</code> makes tare chase gross weight forever → overfill!). <strong><code>[N]</code> (Non-stored)</strong> = runs every scan while step is active; <span class="trap">written <code>:=</code> values RETAIN their last value after the step ends!</span></td>
+        <td>Double-bordered box = Initial Step; elapsed seconds print under every step On-Line; Termination (<code>═╧═</code>) sets <code>A_PV</code>.</td>
+      </tr>
+      <tr>
+        <td><strong>Permissive vs. Interlock Split</strong><br/><span class="pill pill-off">Official DeltaV</span></td>
+        <td><strong>Strip A (<code>CND1</code> Permissive)</strong> = Front-door bouncer checked ONLY at <code>T10_START_OK</code> before starting. <strong>Strip B (<code>CND2 → ACT1</code> Interlock)</strong> = Emergency brake scanning continuously during the charge; slams <code>CAS_SP := CLOSE</code> and sets <code>FAIL_REQ := 1</code> immediately without waiting for any SFC transition!</td>
+        <td>Double-click <code>CND</code> On-Line to open the green <code>✓</code> / red <code>✗</code> Expression tree.</td>
+      </tr>
+      <tr>
+        <td><strong><code>XFR1 → CALC1 → CND3</code> Chain</strong><br/><span class="pill pill-off">Official DeltaV</span></td>
+        <td><code>XFR1 (#1)</code> chooses Local (<code>IN_1</code>) vs. Recipe (<code>IN_2</code>) target → <code>CALC1 (#2)</code> computes <code>NET_WT := IN2 - IN3</code>, <code>OUT1 := IN1 - NET_WT</code>, <strong>AND <code>'OUT1.ST' := 'IN2.ST';</code></strong> → <code>CND3 (#3)</code> checks <code>REMAINING_WT &lt;= PRECLOSE_LEAD AND .ST &gt;= GOOD</code> for <code>T20_PRECLOSE</code>.</td>
+        <td>Must solve <code>#1 → #2 → #3</code> in same scan (solid wires, zero dashed delay!).</td>
+      </tr>
+      <tr>
+        <td><strong><code>TIME_DURATION</code> vs. <code>DC1/FAIL_ACTIVE</code></strong><br/><span class="pill pill-off">Official DeltaV</span></td>
+        <td><code>CND4</code> confirms physical limit switch (<code>PV = 'vlvnc-pv:CLOSED'</code>); <code>CND5</code> uses built-in <code>TIME_DURATION = 10s</code> so normal 2-second valve stroke never false-alarms. Inside the child CM, <code>DC1</code> has its own confirm timers (<code>CFM_PASS_TIME</code>, <code>CFM_ACT1_TIME</code>) setting <code>FAIL_ACTIVE = True</code>.</td>
+        <td>Step timer syntax in transitions: <code>'S20_TRIM_CLOSE/TIME.CV' &gt;= 5</code>.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- CHAPTER 5 -->
+<div class="ch-block">
+  <div class="ch-head">
+    <span>Chapter 5: Phase Hold, Restart, Abort &amp; The Golden Tare Rule</span>
+    <span class="ch-sub">Preventing Batch Overfills</span>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:23%;">Thing to Memorize</th>
+        <th style="width:57%;">What You Need to Memorize About It</th>
+        <th style="width:20%;">Click Path / Plant Rule</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Where Hold / Restart / Abort Live</strong><br/><span class="pill pill-off">Official DeltaV</span></td>
+        <td><code>RUN_LOGIC</code>, <code>HOLD_LOGIC</code>, <code>RESTART_LOGIC</code>, <code>STOP_LOGIC</code>, <code>ABORT_LOGIC</code>, and <code>FAIL_MONITOR</code> are <strong>Unit Phase</strong> composite states—NOT standard EM states (<em>7016</em> pp. 70, 202). Any non-zero failure in <code>FAIL_MONITOR</code> automatically sends the Phase to <strong>Holding</strong>.</td>
+        <td><code>DeltaV Explorer → Library → Phase Classes</code> → open in Control Studio → <code>Hierarchy View</code>.</td>
+      </tr>
+      <tr>
+        <td><strong>The Golden Tare Rule</strong><br/><span class="pill pill-ai">AI Mental Model</span></td>
+        <td>Snapshot <code>START_WT.CV</code> <strong>ONCE</strong> on initial charge start via <code>[P]</code>. <span class="trap">NEVER re-tare inside <code>RESTART_LOGIC</code>!</span> Re-taring after Hold resets <code>NET_WT</code> to <code>0</code> and pumps a full new batch on top of what was already added (e.g., 120 heel + 200 delivered + 500 re-poured = <strong>200 kg overfill!</strong>).</td>
+        <td>Audit <code>RESTART_LOGIC</code>: confirm zero steps overwrite <code>START_WT.CV</code> or zero out totalizers.</td>
+      </tr>
+      <tr>
+        <td><strong>Safe Recovery Sequence</strong><br/><span class="pill pill-off">Official DeltaV</span></td>
+        <td><strong><code>HOLD_LOGIC</code></strong> closes valve &amp; preserves locked <code>START_WT.CV</code>. <strong><code>RESTART_LOGIC</code></strong> stays blocked by <code>CND1</code> while fault (<code>.ST = BAD</code>) is active; once cleared to <code>GOOD</code>, resumes finishing only <code>REMAINING_WT</code>. <strong><code>ABORT_LOGIC</code></strong> stops all outputs and requires full Reset to <code>S0_IDLE</code>.</td>
+        <td>Test in Visual Explorer: <code>EM_TANK_CHARGE</code> Workshop 5.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- CHAPTER 6 -->
+<div class="ch-block">
+  <div class="ch-head">
+    <span>Chapter 6: The 60-Second Control Room Triage Playbook</span>
+    <span class="ch-sub">Zero-Guesswork On-Line Diagnosis</span>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:23%;">Thing to Memorize</th>
+        <th style="width:57%;">What You Need to Memorize About It</th>
+        <th style="width:20%;">Click Path / Plant Rule</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>5-Checkpoint On-Line Triage Order</strong><br/><span class="pill pill-ai">AI Mental Model</span></td>
+        <td><strong>1. SFC Step &amp; Transition:</strong> Find green-bordered active step + open <code>False</code> transition's <code>✓/✗</code> tree.<br/><strong>2. Interlocks &amp; Modes:</strong> Check Red <code>✕</code> (<code>.ST &lt;= BAD</code>) and <code>DC1/MODE.ACTUAL</code> (<code>AUTO</code> or <code>LO</code>?).<br/><strong>3. Command vs. Proof:</strong> Compare <code>CAS_SP</code> vs. <code>PV</code> + check <code>DC1/FAIL_ACTIVE</code>.<br/><strong>4. Analog &amp; BKCAL:</strong> Check <code>AI1/OUT.ST</code> directly; if <code>PID = IMan</code>, trace gray dotted <code>BKCAL_IN</code> <strong>downstream</strong>!<br/><strong>5. PCSD Fast-Track:</strong> Skip stubs &amp; <code>S0000–S0020</code> → jump to <code>S0100</code> + <code>MONITOR</code>.</td>
+        <td><strong>Mode vs. Mechanical Split:</strong> <code>AUTO</code> + <code>FAIL_ACTIVE=False</code> = operator control; <code>CAS</code> + <code>FAIL_ACTIVE=True</code> = jammed field device!</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- CHAPTER 7 -->
+<div class="ch-block">
+  <div class="ch-head">
+    <span>Chapter 7: State-Driven Equipment Modules (<code>EM_XFER_HDR</code> &amp; <code>EM_2STAGE_VLV</code>)</span>
+    <span class="ch-sub">Items × States Table (Course 7016)</span>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:23%;">Thing to Memorize</th>
+        <th style="width:57%;">What You Need to Memorize About It</th>
+        <th style="width:20%;">Click Path / Plant Rule</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>ZERO Graphical SFCs!</strong><br/><span class="pill pill-off">Official DeltaV</span></td>
+        <td>State-Driven EMs have <strong>NO SFC steps or transitions</strong>—they use an <strong><code>Items | States</code> spreadsheet</strong> alongside the continuous FBD sheet (<em>7016</em> p. 140). <em>AI Mental Model ("3-in-1 Table"):</em> One grid bundles Patterns 1, 3 (<code>MODE.TARGET</code> rows), and 4 (Write + Readback), leaving only Pattern 2 safety/watchdogs on the FBD sheet.</td>
+        <td>Click the State Table in <code>Hierarchy View</code> for the grid; click Diagram View for FBD watchdogs.</td>
+      </tr>
+      <tr>
+        <td><strong>Module-Level Paths ONLY</strong><br/><span class="pill pill-off">Official DeltaV</span></td>
+        <td>Every State Table row's Write &amp; Readback path <strong>must be module-level</strong> (<code>CM/CAS_SP.CV</code> → <code>CM/PV.CV</code>; <code>CM/MODE.TARGET</code> → <code>CM/MODE.ACTUAL</code>)—deep block paths like <code>/DC1/MODE</code> are forbidden! (That's why the unwired <code>MODE</code> Internal Reference box in Ch. 2.5 is mandatory!)</td>
+        <td><code>= Cascade/</code> or <code>= Auto/</code> means "write this value AND verify Readback matches."</td>
+      </tr>
+      <tr>
+        <td><strong><code>A_PV</code> Confirmation &amp; <code>(not written)</code> Cells</strong><br/><span class="pill pill-off">Official DeltaV</span></td>
+        <td><strong><code>A_PV</code> drops to <code>Idle (255)</code></strong> whenever <em>any</em> checked row's Readback disagrees (jammed valve or operator in <code>AUTO</code>). Unchecked <strong><code>(not written)</code></strong> cells neither write nor check readback—used in <code>Auto Mode</code> to hand valves back to operators without slamming them shut, and in <code>Idle (255)</code>!</td>
+        <td>Quick rule: timed stages = Command-Driven; instant lineup = State-Driven.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- CHAPTER 8 -->
+<div class="ch-block">
+  <div class="ch-head">
+    <span>Chapter 8: Analog Control Modules, PID Loops &amp; Back-Calculation (<code>FIC_101</code>)</span>
+    <span class="ch-sub">Continuous Plant Foundation</span>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:23%;">Thing to Memorize</th>
+        <th style="width:57%;">What You Need to Memorize About It</th>
+        <th style="width:20%;">Click Path / Plant Rule</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Standard Loop Flow &amp; Direction</strong><br/><span class="pill pill-off">Official DeltaV</span></td>
+        <td><code>AI1 (#1)</code> scales 4–20 mA → EU (keep <code>L_TYPE = Indirect</code> for custom <code>OUT_SCALE</code>) → <code>PID1 (#2)</code> computes <code>0–100%</code> <code>OUT</code> → <code>AO1 (#3)</code> drives 4–20 mA valve. <strong>Reverse-Acting</strong> (default) = PV drops below SP → OUT goes UP; <strong><code>Direct_Acting</code></strong> = PV rises → OUT goes UP.</td>
+        <td><span class="trap">FBR p. 232 trap:</span> If <code>PID1</code> has both <code>IO_IN</code> and wired <code>IN</code>, <strong><code>IO_IN</code> wins</strong>!</td>
+      </tr>
+      <tr>
+        <td><strong>All 8 <code>PID</code> Operating Modes</strong><br/><span class="pill pill-off">Official DeltaV</span></td>
+        <td><strong>Selectable Targets:</strong> <code>OOS</code> (only mode where <code>CONTROL_OPTS</code>/<code>STATUS_OPTS</code> can be edited!), <code>Man</code> (operator types <code>OUT %</code>), <code>Auto</code> (operator types <code>SP</code>), <code>Cas</code> (follows upstream Master PID), <code>RCas</code>/<code>ROut</code> (supervisory).<br/><strong>Automatic-Only (Never Selectable):</strong> <strong><code>IMan</code></strong> (downstream not in <code>CAS</code>) and <strong><code>LO</code></strong> (<code>TRK_IN_D = True</code>).</td>
+        <td><strong>Bad PV Mode Shed (<em>FBR</em> p. 240):</strong> Bad <code>AI1</code> sheds <code>AUTO → MAN</code> (check <code>Target to Manual if Bad IN</code> to stop auto-resume!).</td>
+      </tr>
+      <tr>
+        <td><strong><code>BKCAL_OUT → BKCAL_IN</code> Feedback Wire</strong><br/><span class="pill pill-off">Official DeltaV</span></td>
+        <td>Drawn <strong>gray dotted</strong> because <code>AO1 (#3)</code> feeds back to <code>PID1 (#2)</code> (next scan). Carries 4 statuses:<br/>• <code>Non-Limited</code> = normal control.<br/>• <code>Limited High/Low</code> = valve clamped at 100%/0% → freezes integral (<strong>zero windup!</strong>).<br/>• <code>Not Invited</code> = downstream in <code>MAN</code> → forces <code>PID1</code> to <strong><code>IMan</code></strong> tracking actual valve % (<strong>bumpless return!</strong>).<br/>• <code>Bad: OOS</code> = downstream offline → holds <code>IMan</code>.</td>
+        <td><strong>2:00 AM Rule:</strong> See <code>PID = IMan</code>? Trace gray dotted <code>BKCAL_IN</code> <strong>downstream</strong>!</td>
+      </tr>
+      <tr>
+        <td><strong>Field Traps (<code>AO</code>, HART, DVC, <code>KNL</code>)</strong><br/><span class="pill pill-off">Official DeltaV</span></td>
+        <td>• <strong><code>IO_OPTS: Increase to close</code></strong> inverts 4–20 mA for Air-to-Close (fail-open) valves.<br/>• <strong>Fisher DVC <code>Bad ConfigErr</code></strong> after swap → check AMS Input Range (defaulted to <code>4–20 mA</code> instead of <code>%</code>!).<br/>• <strong><code>HART_FIELD_VAL</code>:</strong> leave EU blank unless intentionally re-ranging transmitter.<br/>• <strong>Nonlinear gain <code>KNL</code></strong> (pH loops) applies to <strong>P + I only — never D</strong>.</td>
+        <td><code>CONTROL_OPTS</code> / <code>FRSIPID_OPTS</code> live in <code>PID1</code>'s bottom <code>Parameter View</code>.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- CHAPTER 9 -->
+<div class="ch-block">
+  <div class="ch-head">
+    <span>Chapter 9: Cascade Control &amp; <code>CTLSL</code> Override Control (<code>CASCADE_201</code>)</span>
+    <span class="ch-sub">Multi-PID Loops</span>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:23%;">Thing to Memorize</th>
+        <th style="width:57%;">What You Need to Memorize About It</th>
+        <th style="width:20%;">Click Path / Plant Rule</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Master → Slave Cascade &amp; Double <code>BKCAL</code></strong><br/><span class="pill pill-off">Official DeltaV</span></td>
+        <td>Slow Master (<code>PID_TIC</code>, <code>AUTO</code>) outputs a flow setpoint into fast Slave (<code>PID_FIC</code>, <code>CAS</code>) → <code>AO_VLV</code> (<code>CAS</code>), rejecting supply disturbances in seconds. Two gray dotted <code>BKCAL</code> wires (<code>#4→#3</code> and <code>#3→#2</code>): putting Slave in <code>AUTO</code> drops Master to <code>IMan</code>; putting <code>AO</code> in <code>MAN</code> drops <strong>BOTH</strong> to <code>IMan</code>!</td>
+        <td>Enable <code>FRSIPID_OPTS: Dynamic Reset Limit</code> on Master to prevent windup on upstream restrictions.</td>
+      </tr>
+      <tr>
+        <td><strong><code>CTLSL</code> (Control Selector) Override</strong><br/><span class="pill pill-off">Official DeltaV</span></td>
+        <td>Picks <code>LOW</code>, <code>HIGH</code>, or <code>MIDDLE</code> of up to 3 PIDs (<code>SEL_1..3</code>). <strong>Why you MUST use <code>CTLSL</code> (never <code>CALC</code>/<code>XFR</code>):</strong> it has dedicated <strong><code>BKCAL_SEL1..3</code></strong> outputs that clamp every standby PID right at the winning valve output so takeover is instant with zero windup!</td>
+        <td><span class="trap">FBR p. 187 trap:</span> If ANY connected <code>SEL_1..3</code> goes <code>Bad</code>, <code>CTLSL</code> automatically sheds <strong><code>Auto → Man</code></strong>!</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- CHAPTER 10 -->
+<div class="ch-block">
+  <div class="ch-head">
+    <span>Chapter 10: Output Tracking, Selector Blocks &amp; Composite Blocks</span>
+    <span class="ch-sub">Interlocks, <code>ISEL</code> &amp; Composites</span>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:23%;">Thing to Memorize</th>
+        <th style="width:57%;">What You Need to Memorize About It</th>
+        <th style="width:20%;">Click Path / Plant Rule</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Analog PID Tracking (<code>TRK_IN_D</code> / <code>TRK_VAL</code>)</strong><br/><span class="pill pill-off">Official DeltaV</span></td>
+        <td>When <code>TRK_IN_D = True</code> (and <code>CONTROL_OPTS: Track Enable</code> checked), <code>PID</code> drops to <strong><code>LO</code></strong> and forces <code>OUT := TRK_VAL</code>. Check <strong><code>Track in Manual</code></strong> if the safety trip must override an operator in <code>MAN</code>. On <code>AO</code>, check <code>FSTATE_TIME</code> &amp; <code>FSTATE_VAL</code> for Bad <code>CAS_IN</code> fail-safe.</td>
+        <td>Single valve: <code>TRK_VAL = 0%</code>. Split-range Acid/Base: <strong><code>TRK_VAL = 50%</code>!</strong></td>
+      </tr>
+      <tr>
+        <td><strong><code>XFR</code> vs. <code>ISEL</code> vs. <code>CTLSL</code></strong><br/><span class="pill pill-off">Official DeltaV</span></td>
+        <td>• <strong><code>XFR</code>:</strong> 2 analog inputs + discrete <code>SELECTOR</code> + <code>BAL_TIME</code> ramp (SP or 2-sensor switch).<br/>• <strong><code>ISEL</code>:</strong> Up to <strong>4 redundant sensors</strong> (<code>IN_1..4</code>), <code>MAX/MIN/MID/FIRST_GOOD/AVG</code>, auto-ignores <code>Bad</code> or <code>DISABLE</code> inputs!<br/>• <strong><code>CTLSL</code>:</strong> Up to 3 <strong>PID outputs</strong> with <code>BKCAL_SEL1..3</code> anti-windup feedback!</td>
+        <td>Never mix these three up on an analog sheet!</td>
+      </tr>
+      <tr>
+        <td><strong>Embedded vs. Linked Composites</strong><br/><span class="pill pill-off">Official DeltaV</span></td>
+        <td><strong>Embedded</strong> = lives only in this module (local edit). <strong>Linked</strong> = stored in Library (editing updates <em>every</em> module using it!). Internal Input/Output parameters become the outer block's visible <code>□</code> pins.</td>
+        <td>Right-click Composite in <code>Diagram View → Drill Down</code> (or double-click / expand in <code>Hierarchy View</code>).</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- CHAPTER 11 -->
+<div class="ch-block">
+  <div class="ch-head">
+    <span>Chapter 11: Real-Plant PCSD 32-Device EM (<code>3WT-0001-NEUT</code>) &amp; Split-Range <code>SPLTR</code></span>
+    <span class="ch-sub">Live Site Mastery</span>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:23%;">Thing to Memorize</th>
+        <th style="width:57%;">What You Need to Memorize About It</th>
+        <th style="width:20%;">Click Path / Plant Rule</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>PCSD Template Clutter Rule (<code>_EM_CMD32_140</code>)</strong><br/><span class="pill pill-off">Official DeltaV</span></td>
+        <td>Mentally ignore unbound <code>&lt;Ignored&gt;</code> device stubs (<code>DEV20–32</code> showing <code>3.40282E+38</code> &amp; <code>FAILURE=True</code> are masked off by <code>SM_18..32=False</code>!), disabled commands, blank timers, and unused <code>OP/TP</code>s. Every Run SFC follows <code>S0000–S0020</code> (boilerplate acquire) → <strong><code>S0100</code> (real work! + <code>S0100R</code> Restart branch)</strong> → <code>S9900</code> (release).</td>
+        <td>In completed <code>OFF</code>, <code>A_COMMAND = Undefined</code> is normal—read <code>A_TARGET</code> / <code>A_PV</code>!</td>
+      </tr>
+      <tr>
+        <td><strong><code>MONITOR</code>: Sentinel vs. Hold + <code>AT</code> Trick</strong><br/><span class="pill pill-off">Official DeltaV</span></td>
+        <td><strong><code>SENTINEL_MONITOR</code></strong> (<code>SM_AT1/2</code>) catches subordinate <strong>device</strong> failures; <strong><code>HOLD_MONITOR</code></strong> (<code>HM_AT1/2</code>) catches <strong>process</strong> failures (e.g., <code>TMR1</code> 90-min timeout) and trips <code>COMMAND_00000 (HOLD)</code>. <strong><code>AT</code> Counting Trick:</strong> count outputs showing <code>0</code> (configured) vs. <code>???</code> (unused)!</td>
+        <td><code>HOLD_REQ = True</code> releases device mode locks in <code>OFF</code>; <code>OPR_CMD_MASK</code> is a decimal bitmask of clickable HMI commands.</td>
+      </tr>
+      <tr>
+        <td><strong><code>SPLTR</code> (Splitter) Block &amp; 50% Safe Track</strong><br/><span class="pill pill-off">Official DeltaV</span></td>
+        <td>Splits 1 <code>PID</code> output (<code>CAS_IN</code>) across 2 outputs (<code>OUT_1</code>, <code>OUT_2</code>) with 2 back-calc inputs (<code>BKCAL_IN_1/2</code>) → <code>BKCAL_OUT</code>. Modes: <strong><code>OOS</code>, <code>IMan</code>, <code>Auto</code>, <code>Cas</code> ONLY (NO <code>MAN</code>!)</strong>. With <code>IN_ARRAY = [0, 49, 51, 100]</code> &amp; <code>OUT_ARRAY = [100, 0, 0, 100]</code>:<br/>• <code>0–49%</code> = Acid (<code>0%</code> = <strong>100% Acid!</strong>); <code>49–51%</code> = <strong>Deadband (both 0%)</strong>; <code>51–100%</code> = Base.<br/>• <span class="trap">CRITICAL:</span> <strong><code>TRK_VAL</code> MUST be <code>50%</code></strong> (never <code>0%</code>, which dumps 100% Acid!).</td>
+        <td><strong>Slope-Aware BKCAL:</strong> 1 AO in <code>MAN</code> lets the other side keep running while sending <code>LimHigh</code>/<code>LimLow</code>; BOTH AOs out of <code>CAS</code> → <code>IMan</code>!</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- CHAPTER 12 -->
+<div class="ch-block">
+  <div class="ch-head">
+    <span>Chapter 12: Control Studio Live Safety — HMI Icons, Downloads &amp; Alarms</span>
+    <span class="ch-sub">Protecting a Live Plant</span>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:23%;">Thing to Memorize</th>
+        <th style="width:57%;">What You Need to Memorize About It</th>
+        <th style="width:20%;">Click Path / Plant Rule</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>DeltaV Live GEM Icon Priority Masking</strong><br/><span class="pill pill-off">Official DeltaV</span></td>
+        <td><strong><code>Not Running</code></strong> (<code>MSTATUS</code>) hides BOTH <code>Bad IO</code> and <code>Simulate Active</code>; <strong><code>Bad IO</code></strong> (<code>BLOCK_ERR</code>) hides <code>Simulate Active</code> (<code>SIMULATE</code>). Other key icons: <code>Mode</code> (<code>ACTUAL ≠ NORMAL</code>), <code>No Permit</code> (<code>PERMISSIVE_D = 0</code>), <code>Interlock Bypassed</code> (<code>BYPASSED</code>), <code>Interlocked</code> (<code>DC_STATE = Shutdown/Interlocked</code>).</td>
+        <td>Never assume <code>Simulate</code> is OFF just because you only see <code>Bad IO</code>!</td>
+      </tr>
+      <tr>
+        <td><strong>Partial Download 3-Mode Truth Table</strong><br/><span class="pill pill-off">Official DeltaV</span></td>
+        <td>• <strong><code>Preserve critical block values</code>:</strong> Keeps live Mode, <span class="trap">OVERWRITES user SPs</span> back to offline DB!<br/>• <strong><span class="ok"><code>Preserve user-defined and critical block values</code>:</span></strong> Safest—keeps BOTH live Mode and live SPs!<br/>• <strong><code>Use configured values</code>:</strong> <span class="trap">WIPES BOTH</span> Mode and SP back to offline DB defaults!</td>
+        <td>Check <code>Main → Module → Properties</code> before downloading any live module!</td>
+      </tr>
+      <tr>
+        <td><strong>Upload "Select None" &amp; 2-Checkbox Cold Restart</strong><br/><span class="pill pill-off">Official DeltaV</span></td>
+        <td><strong>Upload Prompt:</strong> Clicking <code>OK</code> uploads <strong>ZERO parameters by default</strong>—explicitly check params to save live tuning! <strong>Cold Restart NVM Persistence:</strong> Must check <strong>BOTH</strong> parameter-level <em>AND</em> module-level <em>"Restore parameter value(s) after restart"</em> checkboxes!</td>
+        <td>Missing either checkbox wipes operating setpoints to default on Cold Restart.</td>
+      </tr>
+      <tr>
+        <td><strong>Dynamic Ref Limit &amp; <code>ALARMS[1]</code></strong><br/><span class="pill pill-off">Official DeltaV</span></td>
+        <td>Never exceed <strong>3 simultaneous Dynamic References</strong> in one SFC step (can drop Controller Free Time to ~0%!). <code>ALARMS[1]</code> exposes highest-priority active alarm (<code>CRITICAL=15</code>, <code>WARNING=11</code>, <code>ADVISORY=7</code>, <code>LOG=3</code>); <code>CUALM</code>=current, <code>LAALM</code>=latched, <code>NALM</code>=unack, <code>OPSUP</code>=suppressed; write <code>1</code> to <code>ALARMS.F_MACK</code> to ack all.</td>
+        <td>Stagger >3 Dynamic Refs across steps in groups of 3 (<em>Tips</em> p. 40).</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- MASTER BLOCK PIN CHEAT SHEET -->
+<div class="ch-block">
+  <div class="ch-head">
+    <span>Bonus Quick-Recall: The 7 Most-Seen Control Studio Function Blocks</span>
+    <span class="ch-sub">Official Emerson FBR Facts</span>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:12%;">Block</th>
+        <th style="width:28%;">Exact Pins (Memorize Spelling!)</th>
+        <th style="width:20%;">Selectable Modes</th>
+        <th style="width:40%;">#1 Gotcha to Memorize Cold</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong><code>CND</code></strong></td>
+        <td>In: <strong>NONE</strong> | Out: <code>OUT_D</code></td>
+        <td>None</td>
+        <td>Reads operands inside expression; <code>:=</code> is illegal; <code>TIME_DURATION</code> delays <code>OUT_D</code>.</td>
+      </tr>
+      <tr>
+        <td><strong><code>ACT</code></strong></td>
+        <td>In: <code>IN_D</code> | Out: <strong>NONE</strong></td>
+        <td>None</td>
+        <td>Executes <code>:=</code> <em>every scan</em> while <code>IN_D=1</code>; <span class="trap">IGNORES <code>IN_D.ST</code>!</span> Value stays after <code>IN_D=0</code>.</td>
+      </tr>
+      <tr>
+        <td><strong><code>XFR</code></strong></td>
+        <td><code>IN_1</code>, <code>IN_2</code>, <code>SELECTOR</code> → <code>OUT</code></td>
+        <td>None</td>
+        <td>Uses underscores; <code>0→IN_1</code>, <code>1→IN_2</code>; <code>OUT.ST</code> = worse of selected input <strong>AND <code>SELECTOR</code></strong>!</td>
+      </tr>
+      <tr>
+        <td><strong><code>CALC</code></strong></td>
+        <td><code>IN1..16</code> → <code>OUT1..16</code></td>
+        <td>None</td>
+        <td>NO underscores; <span class="trap"><code>OUT1.ST</code> defaults to <code>GOOD (128)</code></span> unless you write <code>'OUT1.ST' := 'IN2.ST';</code>!</td>
+      </tr>
+      <tr>
+        <td><strong><code>DC</code></strong></td>
+        <td><code>CAS_IN_D</code>, <code>SHUTDOWN_D</code>(1), <code>INTERLOCK_D</code>(0), <code>PERMISSIVE_D</code>(0), <code>TRK_IN_D</code>(1) → <code>OUT_D</code></td>
+        <td><strong><code>AUTO</code>, <code>CAS</code></strong> (+ <code>OOS</code>; auto <code>LO</code>)</td>
+        <td><strong>NO <code>MAN</code> mode!</strong> Check <strong>BOTH <code>SP Track</code> + <code>Reset Required</code></strong> in <code>DEVICE_OPTS</code>!</td>
+      </tr>
+      <tr>
+        <td><strong><code>PID</code></strong></td>
+        <td><code>IN</code>, <code>CAS_IN</code>, <code>BKCAL_IN</code>, <code>TRK_IN_D</code>, <code>TRK_VAL</code> → <code>OUT</code>, <code>BKCAL_OUT</code></td>
+        <td>All 8 (auto: <code>IMan</code>, <code>LO</code>)</td>
+        <td><code>IO_IN</code> beats wired <code>IN</code>; Bad PV sheds <code>AUTO→MAN</code>; <code>IMan</code> = trace <code>BKCAL_IN</code> downstream!</td>
+      </tr>
+      <tr>
+        <td><strong><code>SPLTR</code></strong></td>
+        <td><code>CAS_IN</code>, <code>BKCAL_IN_1/2</code> → <code>OUT_1</code>, <code>OUT_2</code>, <code>BKCAL_OUT</code></td>
+        <td><code>OOS</code>, <code>Auto</code>, <code>Cas</code> (auto <code>IMan</code>)</td>
+        <td><strong>NO <code>MAN</code> mode!</strong> Use <code>TRK_VAL = 50%</code> (deadband) on Acid/Base loops; <code>BAL_TIME &gt;= 2×RESET</code>.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="footer-note">
+  <span>Emerson DeltaV Control Studio Memorization Reference • 100% Native DeltaV • Verified vs. Emerson FBR, CONFIG, 7009, 7016, 7017 &amp; Live Training</span>
+  <span>Companion to DeltaV_Study_Guide.pdf (v4.0) &amp; Visual Explorer</span>
+</div>
+
+</body>
+</html>
