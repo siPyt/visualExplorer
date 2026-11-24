@@ -1049,6 +1049,276 @@
 
 <p><strong>Mental Picture (AI Study Aid):</strong> Think of <strong>Pattern 1</strong> as the orchestra conductor turning pages of sheet music, while <strong>Patterns 2, 3, and 4</strong> are the circuit breakers, mixer board, and speaker cables that stay energized the entire concert.</p>
 
+
+<h4>2.1.1 The Big Picture: How All 4 Patterns Hand Signals to Each Other Inside One Equipment Module</h4>
+<p>Before diving into each pattern individually, study <strong>Figure 2.0</strong> below. Every box represents one of the four jobs running inside <code>EM_TANK_CHARGE</code>, and every labeled connector shows the <strong>exact DeltaV module parameter</strong> that one pattern writes so another pattern can react to it:</p>
+
+<div class="diagram-box">
+  <svg viewBox="0 0 690 334" width="100%" height="316" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <pattern id="g_4p" width="20" height="20" patternUnits="userSpaceOnUse">
+        <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#e2e8f0" stroke-width="0.8"/>
+      </pattern>
+      <marker id="arr_b" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M 0 1 L 10 5 L 0 9 z" fill="#1d4ed8"/>
+      </marker>
+      <marker id="arr_r" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M 0 1 L 10 5 L 0 9 z" fill="#dc2626"/>
+      </marker>
+      <marker id="arr_p" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M 0 1 L 10 5 L 0 9 z" fill="#7c3aed"/>
+      </marker>
+      <marker id="arr_t" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M 0 1 L 10 5 L 0 9 z" fill="#0f766e"/>
+      </marker>
+    </defs>
+    <rect width="690" height="334" fill="url(#g_4p)" rx="5"/>
+
+    <!-- Outer EM Shell -->
+    <rect x="8" y="8" width="674" height="252" rx="6" fill="#ffffff" fill-opacity="0.72" stroke="#0f2942" stroke-width="1.6" stroke-dasharray="6,3"/>
+    <text x="18" y="23" fill="#0f2942" font-size="8.6" font-weight="800" font-family="Consolas, monospace">INSIDE EQUIPMENT MODULE: EM_TANK_CHARGE (1-Second Scan Heartbeat — All 4 Patterns Cooperating)</text>
+
+    <!-- PATTERN 1 (Top Center-Left) -->
+    <rect x="20" y="34" width="305" height="98" rx="4" fill="#eff6ff" stroke="#1d4ed8" stroke-width="1.8"/>
+    <rect x="21" y="35" width="303" height="20" rx="3" fill="#1d4ed8"/>
+    <text x="172" y="48.5" text-anchor="middle" fill="#ffffff" font-size="8.6" font-weight="800">PATTERN 1: Command &amp; Step Flow (STEPS through time!)</text>
+    <text x="30" y="69" fill="#0f172a" font-size="7.9" font-weight="700" font-family="Consolas, monospace">COMMAND_00001 SFC: S0_IDLE ──┼── S10 ──┼── S20 ──┼── S30 ═╧═</text>
+    <text x="30" y="84" fill="#334155" font-size="7.8">• Decides WHAT happens WHEN (locks tare [P], opens valve,</text>
+    <text x="30" y="96" fill="#334155" font-size="7.8">  waits for cutoff, closes valve, settles 5s, starts agitator).</text>
+    <text x="30" y="110" fill="#1e3a8a" font-size="7.7" font-weight="700">• Waits on flags published by Patterns 2, 3 &amp; 4 to advance!</text>
+    <text x="30" y="123" fill="#1e3a8a" font-size="7.7" font-weight="700">• On Termination (═╧═), sets '^/A_PV.CV' := 'em_charge:CHARGE'</text>
+
+    <!-- PATTERN 2 (Top Right) -->
+    <rect x="368" y="34" width="302" height="98" rx="4" fill="#fef2f2" stroke="#dc2626" stroke-width="1.8"/>
+    <rect x="369" y="35" width="300" height="20" rx="3" fill="#dc2626"/>
+    <text x="519" y="48.5" text-anchor="middle" fill="#ffffff" font-size="8.6" font-weight="800">PATTERN 2: Permissives &amp; Interlocks (ALWAYS ON — FBD)</text>
+    <text x="378" y="69" fill="#991b1b" font-size="7.9" font-weight="700" font-family="Consolas, monospace">CND1 (Bouncer)   |   CND2 wired to ACT1 (Emergency Brake)</text>
+    <text x="378" y="84" fill="#334155" font-size="7.8">• Strip A (CND1): Checks 4 start rules → sets '^/PERM_READY.CV'</text>
+    <text x="378" y="96" fill="#334155" font-size="7.8">• Strip B (CND2/ACT1): Watches BAD scale &amp; HI_HI every scan!</text>
+    <text x="378" y="110" fill="#991b1b" font-size="7.7" font-weight="700">• On trip: slams CAS_SP := CLOSE &amp; sets '^/FAIL_REQ.CV' := 1;</text>
+    <text x="378" y="123" fill="#991b1b" font-size="7.7" font-weight="700">  (Never waits for Pattern 1 SFC to move!)</text>
+
+    <!-- PATTERN 3 (Bottom Left) -->
+    <rect x="20" y="160" width="305" height="90" rx="4" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.8"/>
+    <rect x="21" y="161" width="303" height="20" rx="3" fill="#7c3aed"/>
+    <text x="172" y="174.5" text-anchor="middle" fill="#ffffff" font-size="8.6" font-weight="800">PATTERN 3: Mode &amp; Setpoint Routing (ALWAYS ON — FBD)</text>
+    <text x="30" y="195" fill="#5b21b6" font-size="7.9" font-weight="700" font-family="Consolas, monospace">XFR1 (#1) → CALC1 (#2) → CND3 (#3)  +  ACT2 (CAS Push)</text>
+    <text x="30" y="210" fill="#334155" font-size="7.8">• Selects Recipe vs. Local weight; computes NET &amp; REMAINING;</text>
+    <text x="30" y="222" fill="#334155" font-size="7.8">  copies scale .ST health onto '^/REMAINING_WT.ST'.</text>
+    <text x="30" y="236" fill="#5b21b6" font-size="7.7" font-weight="700">• Sets '^/CUTOFF_REACHED.CV' &amp; writes MODE.TARGET := CAS;</text>
+
+    <!-- PATTERN 4 (Bottom Right) -->
+    <rect x="368" y="160" width="302" height="90" rx="4" fill="#f0fdfa" stroke="#0f766e" stroke-width="1.8"/>
+    <rect x="369" y="161" width="300" height="20" rx="3" fill="#0f766e"/>
+    <text x="519" y="174.5" text-anchor="middle" fill="#ffffff" font-size="8.6" font-weight="800">PATTERN 4: CM Command &amp; Feedback (ALWAYS ON — FBD)</text>
+    <text x="378" y="195" fill="#115e59" font-size="7.9" font-weight="700" font-family="Consolas, monospace">CND4 (Closed Proof)  +  CND5 (10s Stuck-Valve Watchdog)</text>
+    <text x="378" y="210" fill="#334155" font-size="7.8">• Pairs outbound CAS_SP command against inbound PV limit switch.</text>
+    <text x="378" y="222" fill="#334155" font-size="7.8">• Sets '^/VALVE_SHUT_OK.CV' when PV = CLOSED; raises</text>
+    <text x="378" y="236" fill="#115e59" font-size="7.7" font-weight="700">  '^/VALVE_MISMATCH_ALM.CV' if valve fails to shut in 10 s!</text>
+
+    <!-- Handshake Arrows Between Patterns -->
+    <!-- P2 -> P1: PERM_READY -->
+    <line x1="368" y1="74" x2="327" y2="74" stroke="#dc2626" stroke-width="2" marker-end="url(#arr_r)"/>
+    <rect x="328" y="54" width="39" height="16" rx="2" fill="#ffffff" stroke="#fca5a5"/>
+    <text x="347.5" y="64.5" text-anchor="middle" fill="#991b1b" font-size="6.4" font-weight="800" font-family="Consolas, monospace">PERM</text>
+
+    <!-- P3 -> P1: CUTOFF_REACHED -->
+    <line x1="125" y1="160" x2="125" y2="134" stroke="#7c3aed" stroke-width="2" marker-end="url(#arr_p)"/>
+    <rect x="38" y="139" width="84" height="15" rx="2" fill="#ffffff" stroke="#c4b5fd"/>
+    <text x="80" y="149" text-anchor="middle" fill="#5b21b6" font-size="6.6" font-weight="800" font-family="Consolas, monospace">CUTOFF_REACHED</text>
+
+    <!-- P4 -> P1: VALVE_SHUT_OK -->
+    <path d="M 368 182 L 346 182 L 346 112 L 327 112" fill="none" stroke="#0f766e" stroke-width="2" marker-end="url(#arr_t)"/>
+    <rect x="327" y="139" width="60" height="15" rx="2" fill="#ffffff" stroke="#99f6e4"/>
+    <text x="357" y="149" text-anchor="middle" fill="#115e59" font-size="6.5" font-weight="800" font-family="Consolas, monospace">SHUT_OK</text>
+
+    <!-- Bottom External Child CMs Strip -->
+    <rect x="20" y="288" width="650" height="38" rx="4" fill="#f1f5f9" stroke="#475569" stroke-width="1.5"/>
+    <text x="345" y="303" text-anchor="middle" fill="#0f172a" font-size="8.4" font-weight="800" font-family="Consolas, monospace">SEPARATE STANDALONE CONTROL MODULES IN PLANT AREA (Accessed via '// External Paths)</text>
+    <text x="345" y="317" text-anchor="middle" fill="#334155" font-size="7.8" font-family="Consolas, monospace">CM_TANK_WT (AI1/OUT .CV + .ST)   |   CM_FEED_XV (CAS_SP / MODE / PV / DC1)   |   CM_AGIT_MTR (CAS_SP / PV / DC1)</text>
+
+    <!-- Lines to/from Child CMs -->
+    <line x1="175" y1="288" x2="175" y2="252" stroke="#7c3aed" stroke-width="1.9" marker-end="url(#arr_p)"/>
+    <rect x="181" y="266" width="96" height="15" rx="2" fill="#ffffff" stroke="#c4b5fd"/>
+    <text x="229" y="276" text-anchor="middle" fill="#5b21b6" font-size="6.8" font-weight="800" font-family="Consolas, monospace">Scale kg + .ST in</text>
+
+    <line x1="445" y1="250" x2="445" y2="286" stroke="#1d4ed8" stroke-width="1.9" marker-end="url(#arr_b)"/>
+    <rect x="339" y="266" width="100" height="15" rx="2" fill="#ffffff" stroke="#93c5fd"/>
+    <text x="389" y="276" text-anchor="middle" fill="#1d4ed8" font-size="6.8" font-weight="800" font-family="Consolas, monospace">CAS_SP / MODE out</text>
+
+    <line x1="540" y1="288" x2="540" y2="252" stroke="#0f766e" stroke-width="1.9" marker-end="url(#arr_t)"/>
+    <rect x="546" y="266" width="112" height="15" rx="2" fill="#ffffff" stroke="#99f6e4"/>
+    <text x="602" y="276" text-anchor="middle" fill="#115e59" font-size="6.8" font-weight="800" font-family="Consolas, monospace">PV limit switch back</text>
+  </svg>
+  <div class="diagram-caption">Figure 2.0 (AI Mental Model Built on Official DeltaV Objects): All 4 Patterns live inside the SAME Equipment Module. Notice how Patterns 2, 3, and 4 solve continuously on the FBD sheet and feed Boolean flags (PERM_READY, CUTOFF_REACHED, VALVE_SHUT_OK) up into Pattern 1's SFC transitions!</div>
+</div>
+
+<h4>2.1.2 Deep-Dive on Each of the 4 Patterns Individually (Plain-English Job, Exact Code &amp; What Breaks Without It!)</h4>
+<p>To lock the 4 Patterns into permanent engineering intuition, examine each one on its own—where you click to find it in Control Studio, what exact DeltaV expressions live inside it, and <strong>what exact plant failure occurs if you delete it</strong>:</p>
+
+<div class="card" style="break-inside:auto; page-break-inside:auto; border-left:4px solid #1d4ed8; margin-bottom:9px;">
+  <h4 style="color:#1d4ed8; margin-top:0;">PATTERN 1 — Command, State &amp; Step Flow ("The Timekeeper / Sequence Driver")</h4>
+  <ul style="margin:3px 0 0;">
+    <li><strong>Plain-English Job:</strong> Controls <em>order in time</em>—deciding which phase of the equipment task happens first, second, third, and when the job is finished.</li>
+    <li><strong>Does It Step?</strong> <strong>YES</strong> in a Command-Driven EM (walks down an SFC chart step-by-step: <code>S0_IDLE</code>, then <code>S10_CHARGE_OPEN</code>, then <code>S20_TRIM_CLOSE</code>, then <code>S30_AGITATE</code>, then Termination). In a State-Driven EM, there are zero steps—Pattern 1 simply selects which column of the <code>Items × States</code> table is active.</li>
+    <li><strong>Where You Click in Control Studio:</strong> In the left <strong>Hierarchy View</strong>, click <code>COMMAND_00001</code> (or the State Table). Clicking any SFC step shows its code in the right-hand <strong>Action View</strong>.</li>
+    <li><strong>Exact Full Expressions Inside <code>EM_TANK_CHARGE</code>:</strong><br/>
+      • Step <code>S10_CHARGE_OPEN</code> Action 1 (Pulse — Scan 1 only): <code>[P] '^/START_WT.CV' := '//CM_TANK_WT/AI1/OUT.CV';</code><br/>
+      • Step <code>S10_CHARGE_OPEN</code> Action 2 (Non-stored — every scan while active): <code>[N] '//CM_FEED_XV/CAS_SP.CV' := 'vlvnc-sp:OPEN';</code><br/>
+      • Transition <code>T20_PRECLOSE</code> below <code>S10</code>: <code>'^/CUTOFF_REACHED.CV' = TRUE</code><br/>
+      • Step <code>S20_TRIM_CLOSE</code>: <code>[N] '//CM_FEED_XV/CAS_SP.CV' := 'vlvnc-sp:CLOSE';</code><br/>
+      • Transition <code>T30_SHUT_OK</code> below <code>S20</code>: <code>('^/VALVE_SHUT_OK.CV' = TRUE) AND ('S20_TRIM_CLOSE/TIME.CV' &gt;= 5)</code><br/>
+      • Step <code>S30_AGITATE</code>: <code>[N] '//CM_AGIT_MTR/CAS_SP.CV' := 'mtr2-sp:START';</code> → hits Termination bar <code>═╧═</code> → DeltaV automatically sets <code>'^/A_PV.CV' := 'em_charge:CHARGE';</code>.</li>
+    <li><strong>Why Pattern 1 CANNOT Work Alone:</strong> Notice that Pattern 1 NEVER computes <code>REMAINING_WT</code> itself and NEVER checks <code>HI_HI_LVL</code> while parked in <code>S10_CHARGE_OPEN</code>! It depends completely on Pattern 2 to unlock <code>T10</code> and catch trips, Pattern 3 to unlock <code>T20</code>, and Pattern 4 to unlock <code>T30</code>.</li>
+    <li><strong>What Breaks If You Delete Pattern 1:</strong> Nothing orchestrates the sequence—you have working valves, working math, and working alarms, but nothing opens the valve at batch start, closes it at cutoff, waits 5 seconds, and then starts the agitator!</li>
+  </ul>
+</div>
+
+<div class="card" style="break-inside:auto; page-break-inside:auto; border-left:4px solid #dc2626; margin-bottom:9px;">
+  <h4 style="color:#991b1b; margin-top:0;">PATTERN 2 — Permissives &amp; Interlocks ("The Front-Door Bouncer &amp; The Emergency Brake")</h4>
+  <ul style="margin:3px 0 0;">
+    <li><strong>Plain-English Job:</strong> Protects the equipment in two distinct ways: (A) refusing to let a task <em>start</em> if conditions are unsafe ("Bouncer"), and (B) immediately slamming equipment safe <em>mid-task</em> if something breaks ("Emergency Brake").</li>
+    <li><strong>Does It Step?</strong> <strong>NO — Always On!</strong> Runs continuously on every single controller scan (e.g., once per second), completely independent of which SFC step Pattern 1 is currently sitting in.</li>
+    <li><strong>Where You Click in Control Studio:</strong> Click the module's <strong>Main FBD Sheet</strong> in <strong>Hierarchy View</strong> to view <code>CND1</code>, <code>CND2</code>, and <code>ACT1</code> (or right-click <code>MONITOR → Drill Down</code> on a PCSD EM). Double-click any <code>CND</code> On-Line to inspect its live green <code>✓</code> / red <code>✗</code> expression tree.</li>
+    <li><strong>Exact Full Expressions Inside <code>EM_TANK_CHARGE</code> (Notice the TWO Separate Strips!):</strong><br/>
+      • <strong>Job 2A — Pre-Start Permissive (<code>CND1 #1</code>):</strong> Evaluates <code>('//CM_FEED_XV/DC1/MODE.ACTUAL' = CAS) AND ('^/TARGET_WT.CV' &gt; 0.0) AND ('//CM_TANK_WT/AI1/OUT.ST' &gt;= GOOD) AND ('^/HI_HI_LVL.CV' = 0)</code>. Wired pin <code>CND1/OUT_D</code> drives <code>'^/PERM_READY.CV'</code>, which gates Pattern 1's Transition <code>T10_START_OK</code>.<br/>
+      • <strong>Job 2B — Active Interlock Trip (<code>CND2 #2</code> wired into <code>ACT1 #3</code>):</strong> <code>CND2</code> evaluates <code>('//CM_TANK_WT/AI1/OUT.ST' &lt;= BAD) OR ('^/HI_HI_LVL.CV' = 1)</code> every scan. The millisecond either turns True, wired pin <code>CND2/OUT_D</code> turns on <code>ACT1/IN_D</code>, and <code>ACT1</code> immediately executes:<br/>
+      <code>'//CM_FEED_XV/CAS_SP.CV' := 'vlvnc-sp:CLOSE';</code><br/>
+      <code>'^/FAIL_REQ.CV' := 1;</code> <em>(signals the Unit Phase's <code>FAIL_MONITOR</code> to Hold the batch!)</em></li>
+    <li><strong>What Breaks If You Delete Pattern 2:</strong> If the tank scale wire breaks 20 seconds into a fill (while Pattern 1 is parked in <code>S10_CHARGE_OPEN</code>), <code>REMAINING_WT</code> freezes at <code>300 kg</code>, <code>T20_PRECLOSE</code> never fires, and solvent pours onto the floor until the tank overflows!</li>
+  </ul>
+</div>
+
+<div class="card" style="break-inside:auto; page-break-inside:auto; border-left:4px solid #7c3aed; margin-bottom:9px;">
+  <h4 style="color:#5b21b6; margin-top:0;">PATTERN 3 — Mode &amp; Setpoint Routing ("The Math Engine &amp; Mode Traffic Cop")</h4>
+  <ul style="margin:3px 0 0;">
+    <li><strong>Plain-English Job:</strong> Keeps all live numbers accurate (choosing which setpoint is active, calculating delivered and remaining mass, carrying health status forward) AND ensures downstream valves/motors are requested into Cascade mode so they obey the EM.</li>
+    <li><strong>Does It Step?</strong> <strong>NO — Always On!</strong> Runs continuously on every single controller scan in strict <code>#1 → #2 → #3</code> execution order (solid wires, zero 1-scan feedback delay).</li>
+    <li><strong>Where You Click in Control Studio:</strong> Main <strong>FBD Sheet</strong> in <strong>Hierarchy View</strong> (<code>XFR1</code>, <code>CALC1</code>, <code>CND3</code>, <code>ACT2</code>). In a State-Driven EM with no analog math, Pattern 3's mode job folds directly into <code>MODE.TARGET</code> rows inside the State Table.</li>
+    <li><strong>Exact Full Expressions Inside <code>EM_TANK_CHARGE</code>:</strong><br/>
+      • <strong><code>XFR1 (#1)</code> (Setpoint Selector):</strong> Wired pins pick <code>'^/RECIPE_WT.CV'</code> (<code>500.0</code>) when <code>'^/USE_RECIPE.CV' = TRUE</code>, or <code>'^/LOCAL_WT.CV'</code> (<code>250.0</code>) when <code>FALSE</code>, outputting onto <code>'^/TARGET_WT.CV'</code>.<br/>
+      • <strong><code>CALC1 (#2)</code> (Live Net &amp; Remaining Math + Status Copy):</strong><br/>
+      <code>NET_WT := 'IN2.CV' - 'IN3.CV';</code> <em>(Scale Gross minus Locked Tare <code>START_WT</code>)</em><br/>
+      <code>'OUT1.CV' := 'IN1.CV' - NET_WT;</code> <em>(Target minus Delivered = <code>REMAINING_WT</code>)</em><br/>
+      <code>'OUT1.ST' := 'IN2.ST';</code> <em>(Copies scale health status onto <code>REMAINING_WT.ST</code>!)</em><br/>
+      • <strong><code>CND3 (#3)</code> (Preclose Cutoff Trigger):</strong> Evaluates <code>('^/REMAINING_WT.CV' &lt;= '^/PRECLOSE_LEAD.CV') AND ('^/REMAINING_WT.ST' &gt;= GOOD)</code> → wired output <code>CND3/OUT_D</code> drives <code>'^/CUTOFF_REACHED.CV'</code> to unlock Pattern 1's <code>T20_PRECLOSE</code>!<br/>
+      • <strong><code>ACT2 (#4)</code> (Mode Request):</strong> Writes <code>'//CM_FEED_XV/DC1/MODE.TARGET' := CAS;</code> (or short front-door path <code>'//CM_FEED_XV/MODE.TARGET' := CAS;</code>) when acquiring the valve!</li>
+    <li><strong>What Breaks If You Delete Pattern 3:</strong> <code>REMAINING_WT</code> never updates, <code>CUTOFF_REACHED</code> never turns <code>TRUE</code> (so <code>S10_CHARGE_OPEN</code> never closes the valve!), or downstream <code>DC1</code> stays parked in operator <code>AUTO</code> silently ignoring every EM valve command!</li>
+  </ul>
+</div>
+
+<div class="card" style="break-inside:auto; page-break-inside:auto; border-left:4px solid #0f766e; margin-bottom:9px;">
+  <h4 style="color:#115e59; margin-top:0;">PATTERN 4 — CM Command &amp; Feedback ("The Hands Going Out &amp; The Eyes Coming Back")</h4>
+  <ul style="margin:3px 0 0;">
+    <li><strong>Plain-English Job:</strong> Closes the loop between what the EM <em>commanded</em> a device to do and what the physical field hardware <em>actually did</em>—proving a valve truly closed before starting the next step, and sounding an alarm if a device jams!</li>
+    <li><strong>Does It Step?</strong> <strong>NO — Always On!</strong> Runs continuously on every scan so a jammed valve or unexpected field trip is caught immediately.</li>
+    <li><strong>Where You Click in Control Studio:</strong> Main <strong>FBD Sheet</strong> inside the EM (<code>CND4</code>, <code>CND5</code>) paired with opening the separate child Control Module (<code>CM_FEED_XV</code>) to compare <code>CAS_SP</code> / <code>DC1/CAS_IN_D</code> against <code>DC1/PV_D</code> / <code>PV</code> and <code>DC1/FAIL_ACTIVE</code>.</li>
+    <li><strong>Exact Full Expressions Inside <code>EM_TANK_CHARGE</code>:</strong><br/>
+      • <strong>Outbound Command (The Hands):</strong> Written by Pattern 1 or Pattern 2 via <code>'//CM_FEED_XV/CAS_SP.CV' := 'vlvnc-sp:OPEN';</code> (or <code>CLOSE</code>). Inside <code>CM_FEED_XV</code>, a real FBD wire feeds <code>CAS_SP</code> into <code>DC1/CAS_IN_D</code>.<br/>
+      • <strong>Inbound Proof (The Eyes — <code>CND4 #1</code>):</strong> Evaluates <code>'//CM_FEED_XV/PV.CV' = 'vlvnc-pv:CLOSED'</code> every scan → wired output <code>CND4/OUT_D</code> drives <code>'^/VALVE_SHUT_OK.CV'</code>, which unlocks Pattern 1's Transition <code>T30_SHUT_OK</code>!<br/>
+      • <strong>Mismatch Watchdog (<code>CND5 #2</code>, <code>TIME_DURATION = 10 s</code>):</strong> Evaluates <code>('//CM_FEED_XV/CAS_SP.CV' = 'vlvnc-sp:CLOSE') AND ('//CM_FEED_XV/PV.CV' != 'vlvnc-pv:CLOSED')</code>. If the valve fails to prove closed within 10 seconds, wired output <code>CND5/OUT_D</code> raises <code>'^/VALVE_MISMATCH_ALM.CV'</code> (working alongside <code>DC1</code>'s own built-in <code>CFM_PASS_TIME</code> → <code>FAIL_ACTIVE</code>!).</li>
+    <li><strong>What Breaks If You Delete Pattern 4:</strong> The EM runs "blind" (open-loop)—it sends <code>CLOSE</code> and immediately starts the agitator even if the feed valve stem snapped open and solvent is still flooding into the spinning tank!</li>
+  </ul>
+</div>
+
+<h4>2.1.3 Live Collaboration Timeline: Watch All 4 Patterns Work Together Across 6 Moments of One Batch</h4>
+<p>Read this table row-by-row to see how <strong>Pattern 1 steps slowly through time while Patterns 2, 3, and 4 run underneath it on every single 1-second heartbeat</strong> (Target = <code>500.0 kg</code>, Preclose Lead = <code>15.0 kg</code>, Heel = <code>100.0 kg</code>):</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="width:13%;">Moment</th>
+      <th style="width:23%;">Pattern 1 (SFC Steps)</th>
+      <th style="width:21%;">Pattern 2 (Safety FBD)</th>
+      <th style="width:22%;">Pattern 3 (Math/Mode FBD)</th>
+      <th style="width:21%;">Pattern 4 (Cmd/Proof FBD)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>1. Ready</strong><br/><code>t = 0 s</code><br/>Scale: <code>100 kg</code></td>
+      <td>Parked in <code>S0_IDLE</code>.<br/>Waiting on <code>T10_START_OK</code> (<code>'^/PERM_READY.CV' = TRUE</code>).</td>
+      <td><code>CND1</code> checks all 4 start rules → <strong>sets <code>PERM_READY = TRUE</code></strong> (unlocks <code>T10</code>!). <code>CND2 = FALSE</code>.</td>
+      <td><code>XFR1</code> selects <code>500.0 kg</code>. <code>ACT2</code> confirms <code>DC1/MODE.TARGET := CAS</code>.</td>
+      <td><code>CAS_SP = CLOSE</code>, <code>PV = CLOSED</code> → <code>CND4</code> sets <code>VALVE_SHUT_OK = TRUE</code>. <code>CND5 = FALSE</code>.</td>
+    </tr>
+    <tr>
+      <td><strong>2. Launch</strong><br/><code>t = 1 s</code><br/>Scale: <code>100 kg</code></td>
+      <td><code>T10</code> fires → enters <strong><code>S10_CHARGE_OPEN</code></strong>! Runs <code>[P] START_WT := 100.0</code> (once!) &amp; <code>[N] CAS_SP := OPEN</code>.</td>
+      <td><code>CND1</code> is now behind us. <code>CND2</code> keeps watching scale <code>.ST</code> &amp; <code>HI_HI_LVL</code> every second!</td>
+      <td><code>CALC1</code> computes <code>NET = 0.0</code>, <code>REM = 500.0 kg</code>. <code>CND3</code> sees <code>500 &lt;= 15</code> → <code>FALSE</code>.</td>
+      <td><code>CAS_SP = OPEN</code> drives valve open; <code>PV</code> becomes <code>OPEN</code> → <code>CND4</code> flips <code>VALVE_SHUT_OK = FALSE</code>.</td>
+    </tr>
+    <tr>
+      <td><strong>3. Mid-Fill</strong><br/><code>t = 25 s</code><br/>Scale: <code>350 kg</code></td>
+      <td><strong>Sitting completely still</strong> inside <code>S10_CHARGE_OPEN</code> waiting on <code>T20_PRECLOSE</code>.</td>
+      <td><code>CND2</code> scanning every second: scale is <code>GOOD</code>, <code>HI_HI = 0</code> → stays quiet (<code>FALSE</code>).</td>
+      <td><code>CALC1</code> actively solving every second: <code>NET = 250</code>, <code>REM = 250.0 kg</code>. <code>CND3 = FALSE</code>.</td>
+      <td><code>CAS_SP = OPEN</code>, <code>PV = OPEN</code> → both match; <code>CND5</code> mismatch timer stays at <code>0 s</code>.</td>
+    </tr>
+    <tr>
+      <td><strong>4. Cutoff Hit!</strong><br/><code>t = 48 s</code><br/>Scale: <code>585 kg</code></td>
+      <td><code>T20_PRECLOSE</code> turns <code>TRUE</code> → enters <strong><code>S20_TRIM_CLOSE</code></strong> → writes <code>[N] CAS_SP := CLOSE</code>!</td>
+      <td><code>CND2</code> still scanning every second → stays quiet (healthy).</td>
+      <td><code>CALC1</code> hits <strong><code>REM = 15.0 kg</code></strong> → <code>CND3</code> sees <code>15.0 &lt;= 15.0</code> → <strong>flips <code>CUTOFF_REACHED = TRUE</code></strong> (triggers <code>T20</code>!).</td>
+      <td><code>CAS_SP = CLOSE</code> while valve begins stroking shut (<code>PV</code> still <code>OPEN</code> for ~2 s; <code>CND5</code> starts counting up from 0 s).</td>
+    </tr>
+    <tr>
+      <td><strong>5. Proved Shut</strong><br/><code>t = 54 s</code><br/>Scale: <code>600 kg</code></td>
+      <td><code>T30_SHUT_OK</code> sees <code>VALVE_SHUT_OK = TRUE</code> AND <code>TIME &gt;= 5 s</code> → enters <code>S30_AGITATE</code> → <code>═╧═</code> sets <code>A_PV := CHARGE</code>!</td>
+      <td><code>CND2</code> still scanning every second → stays quiet.</td>
+      <td><code>CALC1</code> shows <code>NET = 500.0 kg</code>, <code>REM = 0.0 kg</code> (exact target delivered!).</td>
+      <td>Valve closed at <code>t = 50 s</code> → <strong><code>CND4</code> sets <code>VALVE_SHUT_OK = TRUE</code></strong> (unlocks <code>T30</code>!); <code>CND5</code> resets to <code>0 s</code>.</td>
+    </tr>
+    <tr style="background:#fef2f2;">
+      <td><strong>ALT FAULT!</strong><br/><code>t = 25 s</code><br/>Scale wire breaks (<code>BAD ✕</code>)</td>
+      <td>Still parked in <code>S10_CHARGE_OPEN</code> (blind to the fault until Unit Phase enters <code>HOLD</code>!).</td>
+      <td><strong style="color:#b91c1c;">PATTERN 2 SAVES THE TANK!</strong> <code>CND2</code> sees <code>OUT.ST &lt;= BAD</code> → fires <code>ACT1</code> same scan → <code>CAS_SP := CLOSE; FAIL_REQ := 1;</code>!</td>
+      <td><code>CALC1</code> copies <code>'OUT1.ST' := 'IN2.ST'</code> → <code>REMAINING_WT.ST = BAD</code> → <code>CND3</code> stays <code>FALSE</code> (blocks false cutoff!).</td>
+      <td><code>ACT1</code> forced <code>CAS_SP := CLOSE</code> → valve closes → <code>CND4</code> confirms <code>PV = CLOSED</code> safely!</td>
+    </tr>
+  </tbody>
+</table>
+
+<h4>2.1.4 10-Second Visual Recognition Key: How the Exact Same 4 Patterns Appear on 3 Real Plant EM Styles</h4>
+<p>Remember: <strong>"Patterns 1–4" is an AI Mental Model</strong>—you will never see a Control Studio menu titled "Pattern 3." You use it as a 10-second sorting bucket on <em>any</em> plant Equipment Module you open:</p>
+<table>
+  <thead>
+    <tr>
+      <th style="width:19%;">Pattern Bucket</th>
+      <th style="width:27%;">Standard Command-Driven EM<br/>(<code>EM_TANK_CHARGE</code>)</th>
+      <th style="width:27%;">State-Driven EM<br/>(<code>EM_XFER_HDR</code> / <code>EM_2STAGE_VLV</code>)</th>
+      <th style="width:27%;">Real-Plant PCSD 32-Device EM<br/>(<code>3WT-0001-NEUT</code> — Ch. 11)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Pattern 1</strong><br/>(Flow / Order)</td>
+      <td><code>COMMAND_00001</code> SFC (<code>S0 → S10 → S20 → S30 → ═╧═</code>).</td>
+      <td><strong><code>Items × States</code> Table</strong> (zero SFCs; <code>A_COMMAND</code> picks 1 column).</td>
+      <td>6 enabled SFCs (<code>HOLD</code>, <code>IDLE</code>, <code>TRANSFER</code>, <code>TREAT</code>, <code>DISCHARGE</code>, <code>OFF</code>) with <code>S0100</code> work step.</td>
+    </tr>
+    <tr>
+      <td><strong>Pattern 2</strong><br/>(Safety)</td>
+      <td>FBD <code>CND1</code> (permissive) + <code>CND2/ACT1</code> (interlock trip).</td>
+      <td>FBD health watchdogs (<code>CND_VLV_HEALTH</code>) + trip <code>ACT</code> forcing <code>A_COMMAND := Close</code>.</td>
+      <td>Unwired FBD <code>CND1–CND3</code> + <strong><code>MONITOR</code></strong> composite (<code>SENTINEL_MONITOR</code> + <code>HOLD_MONITOR</code>) + <code>TMR1</code>.</td>
+    </tr>
+    <tr>
+      <td><strong>Pattern 3</strong><br/>(Math &amp; Mode)</td>
+      <td>FBD <code>XFR1 → CALC1 → CND3</code> + <code>ACT2</code> (<code>MODE.TARGET := CAS</code>).</td>
+      <td><strong>Folded into State Table!</strong> <code>MODE.TARGET</code> rows (<code>= Cascade/</code>, <code>= Auto/</code>); usually no math.</td>
+      <td><code>ACQ_REL</code> arbitration + <code>TP001–TP008</code> tuning parameters + split-range pH <code>AIC002</code> / <code>AI02RMP</code>.</td>
+    </tr>
+    <tr>
+      <td><strong>Pattern 4</strong><br/>(Cmd &amp; Proof)</td>
+      <td>Outbound <code>CAS_SP.CV</code> paired with inbound <code>PV.CV</code> + <code>CND4/CND5</code> mismatch timer.</td>
+      <td><strong>Built into State Table rows!</strong> Every row pairs a Write path (<code>CAS_SP.CV</code>) with a Readback path (<code>PV.CV</code>) for <code>A_PV</code>.</td>
+      <td>19 bound Shared Devices (<code>DEV1–DEV19</code>) watched by <code>SENTINEL_MONITOR</code> (<code>SM_01..17 = True</code>).</td>
+    </tr>
+  </tbody>
+</table>
+
 <div class="story-box">
   <div class="box-head"><span class="box-tag tag-story">Scan-by-Scan Story</span> Why Patterns 2, 3 &amp; 4 MUST Run While Pattern 1 Just Sits Waiting (Exact Expressions!)</div>
   Suppose <code>EM_TANK_CHARGE</code> has been sitting in <strong>Step <code>S10_CHARGE_OPEN</code></strong> for 20 seconds while solvent fills the tank. Look at the exact expression each Pattern is executing simultaneously during <strong>Second 21</strong>:
