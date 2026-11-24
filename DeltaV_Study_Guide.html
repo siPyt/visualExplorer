@@ -1462,7 +1462,7 @@
 <ol>
   <li><strong>State-Driven EM Tables FORBID Deep Block Paths (<em>7016</em> p. 140):</strong> Unlike SFC expressions, DeltaV's State-Driven <code>Items × States</code> table <strong>only allows module-level paths</strong> (<code>CM_FEED_XV/MODE.TARGET</code>). Without that unwired <code>MODE</code> Internal Reference box, a State-Driven EM literally cannot switch a valve to <code>Cascade</code> or <code>Auto</code>!</li>
   <li><strong>One Standard Faceplate &amp; EM Template for Hundreds of Modules:</strong> In one CM the valve block might be called <code>DC1</code>, in another <code>VLV_DC</code>, in a flow loop <code>PID_FLOW</code>. By giving <em>every</em> CM a standard module-level front door (<code>MODE</code>, <code>PV</code>, <code>CAS_SP</code>), one reusable <strong>DeltaV Live GEM</strong> (<code>DLSYS[Gem.ModName + "/MODE.ACTUAL"]</code>) or Contextual Display faceplate (<code>DLSYS[Dsp.Tag + "/PV.CV"]</code>) and one PCSD EM template can talk to <code>&lt;ANY_CM&gt;/MODE</code> without caring what the hidden block inside is named! <em>(Similarly, dragging an Output parameter from the Special Items palette "promotes" <code>LI-101/AI1/OUT</code> to the cleaner module-level path <code>LI-101/PV</code> — Getting Started 2022 pp. 60, 63.)</em></li>
-  <li><strong>Survives Controller Restart (<em>CONFIG</em> p. 214):</strong> Exposing an internal block parameter through an <code>Internal Reference</code> enables DeltaV's module-level <strong>Restore Parameter Values</strong> feature on Cold Restart (see Ch. 12.3 for the two-checkbox rule!).</li>
+  <li><strong>Survives Controller Restart (<em>CONFIG</em> p. 214):</strong> Exposing an internal block parameter through an <code>Internal Reference</code> enables DeltaV's module-level <strong>Restore Parameter Values</strong> feature on Cold Restart (see Ch. 12.2 for the two-checkbox rule!).</li>
   <li><strong>Preserving Class Inheritance via Parameter Shortcuts (<code>$</code> — <em>CONFIG</em> pp. 57, 463, 468):</strong> Plants don't build 300 flow loops by hand—they build <strong>one Master Module Class</strong> (e.g., <code>STD_FLOW_PID</code>) in the Library and stamp out 300 linked instances (<code>FIC_101</code>…<code>FIC_400</code>). If you dive into <code>FIC_101</code> and edit <code>PID1</code> directly, you risk <em>breaking the class link</em> so future library updates won't reach it. Instead, checking <em>"Allow instance value to be configured"</em> inside the Class creates a module-level <strong>Parameter Shortcut</strong> (e.g., <code>PID1$GAIN</code> or <code>AI1$IO_IN.REF</code>) right on the front door—letting each instance hold its own gain or I/O channel in Bulk Edit while staying 100% linked to the master Class! <strong>Real-Plant Rename Trap (<em>Users Exchange Tips</em> pp. 21–24):</strong> If you ever rename a parameter inside a Module Class, its Parameter Shortcut keeps showing the <em>old</em> name in DeltaV Explorer until you open Module Configuration → <strong>Parameters</strong> tab at the class level, select the parameter, and click <strong><code>Default Name</code></strong>!</li>
 </ol>
 
@@ -3802,8 +3802,8 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
 <!-- WORKSHOP 11 -->
 <div class="workshop">
   <div class="workshop-head">
-    <span class="ws-title">Workshop 11: PID Tracking Interlock (<code>LO</code>) &amp; 6-Module Plant Cold-Read Challenge</span>
-    <span class="ws-badge">Hands-On Lab • 5 Min</span>
+    <span class="ws-title">Workshop 11: PID Tracking Interlock (<code>LO</code>) &amp; 8-Module Plant Cold-Read Challenge</span>
+    <span class="ws-badge">Hands-On Lab • 6 Min</span>
   </div>
   <div class="workshop-body">
     <div class="workshop-setup">
@@ -3813,13 +3813,15 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
       <li><strong>Fire the Output Tracking Interlock &amp; Compare Single-Valve vs. Split-Range <code>TRK_VAL</code>:</strong> Look at Strip B on Tab 1: <code>CND_INTERLOCK (#4)</code> reads <code>//PT_101/HI_HI_ACT</code> (via purple dashed learning-only line) and wires its real <code>OUT_D</code> up a gray dotted feedback wire (<code>#4 → #2</code>) into <code>PID1/TRK_IN_D</code>. Click <strong>TRK_IN_D: Clear</strong> → <strong>TRK_IN_D: TRIP (LO)!</strong>.
         <br/><em>Observe:</em> <code>PID1</code> immediately overrides <code>AUTO</code>, drops <code>MODE.ACTUAL</code> to <strong><code>LO</code></strong>, and slams <code>OUT</code> to <code>TRK_VAL = 0.0%</code>—driving <code>AO1</code> shut! Try changing <strong>PID1 Target</strong> to <code>MAN</code> while tripped: because <code>Track in Manual = True</code>, the safety interlock <em>still</em> holds <code>LO (0.0%)</code>!
         <br/><em>Real-Plant Split-Range Contrast:</em> On single-valve <code>FIC_101</code>, safe <code>TRK_VAL = 0.0%</code>. Now open <strong>Expression Forge</strong> (<code>run ex</code>) and run <strong>Decode 8</strong> &amp; <strong>Bug Hunt 5</strong> to prove why your plant's split-range Acid/Base pH loop (<code>3WT-0001-AIC002</code>) <strong>must</strong> track to <code>TRK_VAL = 50.0%</code> (both pumps off) instead of <code>0.0%</code> (100% Acid dump)!</li>
-      <li><strong>6-Module Cold-Read Drill (No Training Wheels!):</strong> Flip through all 6 modules in the top-left picker and answer one question per sheet in under 15 seconds:
+      <li><strong>8-Module Cold-Read Drill (No Training Wheels!):</strong> Flip through all 8 modules in the top-left picker and answer one question per sheet in under 15 seconds:
         <ul>
+          <li><code>EM_TANK_CHARGE</code> &amp; <code>EM_XFER_HDR</code>: Open each Full Control Studio tab with the 4-Pattern Lens <strong>OFF</strong> and trace execution order <code>#1 → #N</code> cold!</li>
+          <li><code>EM_2STAGE_VLV</code>: Why do <code>BULK_CMD</code> &amp; <code>DRIBBLE_CMD</code> stay <code>(not written)</code> in <code>Auto Mode</code>?</li>
           <li><code>FIC_101</code>: Why is <code>BKCAL</code> gray dotted? On Tab 3, name all 4 unwired left-side box types (<code>Internal Ref</code>, <code>External Ref</code>, <code>Float Var</code>, <code>Param Shortcut</code>)!</li>
           <li><code>CASCADE_201</code>: On Tab 1, what happens to Master <code>TIC</code> if Slave <code>FIC</code> goes to <code>AUTO</code>? On Tab 2, what happens to <code>CTLSL1</code> if Pressure <code>.ST</code> goes <code>BAD</code>?</li>
-          <li><code>EM_2STAGE_VLV</code>: Why do <code>BULK_CMD</code> &amp; <code>DRIBBLE_CMD</code> stay <code>(not written)</code> in <code>Auto Mode</code>?</li>
-          <li><code>EM_XFER_HDR</code> &amp; <code>EM_TANK_CHARGE</code>: Open each Full Control Studio tab with the 4-Pattern Lens <strong>OFF</strong> and trace execution order <code>#1 → #N</code> cold!</li>
           <li><code>3WT-0001-NEUT</code>: Why does <code>AIC002</code> show <code>OUT: 50% (TRK=50)</code> in purple <code>LO</code> when <code>OFF</code>?</li>
+          <li><code>3WT-0001-AIC002</code>: Why does <code>SPLTR1</code> have no <code>MAN</code> mode, and what happens to Acid if <code>TRK_VAL</code> is set to <code>0%</code>?</li>
+          <li><code>CM_PMP_101</code>: Why does checking <code>Reset Required</code> <em>without</em> <code>SP Track</code> still auto-resume the pump when an operator pulses <code>RESET_D</code>?</li>
         </ul>
       </li>
     </ol>
@@ -4030,7 +4032,7 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
 (<span class="str">'//3WT-0001-AI001/AI1/OUT.CV'</span> &lt; 6.0) <span class="kw">OR</span> (<span class="str">'//3WT-0001-AI001/AI1/OUT.CV'</span> &gt; 9.0) <span class="kw">OR</span> (<span class="str">'//3WT-0001-AI001/AI1/OUT.ST'</span> &lt;= <span class="kw">BAD</span>)
 
 <span class="cmt">(* 4. Split-Range Safe Center Tracking on 3WT-0001-AIC002 (50% = BOTH Acid &amp; Base OFF!) *)</span>
-<span class="str">'//3WT-0001-AIC002/PID1/TRK_VAL.CV'</span> <span class="kw">:=</span> 50.0;   <span class="cmt">(* NEVER 0.0 — 0.0% drives 100% Acid! *)</span></div>
+<span class="str">'//3WT-0001-AIC002/_TRK_VAL.CV'</span> <span class="kw">:=</span> 50.0;       <span class="cmt">(* PCSD module-level interface → PID1/TRK_VAL.CV = 50.0 (NEVER 0.0!) *)</span></div>
 
 <h3>11.5 Inside <code>MONITOR</code> &amp; <code>TMR1</code> (Photo-Accurate Watchdog Map)</h3>
 <ul>
@@ -4046,7 +4048,7 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
 </ul>
 
 <div class="callout">
-  <div class="callout-title">11.6 Why Inactive Tabs Show <code>??? ✕</code> &amp; What to Double-Click Next Time</div>
+  <div class="callout-title">11.5.1 Why Inactive Tabs Show <code>??? ✕</code> &amp; What to Double-Click Next Time</div>
   Notice that inactive, un-executed tabs in Read-Only On-Line view (like <code>TRANSFER</code>, <code>DISCHARGE</code>, and unused <code>TMR2–TMR8</code>) can display red <strong><code>??? ✕</code></strong> placeholders when their sub-blocks are not actively subscribed/executing—that is normal in Control Studio Read-Only view and not a controller fault! If you want the exact line-by-line expressions for the remaining four drill-downs next time you're at the workstation, double-click: (1) Step <strong><code>S0100</code></strong> (and <code>S0100R</code>) inside <code>TRANSFER</code>, <code>TREAT</code>, and <code>DISCHARGE</code>; (2) <strong><code>CND1</code>, <code>CND2</code>, <code>CND3</code></strong> on the Main FBD sheet; (3) inside <strong><code>ACQ_REL</code></strong>; and (4) Conditions #1 &amp; #2 inside <strong><code>MONITOR/HM_AT1</code></strong>.
 </div>
 
@@ -4341,7 +4343,7 @@ NET_WT              <span class="kw">:=</span> <span class="str">'IN2.CV'</span>
 <!-- =====================================================================
      FUNCTION BLOCK DEEP-DIVE FIELD GUIDE (ALL ACTIVE BLOCKS)
      ===================================================================== -->
-<h2 class="page-break">Field Guide: Function Block Deep-Dive — The 6 Active Blocks in Our Modules</h2>
+<h2 class="page-break">Field Guide: Function Block Deep-Dive — All Active Plant Blocks &amp; Syntax Matrix</h2>
 <p>Every rule, pin name, mode list, status trap, and failure code below is verified directly against Emerson's official <strong><em>DeltaV Function Block Reference</em> (FBR)</strong>. Use this section as your pin-by-pin desk manual whenever you double-click a block in Control Studio or <strong>Visual Explorer</strong>.</p>
 
 <table>

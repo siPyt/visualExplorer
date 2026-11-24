@@ -543,6 +543,7 @@
     <div class="stat-pill">Streak: <span id="statStreak">0</span>🔥</div>
     <a class="nav-link" href="index.html">🎛️ Visual Explorer</a>
     <a class="nav-link" href="DeltaV_Study_Guide.html" target="_blank">📘 Study Guide</a>
+    <a class="nav-link" href="DeltaV_Study_Guide.pdf" target="_blank">📄 PDF</a>
     <a class="nav-link" href="reference.pdf" target="_blank">📋 Ref PDF</a>
   </div>
 </header>
@@ -802,7 +803,7 @@ const BUILD_DRILLS = [
     prompt: "Write an Action assignment setting external '//CM_FEED_XV/CAS_SP.CV' to the named-set constant 'vlvnc-sp:OPEN'.",
     hint: "Use ':=' and single-quoted 'SetName:Value': '//CM_FEED_XV/CAS_SP.CV' := 'vlvnc-sp:OPEN'",
     chips: ["'//CM_FEED_XV/CAS_SP.CV'", "'//CM_FEED_XV/PV.CV'", ":=", "=", "'vlvnc-sp:OPEN'", "'vlvnc-sp:CLOSE'"],
-    canon: "'//CM_FEED_XV/CAS_SP.CV' := 'vlvnc-sp:OPEN'",
+    canon: "'//CM_FEED_XV/CAS_SP.CV' := 'vlvnc-sp:OPEN';",
     validate: (norm) => norm === "'//cm_feed_xv/cas_sp.cv':='vlvnc-sp:open'" || norm === "'cm_feed_xv/cas_sp.cv':='vlvnc-sp:open'"
   },
   {
@@ -846,7 +847,7 @@ const BUILD_DRILLS = [
     prompt: "CALC outputs default to GOOD unless propagated (CONFIG p. 81)! Write the CALC1 line copying 'IN2.ST' into 'OUT1.ST'.",
     hint: "Assign status with ':=': 'OUT1.ST' := 'IN2.ST'",
     chips: ["'OUT1.ST'", "'OUT1.CV'", ":=", "=", "'IN2.ST'", "'IN2.CV'"],
-    canon: "'OUT1.ST' := 'IN2.ST'",
+    canon: "'OUT1.ST' := 'IN2.ST';",
     validate: (norm) => norm === "'out1.st':='in2.st'"
   },
   {
@@ -868,7 +869,7 @@ const BUILD_DRILLS = [
     prompt: "Write the ACT2 assignment that requests Cascade (CAS) on '//CM_FEED_XV/DC1/MODE.TARGET'.",
     hint: "Write to MODE.TARGET using := and unquoted CAS: '//CM_FEED_XV/DC1/MODE.TARGET' := CAS",
     chips: ["'//CM_FEED_XV/DC1/MODE.TARGET'", "'//CM_FEED_XV/DC1/MODE.ACTUAL'", ":=", "=", "CAS", "AUTO"],
-    canon: "'//CM_FEED_XV/DC1/MODE.TARGET' := CAS",
+    canon: "'//CM_FEED_XV/DC1/MODE.TARGET' := CAS;",
     validate: (norm) => norm === "'//cm_feed_xv/dc1/mode.target':=cas" || norm === "'cm_feed_xv/dc1/mode.target':=cas"
   },
   {
@@ -901,7 +902,7 @@ const BUILD_DRILLS = [
     prompt: "Write the action assigning the split-range neutral midpoint (50.0) to '//3WT-0001-AIC002/_TRK_VAL.CV' so both Base and Acid dosing pumps stay at 0% in LO mode.",
     hint: "Use := and 50.0 (not 0.0!): '//3WT-0001-AIC002/_TRK_VAL.CV' := 50.0",
     chips: ["'//3WT-0001-AIC002/_TRK_VAL.CV'", ":=", "=", "50.0", "0.0", "100.0"],
-    canon: "'//3WT-0001-AIC002/_TRK_VAL.CV' := 50.0",
+    canon: "'//3WT-0001-AIC002/_TRK_VAL.CV' := 50.0;",
     validate: (norm) => norm === "'//3wt-0001-aic002/_trk_val.cv':=50.0" || norm === "'//3wt-0001-aic002/_trk_val.cv':=50" || norm === "'3wt-0001-aic002/_trk_val.cv':=50.0" || norm === "'3wt-0001-aic002/_trk_val.cv':=50"
   }
 ];
@@ -917,7 +918,7 @@ const DEBUG_DRILLS = [
     buggy: "'^/OUTLET-VALVE.CV' = False",
     whyBug: "Used '=' (equality test) instead of ':=' (assignment) inside an Action! Actions require ':=' (CONFIG p62).",
     chips: ["'^/OUTLET-VALVE.CV'", ":=", "=", "False", "True"],
-    canon: "'^/OUTLET-VALVE.CV' := False",
+    canon: "'^/OUTLET-VALVE.CV' := False;",
     validate: (norm) => norm === "'^/outlet-valve.cv':=false"
   },
   {
@@ -965,7 +966,7 @@ const DEBUG_DRILLS = [
     buggy: "'//3WT-0001-AIC002/_TRK_VAL.CV' := 0.0",
     whyBug: "3WT-0001-AIC002 is a split-range Acid/Base pH loop (IMG_1121): 0% = 100% Acid, 50% = BOTH pumps off, 100% = 100% Base! Safe track value MUST be 50.0!",
     chips: ["'//3WT-0001-AIC002/_TRK_VAL.CV'", ":=", "50.0", "0.0", "100.0"],
-    canon: "'//3WT-0001-AIC002/_TRK_VAL.CV' := 50.0",
+    canon: "'//3WT-0001-AIC002/_TRK_VAL.CV' := 50.0;",
     validate: (norm) => norm === "'//3wt-0001-aic002/_trk_val.cv':=50.0" || norm === "'//3wt-0001-aic002/_trk_val.cv':=50" || norm === "'3wt-0001-aic002/_trk_val.cv':=50.0" || norm === "'3wt-0001-aic002/_trk_val.cv':=50"
   },
   {
@@ -987,10 +988,10 @@ const DEBUG_DRILLS = [
     title: "State-Driven EM Rejected Deep Block Path ('/DC1/')!",
     symptom: "Per Course 7016 p. 140, State-Driven EM Items × States tables ONLY allow module-level paths — engineers expose DC1/MODE via an unwired left-side Internal Reference box named MODE! Fix this write to use the module-level MODE Internal Reference.",
     buggy: "'//CM_FEED_XV/DC1/MODE.TARGET' := CAS",
-    whyBug: "Used the deep block-level path '/DC1/MODE.TARGET' instead of the module-level Internal Reference '//CM_FEED_XV/MODE.TARGET' (added unwired on the left side per 7017 p. 244)!",
+    whyBug: "Used the deep block-level path '/DC1/MODE.TARGET' instead of the module-level Internal Reference '//CM_FEED_XV/MODE.TARGET' (added unwired on the left side per 7017 p. 244)! Note: In Structured Text write '//CM_FEED_XV/MODE.TARGET' := CAS; (with quotes & //), while inside a State-Driven Items × States table Write Path box you type bare CM_FEED_XV/MODE.TARGET with cell '= Cascade/'.",
     chips: ["'//CM_FEED_XV/MODE.TARGET'", "'//CM_FEED_XV/DC1/MODE.TARGET'", ":=", "CAS", "AUTO"],
-    canon: "'//CM_FEED_XV/MODE.TARGET' := CAS",
-    validate: (norm) => norm === "'//cm_feed_xv/mode.target':=cas" || norm === "'cm_feed_xv/mode.target':=cas"
+    canon: "'//CM_FEED_XV/MODE.TARGET' := CAS;",
+    validate: (norm) => norm === "'//cm_feed_xv/mode.target':=cas" || norm === "'^/cm_feed_xv/mode.target':=cas"
   }
 ];
 

@@ -366,7 +366,7 @@
       </tr>
       <tr>
         <td><strong>Permissive vs. Interlock Split</strong><br/><span class="pill pill-off">Official DeltaV</span></td>
-        <td><strong>Strip A (<code>CND1</code> Permissive)</strong> = Front-door bouncer checked ONLY at <code>T10_START_OK</code> before starting. <strong>Strip B (<code>CND2 → ACT1</code> Interlock)</strong> = Emergency brake scanning continuously during the charge; slams <code>CAS_SP := CLOSE</code> and sets <code>FAIL_REQ := 1</code> immediately without waiting for any SFC transition!</td>
+        <td><strong>Strip A (<code>CND1</code> Permissive)</strong> = Front-door bouncer checked ONLY at <code>T10_START_OK</code> before starting. <strong>Strip B (<code>CND2 → ACT1</code> Interlock)</strong> = Emergency brake scanning continuously during the charge; executes <code>'//CM_FEED_XV/CAS_SP.CV' := 'vlvnc-sp:CLOSE';</code> and <code>'^/FAIL_REQ.CV' := 1;</code> immediately without waiting for any SFC transition!</td>
         <td>Double-click <code>CND</code> On-Line to open the green <code>✓</code> / red <code>✗</code> Expression tree.</td>
       </tr>
       <tr>
